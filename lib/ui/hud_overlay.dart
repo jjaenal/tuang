@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../game/my_game.dart';
+import '../state/app_settings_cubit.dart';
 
 class HudOverlay extends StatelessWidget {
   final MyGame game;
@@ -77,16 +79,40 @@ class HudOverlay extends StatelessWidget {
                 ),
               ],
             ),
-            ValueListenableBuilder<int>(
-              valueListenable: game.timeVN,
-              builder: (_, time, __) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0x55000000),
-                  borderRadius: BorderRadius.circular(8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                ValueListenableBuilder<int>(
+                  valueListenable: game.timeVN,
+                  builder: (_, time, __) => Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0x55000000),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text('Time: ${time}s', style: const TextStyle(color: Colors.white, fontSize: 16)),
+                  ),
                 ),
-                child: Text('Time: ${time}s', style: const TextStyle(color: Colors.white, fontSize: 16)),
-              ),
+                const SizedBox(height: 6),
+                // Controls: pause/resume & audio toggle (non-game state)
+                BlocBuilder<AppSettingsCubit, AppSettingsState>(
+                  builder: (context, app) => Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: app.paused ? 'Resume' : 'Pause',
+                        icon: Icon(app.paused ? Icons.play_arrow : Icons.pause, color: Colors.white70),
+                        onPressed: () => context.read<AppSettingsCubit>().setPaused(!app.paused),
+                      ),
+                      IconButton(
+                        tooltip: app.audioOn ? 'Mute' : 'Unmute',
+                        icon: Icon(app.audioOn ? Icons.volume_up : Icons.volume_off, color: Colors.white70),
+                        onPressed: () => context.read<AppSettingsCubit>().toggleAudio(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),

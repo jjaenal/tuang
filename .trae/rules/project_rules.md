@@ -10,7 +10,7 @@ jalankan `flutter test` setiap setelah melakukan perubahan untuk memeriksa testi
 
 ## Development
 
-berikan komentar pada setiap blok kode yang diubah, termasuk penjelasan tentang fungsinya dan cara kerja
+- Berikan komentar pada setiap blok kode yang diubah, termasuk penjelasan tentang fungsinya dan cara kerja
 
 ## Commit
 
@@ -27,7 +27,8 @@ jalankan `git push origin <nama branch>` setiap setelah melakukan perubahan untu
 
 ## Documentation
 
-jalankan `flutter pub run build_runner build` setiap setelah melakukan perubahan untuk memformat docs
+- Berikan komentar di atas blok fungsi yang diubah, termasuk penjelasan tentang fungsinya dan cara kerja
+- Update README.md setiap setelah melakukan perubahan
 
 README.md harus mengandung:
 
