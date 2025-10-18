@@ -28,6 +28,8 @@ class MyGame extends FlameGame {
   double _elapsed = 0;
   double sessionLength = 30; // seconds
   bool isPlaying = false;
+  bool _revivedOnce = false;
+  bool get reviveAvailable => !_revivedOnce;
 
   // speed boost mechanics
   double playerSpeedMultiplier = 1.0;
@@ -133,6 +135,8 @@ class MyGame extends FlameGame {
     children.whereType<Obstacle>().forEach((o) => o.removeFromParent());
     children.whereType<MagnetPowerUp>().forEach((m) => m.removeFromParent());
 
+    _revivedOnce = false;
+
     overlays.remove(overlayMainMenu);
     overlays.add(overlayHud);
   }
@@ -146,6 +150,17 @@ class MyGame extends FlameGame {
     }
     overlays.remove(overlayHud);
     overlays.add(overlayGameOver);
+  }
+
+  void revive() {
+    if (isPlaying) return;
+    if (_revivedOnce) return;
+    _revivedOnce = true;
+    isPlaying = true;
+    overlays.remove(overlayGameOver);
+    overlays.add(overlayHud);
+    _triggerShake(intensity: 8, duration: 0.18);
+    add(FlashOverlay(size: size, color: Colors.greenAccent));
   }
 
   void addScore(int delta) {

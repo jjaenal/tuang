@@ -8,6 +8,7 @@ import 'ui/game_over.dart';
 import 'ui/hud_overlay.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'state/app_settings_cubit.dart';
+import 'services/ad_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,15 +25,18 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<AppSettingsCubit>(create: (_) => AppSettingsCubit()),
+        BlocProvider<AppSettingsCubit>(create: (_) => AppSettingsCubit()..load()),
       ],
       child: BlocListener<AppSettingsCubit, AppSettingsState>(
-        listenWhen: (prev, curr) => prev.paused != curr.paused,
+        listenWhen: (prev, curr) => prev.paused != curr.paused || prev.adsEnabled != curr.adsEnabled || prev.consentGiven != curr.consentGiven,
         listener: (context, state) {
           if (state.paused) {
             game.pauseEngine();
           } else {
             game.resumeEngine();
+          }
+          if (state.consentGiven && state.adsEnabled) {
+            AdService.I.init();
           }
         },
         child: MaterialApp(

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../game/my_game.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../state/app_settings_cubit.dart';
+import '../services/ad_service.dart';
 
 class GameOverOverlay extends StatelessWidget {
   final MyGame game;
@@ -28,6 +31,26 @@ class GameOverOverlay extends StatelessWidget {
                 game.startGame();
               },
               child: const Text('Restart'),
+            ),
+            const SizedBox(height: 8),
+            BlocBuilder<AppSettingsCubit, AppSettingsState>(
+              builder: (context, settings) {
+                final canRevive = settings.consentGiven && settings.adsEnabled && game.reviveAvailable;
+                return ElevatedButton(
+                  onPressed: canRevive
+                      ? () async {
+                          final ok = await AdService.I.showRewardedRevive();
+                          if (!context.mounted) return;
+                          if (ok) {
+                            game.revive();
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Iklan belum tersedia')));
+                          }
+                        }
+                      : null,
+                  child: const Text('Revive (Tonton Iklan)'),
+                );
+              },
             ),
             const SizedBox(height: 8),
             ElevatedButton(
