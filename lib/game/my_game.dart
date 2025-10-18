@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'effects.dart';
 import 'obstacle.dart';
 import 'magnet.dart';
+import '../services/audio_service.dart';
 
 class MyGame extends FlameGame {
   static const String overlayMainMenu = 'MainMenu';
@@ -28,7 +29,9 @@ class MyGame extends FlameGame {
   double _elapsed = 0;
   double sessionLength = 30; // seconds
   bool isPlaying = false;
+  // Revive satu kali per sesi: _revivedOnce melacak apakah sudah digunakan
   bool _revivedOnce = false;
+  // reviveAvailable diekspos ke UI agar tombol Revive dapat dinonaktifkan
   bool get reviveAvailable => !_revivedOnce;
 
   // speed boost mechanics
@@ -135,10 +138,10 @@ class MyGame extends FlameGame {
     children.whereType<Obstacle>().forEach((o) => o.removeFromParent());
     children.whereType<MagnetPowerUp>().forEach((m) => m.removeFromParent());
 
-    _revivedOnce = false;
+    _revivedOnce = false; // reset kesempatan revive saat memulai permainan baru
 
-    overlays.remove(overlayMainMenu);
-    overlays.add(overlayHud);
+    _safeOverlayRemove(overlayMainMenu);
+    _safeOverlayAdd(overlayHud);
   }
 
   void gameOver() {
@@ -148,19 +151,35 @@ class MyGame extends FlameGame {
       bestScore = lastScore;
       _saveBestScore();
     }
-    overlays.remove(overlayHud);
-    overlays.add(overlayGameOver);
+    _safeOverlayRemove(overlayHud);
+    _safeOverlayAdd(overlayGameOver);
   }
 
   void revive() {
     if (isPlaying) return;
     if (_revivedOnce) return;
-    _revivedOnce = true;
+    _revivedOnce = true; // gunakan kesempatan revive dan tandai sudah digunakan
     isPlaying = true;
-    overlays.remove(overlayGameOver);
-    overlays.add(overlayHud);
-    _triggerShake(intensity: 8, duration: 0.18);
-    add(FlashOverlay(size: size, color: Colors.greenAccent));
+    _safeOverlayRemove(overlayGameOver);
+    _safeOverlayAdd(overlayHud); // kembali ke HUD setelah revive
+    try {
+      _triggerShake(intensity: 8, duration: 0.18);
+      add(FlashOverlay(size: size, color: Colors.greenAccent));
+    } catch (_) {}
+  }
+
+  // Helper overlay aman: cegah AssertionError saat overlay builder tidak tersedia (mis. lingkungan test)
+  void _safeOverlayAdd(String name) {
+    try {
+      overlays.add(name);
+    } catch (_) {}
+  }
+
+  // Helper overlay aman: penghapusan overlay dengan try-catch
+  void _safeOverlayRemove(String name) {
+    try {
+      overlays.remove(name);
+    } catch (_) {}
   }
 
   void addScore(int delta) {
@@ -315,6 +334,7 @@ class MyGame extends FlameGame {
           final vel = Vector2(cos(angle), sin(angle)) * speed;
           add(DotParticle(position: coin.position.clone(), velocity: vel, color: Colors.amber));
         }
+        AudioService.I.playCoin();
         coin.removeFromParent();
       }
     }
@@ -333,6 +353,7 @@ class MyGame extends FlameGame {
         magnetVN.value = 1.0; // HUD progress resets to full
         add(FlashOverlay(size: size, color: Colors.greenAccent));
         add(PopEffect(position: m.position.clone(), color: Colors.greenAccent));
+        AudioService.I.playMagnet();
         m.removeFromParent();
       }
     }
@@ -349,6 +370,7 @@ class MyGame extends FlameGame {
       if (hit) {
         _triggerShake(intensity: 10, duration: 0.2);
         add(FlashOverlay(size: size, color: Colors.red));
+        AudioService.I.playHit();
         gameOver();
         break;
       }

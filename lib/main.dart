@@ -9,6 +9,7 @@ import 'ui/hud_overlay.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'state/app_settings_cubit.dart';
 import 'services/ad_service.dart';
+import 'services/audio_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,19 +26,22 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<AppSettingsCubit>(create: (_) => AppSettingsCubit()..load()),
+        BlocProvider<AppSettingsCubit>(create: (_) => AppSettingsCubit()..load()), // load state tersimpan dari SharedPreferences
       ],
       child: BlocListener<AppSettingsCubit, AppSettingsState>(
-        listenWhen: (prev, curr) => prev.paused != curr.paused || prev.adsEnabled != curr.adsEnabled || prev.consentGiven != curr.consentGiven,
+        listenWhen: (prev, curr) => prev.paused != curr.paused || prev.adsEnabled != curr.adsEnabled || prev.consentGiven != curr.consentGiven || prev.audioOn != curr.audioOn,
         listener: (context, state) {
           if (state.paused) {
             game.pauseEngine();
           } else {
             game.resumeEngine();
           }
+          // Inisialisasi iklan hanya saat pengguna memberi consent dan Ads diaktifkan
           if (state.consentGiven && state.adsEnabled) {
             AdService.I.init();
           }
+          // Sinkronkan toggle audio dengan AudioService (mute bila audioOff)
+          AudioService.I.setMuted(!state.audioOn);
         },
         child: MaterialApp(
           title: 'Tuang Game',

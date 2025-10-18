@@ -35,12 +35,14 @@ class GameOverOverlay extends StatelessWidget {
             const SizedBox(height: 8),
             BlocBuilder<AppSettingsCubit, AppSettingsState>(
               builder: (context, settings) {
+                // Tombol Revive aktif hanya jika: pengguna memberi consent, Ads diaktifkan, dan revive belum digunakan
                 final canRevive = settings.consentGiven && settings.adsEnabled && game.reviveAvailable;
                 return ElevatedButton(
                   onPressed: canRevive
                       ? () async {
+                          // Tampilkan rewarded ad; bila reward diperoleh, panggil game.revive()
                           final ok = await AdService.I.showRewardedRevive();
-                          if (!context.mounted) return;
+                          if (!context.mounted) return; // hindari akses context setelah async gap
                           if (ok) {
                             game.revive();
                           } else {
