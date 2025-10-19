@@ -32,7 +32,8 @@ Game mobile sederhana dengan **Flutter + Flame** yang dirancang untuk sesi singk
 - **Rewarded**:
   - Revive sekali per sesi (setelah Game Over pertama)
   - Double coins opsional setelah run berakhir
-  - Daily reward di menu (maks 1/hari)
+  - Daily reward di menu (maks 1/hari) + magnet buff 12 detik
+- **Non-Personalized Ads**: Toggle untuk privasi pengguna (GDPR compliance)
 
 > Hindari spam iklan, beri tombol jelas, dan sediakan fallback jika iklan gagal dimuat.
 
@@ -65,7 +66,7 @@ lib/
 ├── game/          → Flame game logic (komponen, collision, spawner)
 ├── ui/            → Main menu, Game Over, overlays
 ├── services/      → AdMob & SharedPrefs helpers
-├── bloc/          → State management (opsional)
+├── state/         → App settings & state management (Cubit)
 └── main.dart      → Entry point + GameWidget overlays
 ```
 
@@ -88,9 +89,11 @@ final rewardedAdUnitId     = 'ca-app-pub-3940256099942544/5224354917';
 ---
 
 ## 🧠 Pengaturan & Data
-- Simpan `high_score`, `is_muted`, dan `last_daily_reward` dengan `SharedPreferences`
+- Simpan `high_score`, `is_muted`, `coins`, `last_daily_reward`, dan `pending_magnet_buff` dengan `SharedPreferences`
 - Toggle mute/unmute dari HUD
+- Toggle Non-Personalized Ads dari Main Menu
 - Batasi revive rewarded: 1 kali per sesi
+- Daily reward memberikan coins + magnet buff untuk run berikutnya
 
 ---
 
@@ -103,13 +106,16 @@ final rewardedAdUnitId     = 'ca-app-pub-3940256099942544/5224354917';
 ---
 
 ## 🧪 Roadmap
-- [ ] Setup Flame + loop permainan dasar
-- [ ] Implement menu & game over (overlays)
-- [ ] Player movement & coin collect
-- [ ] Enemy spawn & collision
-- [ ] HUD skor, pause, life
-- [ ] Integrasi AdMob (banner, interstitial, rewarded)
-- [ ] Consent & Privacy policy
+- [x] Setup Flame + loop permainan dasar
+- [x] Implement menu & game over (overlays)
+- [x] Player movement & coin collect
+- [x] Enemy spawn & collision
+- [x] HUD skor, pause, life
+- [x] Integrasi AdMob (banner, interstitial, rewarded)
+- [x] Consent & Privacy policy
+- [x] Daily reward dengan magnet buff
+- [x] Non-Personalized Ads toggle
+- [x] Coin-based fallback untuk revive/double coins
 - [ ] Polishing UX + audio + vibration
 - [ ] Rilis ke Google Play
 
@@ -118,6 +124,7 @@ final rewardedAdUnitId     = 'ca-app-pub-3940256099942544/5224354917';
 ## 🔐 Privacy & Compliance
 - Sediakan **Privacy Policy URL** di store listing
 - Tampilkan **consent dialog** (GDPR/CCPA) bila pengguna berasal dari wilayah terkait
+- Toggle **Non-Personalized Ads** tersedia di Main Menu
 - Patuh pada kebijakan konten dan iklan Google Play
 
 ---
