@@ -13,12 +13,40 @@ class AudioService {
   // Untuk pengujian: menyimpan nama aset sfx terakhir yang diminta diputar
   String? lastSfxPlayed;
 
+  bool _bgmStarted = false;
+
   // Inisialisasi channel BGM; di-mode test di-skip untuk menghindari pembuatan AudioPlayer
   Future<void> init() async {
     if (testMode) return;
     try {
       await FlameAudio.bgm.initialize();
     } catch (_) {}
+  }
+
+  // Memulai musik latar; aman dipanggil berulang, di-skip pada web/testMode
+  Future<void> startBgm({double volume = 0.6}) async {
+    if (testMode) return;
+    if (kIsWeb) return;
+    if (_muted) return;
+    // Hindari memanggil play berkali-kali tanpa henti
+    if (_bgmStarted) return;
+    try {
+      // Nama file placeholder; tangani jika aset belum tersedia
+      await FlameAudio.bgm.play('bgm.mp3', volume: volume);
+      _bgmStarted = true;
+    } catch (_) {
+      // Abaikan error jika aset belum ada
+    }
+  }
+
+  // Hentikan musik latar
+  void stopBgm() {
+    if (testMode) return;
+    if (kIsWeb) return;
+    try {
+      FlameAudio.bgm.stop();
+    } catch (_) {}
+    _bgmStarted = false;
   }
 
   // Menyetel status mute; ketika mute, coba hentikan BGM (kecuali saat testMode)
@@ -29,6 +57,7 @@ class AudioService {
       try {
         FlameAudio.bgm.stop();
       } catch (_) {}
+      _bgmStarted = false;
     }
   }
 

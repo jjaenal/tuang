@@ -3,7 +3,7 @@
 ## Linting
 
 - jalankan `flutter analyze` setiap setelah melakukan perubahan untuk memeriksa linting
-- fix semua linting error, warn, info, hint, etc.
+- Perbaiki semua linting warnings, deprecations, hint, etc.
 
 ## Testing
 
@@ -14,17 +14,22 @@
 
 Berikan komentar pada setiap blok kode yang diubah, termasuk penjelasan tentang fungsinya dan cara kerja
 
-- Function comment
-- Block comment
+- Class comment:
+  - Berikan komentar pada setiap class yang dibuat, termasuk parameter, return value, dan penjelasan tentang class dan cara kerja.
+- Function comment:
+  - Berikan komentar pada setiap fungsi yang dibuat, termasuk parameter, return value, dan penjelasan tentang fungsinya dan cara kerja.
+- Block comment:
+  - Berikan komentar pada setiap blok kode yang diubah, termasuk penjelasan tentang fungsinya dan cara kerja.
 
 ## Commit
 
-jalankan `git commit -m "commit message"` setiap setelah melakukan perubahan untuk memasukkan commit, commit message harus mengandung nama file yang diubah dan penjelasan singkat tentang perubahan tersebut:
+- Buat branch baru untuk perubahan yang major, misalnya perubahan yang mengubah struktur kode, menambahkan fitur baru, atau memperbaiki bug yang tidak terduga.
+- Jalankan `git commit -m "commit message"` setiap setelah melakukan perubahan minimal 1 file tunggal atau yang ada relasi ke file lain, commit message harus mengandung nama file yang diubah dan penjelasan singkat tentang perubahan tersebut:
 
-- Add new feature
-- Fix bug
-- Refactor code
-- Update documentation
+- fitur baru `Add new feature`
+- Fixed bug `Fix bug`
+- Refactor code `Refactor code`
+- Update documentation `Update documentation`
 
 <!-- ## Pull Request
 
@@ -32,7 +37,9 @@ jalankan `git push origin <nama branch>` setiap setelah melakukan perubahan untu
 
 ## Documentation
 
-Update README.md setiap setelah melakukan perubahan
+- Update TODO.md setiap setelah selesai melakukan perubahan
+
+- Update README.md setiap setelah selesai melakukan perubahan
 
 README.md harus mengandung:
 

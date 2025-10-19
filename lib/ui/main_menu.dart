@@ -1,11 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../game/my_game.dart';
 import '../state/app_settings_cubit.dart';
+import '../services/ad_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class MainMenuOverlay extends StatelessWidget {
+class MainMenuOverlay extends StatefulWidget {
   final MyGame game;
   const MainMenuOverlay({super.key, required this.game});
+
+  @override
+  State<MainMenuOverlay> createState() => _MainMenuOverlayState();
+}
+
+class _MainMenuOverlayState extends State<MainMenuOverlay> {
+  static const String _privacyUrl = 'https://example.com/privacy';
+  BannerAd? _bannerAd;
+  bool _bannerReady = false;
+
+  Future<bool> _showConsentDialog(BuildContext context) async {
+    final accepted = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Ads Consent'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Text('Game ini menampilkan iklan untuk mendukung pengembangan.'),
+              SizedBox(height: 8),
+              Text('Dengan menekan Setuju, Anda memberikan izin untuk menampilkan iklan.'),
+              SizedBox(height: 8),
+              Text('Anda bisa mengubah pengaturan kapan saja di Main Menu.'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Tidak Setuju')),
+          TextButton(
+            onPressed: () async {
+              final uri = Uri.parse(_privacyUrl);
+              try {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              } catch (_) {}
+            },
+            child: const Text('Kebijakan Privasi'),
+          ),
+          ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Setuju')),
+        ],
+      ),
+    );
+    return accepted == true;
+  }
 
   Future<void> _ensureConsentThenEnableAds(BuildContext context) async {
     final cubit = context.read<AppSettingsCubit>();
@@ -14,22 +64,50 @@ class MainMenuOverlay extends StatelessWidget {
       cubit.toggleAds();
       return;
     }
-    final accepted = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Consent'),
-        content: const Text('Apakah Anda setuju melihat iklan (GDPR/CCPA)?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Tidak')),
-          ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Setuju')),
-        ],
-      ),
-    );
-    if (accepted == true) {
+    final accepted = await _showConsentDialog(context);
+    if (accepted) {
       cubit.setConsent(true);
       cubit.toggleAds();
     }
+  }
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
+
+
+  /// Muat banner ads dengan ukuran anchored adaptive agar pas di layar.
+  /// Menggunakan lebar layar saat ini untuk menghitung tinggi adaptif.
+  void _loadBannerIfNeeded(BuildContext ctx, AppSettingsState app) {
+    if (_bannerAd != null) return;
+    if (!app.adsEnabled || !app.consentGiven) return;
+    if (kIsWeb) return; // hindari plugin di web
+
+    // Hitung ukuran anchored adaptive berdasarkan lebar layar saat ini.
+    final width = MediaQuery.of(ctx).size.width.truncate();
+    AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(width).then((anchoredSize) {
+      if (!mounted) return; // pastikan State masih hidup
+      if (anchoredSize == null) return; // ukuran gagal dihitung, abaikan
+
+      final ad = BannerAd(
+        adUnitId: AdService.I.bannerUnitId(),
+        size: anchoredSize,
+        request: AdRequest(nonPersonalizedAds: app.npaEnabled),
+        listener: BannerAdListener(
+          onAdLoaded: (ad) => setState(() => _bannerReady = true),
+          onAdFailedToLoad: (ad, err) {
+            ad.dispose();
+            setState(() {
+              _bannerAd = null;
+              _bannerReady = false;
+            });
+          },
+        ),
+      );
+      ad.load();
+      setState(() => _bannerAd = ad);
+    });
   }
 
   @override
@@ -38,64 +116,154 @@ class MainMenuOverlay extends StatelessWidget {
       color: const Color(0xAA000000),
       child: Center(
         child: BlocBuilder<AppSettingsCubit, AppSettingsState>(
-          builder: (context, app) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Endless Dodge & Collect',
-                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text('Best: ${game.bestScore}', style: const TextStyle(color: Colors.white70)),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: () => game.startGame(),
-                child: const Text('Play'),
-              ),
-              const SizedBox(height: 12),
-              // Toggle audio
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.volume_up, color: Colors.white70, size: 18),
-                  const SizedBox(width: 6),
-                  const Text('Audio', style: TextStyle(color: Colors.white70)),
-                  const SizedBox(width: 8),
-                  Switch(
-                    value: app.audioOn,
-                    onChanged: (_) => context.read<AppSettingsCubit>().toggleAudio(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // Toggle ads (requires consent)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.ad_units, color: Colors.white70, size: 18),
-                  const SizedBox(width: 6),
-                  const Text('Ads', style: TextStyle(color: Colors.white70)),
-                  const SizedBox(width: 8),
-                  Switch(
-                    value: app.adsEnabled && app.consentGiven,
-                    onChanged: (val) => _ensureConsentThenEnableAds(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              if (app.adsEnabled && app.consentGiven)
-                Container(
-                  height: 50,
-                  width: 320,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: const Color(0x2233FF99),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text('Banner Ad (placeholder)', style: TextStyle(color: Colors.white70)),
+          builder: (context, app) {
+            _loadBannerIfNeeded(context, app); // siapkan banner adaptive ketika syarat terpenuhi
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Endless Dodge & Collect',
+                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-            ],
-          ),
+                const SizedBox(height: 4),
+                Text('Best: ${widget.game.bestScore}', style: const TextStyle(color: Colors.white70)),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.circle, color: Colors.amber, size: 14),
+                    const SizedBox(width: 6),
+                    Text('Coins: ${app.coins}', style: const TextStyle(color: Colors.white70)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: () => widget.game.startGame(),
+                  child: const Text('Play'),
+                ),
+                const SizedBox(height: 12),
+                // Toggle audio
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.volume_up, color: Colors.white70, size: 18),
+                    const SizedBox(width: 6),
+                    const Text('Audio', style: TextStyle(color: Colors.white70)),
+                    const SizedBox(width: 8),
+                    Switch(
+                      value: app.audioOn,
+                      onChanged: (_) => context.read<AppSettingsCubit>().toggleAudio(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                // Toggle ads (requires consent)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.ad_units, color: Colors.white70, size: 18),
+                    const SizedBox(width: 6),
+                    const Text('Ads', style: TextStyle(color: Colors.white70)),
+                    const SizedBox(width: 8),
+                    Switch(
+                      value: app.adsEnabled && app.consentGiven,
+                      onChanged: (val) => _ensureConsentThenEnableAds(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                // Toggle Non-Personalized Ads (NPA)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.privacy_tip, color: Colors.white70, size: 18),
+                    const SizedBox(width: 6),
+                    const Text('Non-Personalized Ads', style: TextStyle(color: Colors.white70)),
+                    const SizedBox(width: 8),
+                    Switch(
+                      value: app.npaEnabled,
+                      onChanged: (_) => context.read<AppSettingsCubit>().toggleNpa(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Divider(color: Colors.white24, height: 1),
+                const SizedBox(height: 12),
+                
+                /// Tombol Daily Reward: aktif jika belum klaim hari ini.
+                /// - Jika consent + ads aktif (non-web), tampilkan rewarded ad dan klaim bila sukses.
+                /// - Jika tidak, klaim langsung dan beri umpan balik via SnackBar.
+                Builder(
+                  builder: (ctx) {
+                    final cubit = ctx.read<AppSettingsCubit>();
+                    final canClaim = cubit.canClaimDailyReward;
+                    return ElevatedButton(
+                      onPressed: canClaim
+                          ? () async {
+                              const rewardCoins = 25;
+                              if (app.adsEnabled && app.consentGiven && !kIsWeb) {
+                                final ok = await AdService.I.showRewardedDailyReward();
+                                if (!ctx.mounted) return;
+                                if (ok) {
+                                  cubit.markDailyRewardClaimedNow();
+                                  cubit.addCoins(rewardCoins);
+                                  cubit.grantMagnetBuff(12);
+                                  ScaffoldMessenger.of(ctx).showSnackBar(
+                                    const SnackBar(content: Text('Daily reward: +25 coins + magnet 12s!')),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(ctx).showSnackBar(
+                                    const SnackBar(content: Text('Iklan belum tersedia')),
+                                  );
+                                }
+                              } else {
+                                cubit.markDailyRewardClaimedNow();
+                                cubit.addCoins(rewardCoins);
+                                cubit.grantMagnetBuff(12);
+                                if (!ctx.mounted) return;
+                                ScaffoldMessenger.of(ctx).showSnackBar(
+                                  const SnackBar(content: Text('Daily reward: +25 coins + magnet 12s (tanpa iklan)')),
+                                );
+                              }
+                            }
+                          : null,
+                      child: Text(canClaim ? 'Daily Reward' : 'Sudah Klaim Hari Ini'),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                
+                if (app.adsEnabled && app.consentGiven)
+                  kIsWeb
+                      ? Container(
+                          height: 50,
+                          width: 320,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: const Color(0x2233FF99),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text('Banner Ad (placeholder)', style: TextStyle(color: Colors.white70)),
+                        )
+                      : (_bannerAd != null && _bannerReady)
+                          ? SizedBox(
+                              height: _bannerAd!.size.height.toDouble(),
+                              width: _bannerAd!.size.width.toDouble(),
+                              child: AdWidget(ad: _bannerAd!),
+                            )
+                          : Container(
+                              height: 50,
+                              width: 320,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: const Color(0x22FFFFFF),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text('Memuat iklan...', style: TextStyle(color: Colors.white70)),
+                            ),
+              ],
+            );
+          },
         ),
       ),
     );

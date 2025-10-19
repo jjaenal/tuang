@@ -4,7 +4,7 @@ import 'my_game.dart';
 
 // MagnetPowerUp: simple rectangular pickup that activates coin attraction
 // when collected. Spawned periodically by MyGame's _magnetTimer.
-class MagnetPowerUp extends RectangleComponent with HasGameRef<MyGame> {
+class MagnetPowerUp extends RectangleComponent with HasGameReference<MyGame> {
   MagnetPowerUp({Vector2? position, Color color = const Color(0xFF2ECC71)})
       : super(
           size: Vector2(18, 18),

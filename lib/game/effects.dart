@@ -30,7 +30,7 @@ class PopEffect extends RectangleComponent {
     final s = startSize + (endSize - startSize) * t;
     size = Vector2.all(s);
     final opacity = 1.0 - t;
-    paint.color = color.withOpacity(opacity);
+    paint.color = color.withValues(alpha: opacity);
     if (_elapsed >= duration) {
       removeFromParent();
     }
@@ -73,7 +73,7 @@ class FloatingText extends TextComponent {
     final opacity = 1.0 - t;
     final current = (textRenderer as TextPaint).style;
     textRenderer = TextPaint(
-      style: current.copyWith(color: color.withOpacity(opacity)),
+      style: current.copyWith(color: color.withValues(alpha: opacity)),
     );
     if (_elapsed >= duration) {
       removeFromParent();
@@ -93,7 +93,7 @@ class FlashOverlay extends RectangleComponent {
   }) : super(
           size: size,
           position: Vector2.zero(),
-          paint: Paint()..color = color.withOpacity(0.0),
+          paint: Paint()..color = color.withValues(alpha: 0.0),
         ) {
     anchor = Anchor.topLeft;
     priority = 1000;
@@ -104,7 +104,7 @@ class FlashOverlay extends RectangleComponent {
     super.update(dt);
     _elapsed += dt;
     final t = (_elapsed / duration).clamp(0.0, 1.0);
-    paint.color = color.withOpacity(1.0 - t);
+    paint.color = color.withValues(alpha: 1.0 - t);
     if (_elapsed >= duration) {
       removeFromParent();
     }
@@ -137,7 +137,7 @@ class DotParticle extends RectangleComponent {
     position += velocity * dt;
     velocity *= 0.98; // simple damping
     final t = (_elapsed / duration).clamp(0.0, 1.0);
-    paint.color = color.withOpacity(1.0 - t);
+    paint.color = color.withValues(alpha: 1.0 - t);
     if (_elapsed >= duration) {
       removeFromParent();
     }

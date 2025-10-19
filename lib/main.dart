@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flame/game.dart';
-import 'package:flame/components.dart';
 import 'game/my_game.dart';
 import 'ui/main_menu.dart';
 import 'ui/game_over.dart';
@@ -14,6 +13,7 @@ import 'services/audio_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  await AudioService.I.init(); // inisialisasi BGM channel
   final MyGame game = MyGame();
   runApp(MyApp(game: game));
 }
@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
         BlocProvider<AppSettingsCubit>(create: (_) => AppSettingsCubit()..load()), // load state tersimpan dari SharedPreferences
       ],
       child: BlocListener<AppSettingsCubit, AppSettingsState>(
-        listenWhen: (prev, curr) => prev.paused != curr.paused || prev.adsEnabled != curr.adsEnabled || prev.consentGiven != curr.consentGiven || prev.audioOn != curr.audioOn,
+        listenWhen: (prev, curr) => prev.paused != curr.paused || prev.adsEnabled != curr.adsEnabled || prev.consentGiven != curr.consentGiven || prev.audioOn != curr.audioOn || prev.npaEnabled != curr.npaEnabled,
         listener: (context, state) {
           if (state.paused) {
             game.pauseEngine();
@@ -40,8 +40,13 @@ class MyApp extends StatelessWidget {
           if (state.consentGiven && state.adsEnabled) {
             AdService.I.init();
           }
-          // Sinkronkan toggle audio dengan AudioService (mute bila audioOff)
+          // Sinkronkan preferensi NPA ke AdService
+          AdService.I.setNonPersonalizedAds(state.npaEnabled);
+          // Sinkronkan toggle audio dengan AudioService (mute bila audioOff) dan mulai BGM bila audioOn
           AudioService.I.setMuted(!state.audioOn);
+          if (state.audioOn) {
+            AudioService.I.startBgm();
+          }
         },
         child: MaterialApp(
           title: 'Tuang Game',
@@ -58,11 +63,12 @@ class MyApp extends StatelessWidget {
                 }
               },
               onPanEnd: (_) => game.inputDir = Vector2.zero(),
-              child: RawKeyboardListener(
+              child: KeyboardListener(
                 focusNode: FocusNode(),
                 autofocus: true,
-                onKey: (RawKeyEvent event) {
-                  final pressed = RawKeyboard.instance.keysPressed;
+                onKeyEvent: (KeyEvent event) {
+                  // Gunakan API keyboard baru (HardwareKeyboard) sesuai deprecation Flutter 3.18+
+                  final pressed = HardwareKeyboard.instance.logicalKeysPressed;
                   final dir = Vector2.zero();
                   if (pressed.contains(LogicalKeyboardKey.keyA) || pressed.contains(LogicalKeyboardKey.arrowLeft)) dir.x -= 1;
                   if (pressed.contains(LogicalKeyboardKey.keyD) || pressed.contains(LogicalKeyboardKey.arrowRight)) dir.x += 1;

@@ -1,10 +1,8 @@
 import 'package:flame/components.dart';
-import 'package:flame/collisions.dart';
-import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
 import 'my_game.dart';
 
-class Player extends RectangleComponent with HasGameRef<MyGame> {
+class Player extends RectangleComponent with HasGameReference<MyGame> {
   final double speed = 200;
 
   Player() : super(size: Vector2(24, 24), paint: Paint()..color = Colors.blue);
@@ -12,25 +10,25 @@ class Player extends RectangleComponent with HasGameRef<MyGame> {
   @override
   Future<void> onLoad() async {
     anchor = Anchor.center;
-    position = gameRef.size / 2;
+    position = game.size / 2;
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-    final delta = gameRef.inputDir.clone();
+    final delta = game.inputDir.clone();
     if (delta.length2 > 0) {
       delta.normalize();
-      final currentSpeed = speed * gameRef.playerSpeedMultiplier;
+      final currentSpeed = speed * game.playerSpeedMultiplier;
       position += delta * currentSpeed * dt;
     }
 
     // visual feedback for boost
-    paint.color = gameRef.playerSpeedMultiplier > 1.0 ? Colors.cyan : Colors.blue;
+    paint.color = game.playerSpeedMultiplier > 1.0 ? Colors.cyan : Colors.blue;
 
     position = Vector2(
-      position.x.clamp(size.x / 2, gameRef.size.x - size.x / 2),
-      position.y.clamp(size.y / 2, gameRef.size.y - size.y / 2),
+      position.x.clamp(size.x / 2, game.size.x - size.x / 2),
+      position.y.clamp(size.y / 2, game.size.y - size.y / 2),
     );
   }
 }

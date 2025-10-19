@@ -10,6 +10,7 @@ import 'effects.dart';
 import 'obstacle.dart';
 import 'magnet.dart';
 import '../services/audio_service.dart';
+import '../services/ad_service.dart';
 
 class MyGame extends FlameGame {
   static const String overlayMainMenu = 'MainMenu';
@@ -33,6 +34,14 @@ class MyGame extends FlameGame {
   bool _revivedOnce = false;
   // reviveAvailable diekspos ke UI agar tombol Revive dapat dinonaktifkan
   bool get reviveAvailable => !_revivedOnce;
+  // Double coins hanya sekali per sesi game over
+  bool _doubleCoinsUsed = false;
+  bool get doubleCoinsAvailable => !_doubleCoinsUsed;
+  
+  // Flag deposit reward agar hanya sekali per game over
+  bool _rewardDeposited = false;
+  bool get rewardDeposited => _rewardDeposited;
+  void markRewardDeposited() { _rewardDeposited = true; }
 
   // speed boost mechanics
   double playerSpeedMultiplier = 1.0;
@@ -55,21 +64,13 @@ class MyGame extends FlameGame {
   final double magnetRadius = 120.0;
   final double magnetStrength = 220.0;
 
-  // HUD notifiers:
-  // - magnetVN: 0..1 progress for magnet duration (HUD bar)
-  // - comboVN: current combo multiplier shown in HUD
+  // HUD properties for magnet progress & combo multiplier
   final ValueNotifier<double> magnetVN = ValueNotifier<double>(0.0);
   final ValueNotifier<int> comboVN = ValueNotifier<int>(1);
-
-  // Combo multiplier state:
-  // - _comboCount increments per coin within window
-  // - _comboTimeLeft decays; resets combo when it reaches 0
-  // - _comboWindow defines allowed gap between coin pickups
-  // - _comboMultiplier computed as 1 + (_comboCount ~/ 3)
   int _comboCount = 0;
-  double _comboTimeLeft = 0.0;
-  final double _comboWindow = 1.4;
   int _comboMultiplier = 1;
+  double _comboTimeLeft = 0.0;
+  final double _comboWindow = 2.0;
 
   @override
   Color backgroundColor() => const Color(0xFF101418);
@@ -90,58 +91,45 @@ class MyGame extends FlameGame {
     overlays.add(overlayMainMenu);
   }
 
-  Future<void> _loadBestScore() async {
-    final prefs = await SharedPreferences.getInstance();
-    bestScore = prefs.getInt('bestScore') ?? 0;
-  }
-
-  Future<void> _saveBestScore() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('bestScore', bestScore);
-  }
-
   void startGame() {
-    scoreVN.value = 0;
-    lastScore = 0;
-    _elapsed = 0;
     isPlaying = true;
-
+    _elapsed = 0;
+    scoreVN.value = 0;
+    _revivedOnce = false;
+    _doubleCoinsUsed = false;
     playerSpeedMultiplier = 1.0;
     _boostTimeLeft = 0.0;
-
-    _shakeTimeLeft = 0.0;
-    _shakeIntensity = 0.0;
-
-    _coinTimer.stop();
-    _coinTimer.limit = 1.5;
-    _coinTimer.start();
-
-    _obstacleTimer.stop();
-    _obstacleTimer.limit = 2.5;
-    _obstacleTimer.start();
-
-    _magnetTimer.stop();
-    _magnetTimer.limit = 8.0;
-    _magnetTimer.start();
-
-    _magnetTimeLeft = 0.0;
-    magnetVN.value = 0.0;
-
     _comboCount = 0;
-    _comboTimeLeft = 0.0;
     _comboMultiplier = 1;
+    _comboTimeLeft = 0.0;
+    magnetVN.value = 0.0;
     comboVN.value = 1;
 
-    timeVN.value = sessionLength.toInt();
-
-    children.whereType<Coin>().forEach((c) => c.removeFromParent());
-    children.whereType<Obstacle>().forEach((o) => o.removeFromParent());
-    children.whereType<MagnetPowerUp>().forEach((m) => m.removeFromParent());
-
-    _revivedOnce = false; // reset kesempatan revive saat memulai permainan baru
+    _coinTimer.start();
+    _obstacleTimer.start();
+    _magnetTimer.start();
 
     _safeOverlayRemove(overlayMainMenu);
     _safeOverlayAdd(overlayHud);
+
+    // Konsumsi buff magnet harian jika ada. Tangani kegagalan SharedPreferences di lingkungan test.
+    SharedPreferences.getInstance().then((prefs) {
+      final sec = prefs.getInt('pref_pendingMagnetBuffSec') ?? 0;
+      if (sec > 0) {
+        _magnetTimeLeft = sec.toDouble();
+        magnetVN.value = 1.0;
+        prefs.setInt('pref_pendingMagnetBuffSec', 0);
+        // Sedikit efek visual/audio agar terasa.
+        try {
+          add(FlashOverlay(size: size, color: Colors.greenAccent, duration: 0.15));
+        } catch (_) {}
+        try {
+          AudioService.I.playMagnet();
+        } catch (_) {}
+      }
+    }).catchError((_) {
+      // Abaikan saat SharedPreferences tidak tersedia (mis. unit test VM tanpa binding)
+    });
   }
 
   void gameOver() {
@@ -151,8 +139,13 @@ class MyGame extends FlameGame {
       bestScore = lastScore;
       _saveBestScore();
     }
+    _rewardDeposited = false;
     _safeOverlayRemove(overlayHud);
     _safeOverlayAdd(overlayGameOver);
+    // Tampilkan interstitial jika tersedia (respect init, consent, cooldown)
+    try {
+      AdService.I.showInterstitial();
+    } catch (_) {}
   }
 
   void revive() {
@@ -164,62 +157,67 @@ class MyGame extends FlameGame {
     _safeOverlayAdd(overlayHud); // kembali ke HUD setelah revive
     try {
       _triggerShake(intensity: 8, duration: 0.18);
-      add(FlashOverlay(size: size, color: Colors.greenAccent));
+      add(FlashOverlay(size: size, color: Colors.greenAccent, duration: 0.15));
     } catch (_) {}
   }
 
-  // Helper overlay aman: cegah AssertionError saat overlay builder tidak tersedia (mis. lingkungan test)
   void _safeOverlayAdd(String name) {
     try {
-      overlays.add(name);
+      if (!overlays.isActive(name)) {
+        overlays.add(name);
+      }
     } catch (_) {}
   }
 
-  // Helper overlay aman: penghapusan overlay dengan try-catch
   void _safeOverlayRemove(String name) {
     try {
-      overlays.remove(name);
+      if (overlays.isActive(name)) {
+        overlays.remove(name);
+      }
     } catch (_) {}
   }
 
-  void addScore(int delta) {
-    scoreVN.value += delta;
+  Future<void> _loadBestScore() async {
+    final prefs = await SharedPreferences.getInstance();
+    bestScore = prefs.getInt('best_score') ?? 0;
+  }
+
+  Future<void> _saveBestScore() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('best_score', bestScore);
   }
 
   void spawnCoin() {
-    if (!isPlaying) return;
-    final double margin = 16;
-    final pos = Vector2(
-      margin + _rng.nextDouble() * (size.x - margin * 2),
-      margin + _rng.nextDouble() * (size.y - margin * 2),
-    );
+    final pos = Vector2(_rng.nextDouble() * size.x, _rng.nextDouble() * size.y);
     add(Coin(position: pos));
   }
 
   void spawnObstacle() {
-    if (!isPlaying) return;
-    final double margin = 20;
-    final pos = Vector2(
-      margin + _rng.nextDouble() * (size.x - margin * 2),
-      margin + _rng.nextDouble() * (size.y - margin * 2),
-    );
+    final pos = Vector2(_rng.nextDouble() * size.x, _rng.nextDouble() * size.y);
     final angle = _rng.nextDouble() * pi * 2;
     final speed = 80 + _rng.nextDouble() * 140;
     final vel = Vector2(cos(angle), sin(angle)) * speed;
     add(Obstacle(position: pos, velocity: vel));
   }
 
-  // Spawn a single MagnetPowerUp at a random position when timer ticks.
-  // Enforces only one magnet existing at a time to avoid clutter.
   void spawnMagnet() {
-    if (!isPlaying) return;
-    if (children.whereType<MagnetPowerUp>().isNotEmpty) return;
-    final double margin = 20;
-    final pos = Vector2(
-      margin + _rng.nextDouble() * (size.x - margin * 2),
-      margin + _rng.nextDouble() * (size.y - margin * 2),
-    );
+    final pos = Vector2(_rng.nextDouble() * size.x, _rng.nextDouble() * size.y);
     add(MagnetPowerUp(position: pos));
+  }
+
+  void addScore(int delta) {
+    scoreVN.value += delta;
+  }
+
+  void updateTimers(double dt) {
+    _coinTimer.update(dt);
+    _obstacleTimer.update(dt);
+    _magnetTimer.update(dt);
+  }
+
+  void _triggerShake({double intensity = 6.0, double duration = 0.12}) {
+    _shakeIntensity = intensity;
+    _shakeTimeLeft = duration;
   }
 
   @override
@@ -228,25 +226,16 @@ class MyGame extends FlameGame {
     if (!isPlaying) return;
 
     _elapsed += dt;
-    _coinTimer.update(dt);
-    _obstacleTimer.update(dt);
-    _magnetTimer.update(dt);
+    updateTimers(dt);
 
-    // apply camera shake
+    // shake update
     if (_shakeTimeLeft > 0) {
       _shakeTimeLeft -= dt;
-      final offset = Vector2(
-        (_rng.nextDouble() * 2 - 1) * _shakeIntensity,
-        (_rng.nextDouble() * 2 - 1) * _shakeIntensity,
-      );
-      camera.viewfinder.position = offset;
       if (_shakeTimeLeft <= 0) {
-        camera.viewfinder.position = Vector2.zero();
+        _shakeIntensity = 0.0;
+        _shakeTimeLeft = 0.0;
       }
     }
-
-    final remaining = (sessionLength - _elapsed).clamp(0, sessionLength);
-    timeVN.value = remaining.ceil();
 
     // decay speed boost
     if (_boostTimeLeft > 0) {
@@ -256,39 +245,23 @@ class MyGame extends FlameGame {
       }
     }
 
-    // Magnet countdown and HUD progress update.
-    // magnetVN drives a 0..1 progress bar in HUD.
-    if (_magnetTimeLeft > 0) {
-      _magnetTimeLeft -= dt;
-      magnetVN.value = (_magnetTimeLeft / _magnetDuration).clamp(0.0, 1.0);
-      if (_magnetTimeLeft <= 0) {
-        magnetVN.value = 0.0;
-      }
-    }
-
-    // Combo decay and reset: when time window elapses, reset streak.
+    // combo window countdown
     if (_comboTimeLeft > 0) {
       _comboTimeLeft -= dt;
       if (_comboTimeLeft <= 0) {
-        _comboCount = 0;
         _comboMultiplier = 1;
-        comboVN.value = 1;
+        comboVN.value = _comboMultiplier;
       }
     }
 
-    // difficulty scaling: faster spawn over time
-    final diff = (_elapsed / sessionLength).clamp(0.0, 1.0);
-    final newLimit = 1.5 - diff * 1.0; // 1.5s -> 0.5s
-    if ((_coinTimer.limit - newLimit).abs() > 0.01) {
-      _coinTimer.limit = newLimit; // jangan reset timer setiap frame
-    }
-    final newObstacleLimit = 2.5 - diff * 1.2; // 2.5s -> ~1.3s
-    if ((_obstacleTimer.limit - newObstacleLimit).abs() > 0.01) {
-      _obstacleTimer.limit = newObstacleLimit;
+    // magnet countdown
+    if (_magnetTimeLeft > 0) {
+      _magnetTimeLeft -= dt;
+      if (_magnetTimeLeft < 0) _magnetTimeLeft = 0;
+      magnetVN.value = (_magnetTimeLeft / _magnetDuration).clamp(0, 1);
     }
 
-    // Magnet attraction: pull nearby coins towards the player while active.
-    // Uses normalized vector scaled by magnetStrength for simple homing behavior.
+    // Magnet attraction: pull nearby coins towards the player while active
     if (_magnetTimeLeft > 0) {
       for (final coin in children.whereType<Coin>()) {
         final toPlayer = player.position - coin.position;
@@ -300,19 +273,29 @@ class MyGame extends FlameGame {
       }
     }
 
-    // coin pickup & effects
+    // Player movement
+    final move = inputDir.normalized() * (80.0 * playerSpeedMultiplier) * dt;
+    player.position += move;
+
+    // Keep player within the screen bounds
     final playerTopLeft = player.position - player.size / 2;
     final playerBottomRight = playerTopLeft + player.size;
+    if (playerTopLeft.x < 0) player.position.x = player.size.x / 2;
+    if (playerBottomRight.x > size.x) player.position.x = size.x - player.size.x / 2;
+    if (playerTopLeft.y < 0) player.position.y = player.size.y / 2;
+    if (playerBottomRight.y > size.y) player.position.y = size.y - player.size.y / 2;
+
+    // coin pickup
     for (final coin in children.whereType<Coin>()) {
       final coinTopLeft = coin.position - coin.size / 2;
       final coinBottomRight = coinTopLeft + coin.size;
-      final intersects =
+      final pick =
           playerTopLeft.x < coinBottomRight.x &&
           playerBottomRight.x > coinTopLeft.x &&
           playerTopLeft.y < coinBottomRight.y &&
           playerBottomRight.y > coinTopLeft.y;
-      if (intersects) {
-        // combo update
+      if (pick) {
+        addScore(1);
         _comboCount += 1;
         _comboTimeLeft = _comboWindow;
         _comboMultiplier = 1 + (_comboCount ~/ 3);
@@ -381,11 +364,6 @@ class MyGame extends FlameGame {
     }
   }
 
-  // Triggers screen shake by setting intensity and duration; reset handled in update().
-  void _triggerShake({double intensity = 6.0, double duration = 0.12}) {
-    _shakeIntensity = intensity;
-    _shakeTimeLeft = duration;
-  }
 
   @override
   void onRemove() {
@@ -395,8 +373,21 @@ class MyGame extends FlameGame {
     comboVN.dispose();
     super.onRemove();
   }
+
+  Future<void> applyDoubleCoinsReward() async {
+    if (_doubleCoinsUsed) return;
+    _doubleCoinsUsed = true;
+    final doubled = lastScore * 2;
+    lastScore = doubled;
+    scoreVN.value = doubled;
+    if (lastScore > bestScore) {
+      bestScore = lastScore;
+      await _saveBestScore();
+    }
+  }
 }
 
+// Keyboard controller for web/desktop
 class _KeyboardController extends KeyboardListenerComponent {
   final MyGame game;
   _KeyboardController(this.game);

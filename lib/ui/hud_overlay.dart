@@ -31,6 +31,25 @@ class HudOverlay extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
+                // Saldo coins (persisten) dari AppSettingsCubit
+                BlocBuilder<AppSettingsCubit, AppSettingsState>(
+                  builder: (context, app) => Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0x55330000),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.circle, color: Colors.amber, size: 14),
+                        const SizedBox(width: 6),
+                        Text('Coins: ${app.coins}', style: const TextStyle(color: Colors.white)),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
                 // Magnet indicator: shows active state using progress bar (0..1)
                 ValueListenableBuilder<double>(
                   valueListenable: game.magnetVN,

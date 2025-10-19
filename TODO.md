@@ -1,43 +1,43 @@
 # 🧩 TODO – Flutter Game Project
 
 ## 🎯 Core Tasks
-- [ ] Setup Flame base class (`MyGame`)
-- [ ] Add player movement (drag/hold) + arena boundaries
-- [ ] Implement coin spawn and collection + scoring
-- [ ] Implement enemy spawn and collision + difficulty ramping
-- [ ] Add game state management (menu, playing, game_over) via overlays
-- [ ] Add HUD (score, life, pause)
-- [ ] Add audio (pickup/collide) + mute toggle
+- [x] Setup Flame base class (`MyGame`)
+- [x] Add player movement (drag/hold) + arena boundaries
+- [x] Implement coin spawn and collection + scoring
+- [x] Implement enemy spawn and collision + difficulty ramping
+- [x] Add game state management (menu, playing, game_over) via overlays
+- [x] Add HUD (score, pause)
+- [x] Add audio (pickup/collide) + mute toggle
 
 ---
 
 ## 💰 Monetization
 - [ ] Integrate Google Mobile Ads SDK (Android/iOS)
-- [ ] Create `AdService` (init, preload, show/hide, logging)
-- [ ] Display adaptive banner ads on main menu
-- [ ] Show interstitial ads after Game Over
-- [ ] Add interstitial capping (max 1 per ±120s) + cooldown
-- [ ] Add rewarded ads for revive (max 1 per sesi)
-- [ ] Add rewarded ads for double coins (opsional, setelah run)
+- [x] Create `AdService` (init, preload, show/hide, logging)
+- [x] Display adaptive banner ads on main menu
+- [x] Show interstitial ads after Game Over
+- [x] Add interstitial capping (max 1 per ±120s) + cooldown
+- [x] Add rewarded ads for revive (max 1 per sesi)
+- [x] Add rewarded ads for double coins (opsional, setelah run)
 - [ ] Implement daily reward via rewarded (maks 1/hari)
-- [ ] Implement GDPR/CCPA consent gating sebelum load iklan
+- [x] Implement GDPR/CCPA consent gating sebelum load iklan
 
 ---
 
 ## 🎨 UI / UX
 - [ ] Build main menu screen (Play, Daily Reward, Banner)
-- [ ] Build game over screen (score, restart, rewarded options)
+- [x] Build game over screen (score, restart, rewarded options)
 - [ ] Add custom buttons and icons
 - [ ] Add simple transition animation (fade/slide)
-- [ ] Add sound effects + volume icon state
+- [x] Add sound effects + volume icon state
 - [ ] Optional: vibration (haptics)
 
 ---
 
 ## 🧠 Data & Settings
-- [ ] Save high score with SharedPreferences
-- [ ] Add mute/unmute toggle (persist)
-- [ ] Add restart / pause system
+- [x] Save high score with SharedPreferences
+- [x] Add mute/unmute toggle (persist)
+- [x] Add restart / pause system
 - [ ] Persist daily reward state (`last_daily_reward`)
 - [ ] Instrumentation: session length, ad load/show rate, error codes
 - [ ] Logging: interstitial/rewarded load/show, eCPM placeholder (dev log)

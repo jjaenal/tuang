@@ -2,7 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'my_game.dart';
 
-class Obstacle extends RectangleComponent with HasGameRef<MyGame> {
+class Obstacle extends RectangleComponent with HasGameReference<MyGame> {
   Vector2 velocity;
 
   Obstacle({
@@ -28,16 +28,16 @@ class Obstacle extends RectangleComponent with HasGameRef<MyGame> {
     if (position.x < half.x) {
       position.x = half.x;
       velocity.x = velocity.x.abs();
-    } else if (position.x > gameRef.size.x - half.x) {
-      position.x = gameRef.size.x - half.x;
+    } else if (position.x > game.size.x - half.x) {
+      position.x = game.size.x - half.x;
       velocity.x = -velocity.x.abs();
     }
 
     if (position.y < half.y) {
       position.y = half.y;
       velocity.y = velocity.y.abs();
-    } else if (position.y > gameRef.size.y - half.y) {
-      position.y = gameRef.size.y - half.y;
+    } else if (position.y > game.size.y - half.y) {
+      position.y = game.size.y - half.y;
       velocity.y = -velocity.y.abs();
     }
   }
