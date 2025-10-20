@@ -1,7 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tuang/game/my_game.dart';
+import 'package:tuang/services/audio_service.dart';
+import 'package:tuang/services/haptics_service.dart';
 
 void main() {
+  AudioService.testMode = true;
+  HapticsService.testMode = true;
   test('revive only once per session', () async {
     final game = MyGame();
     // start and then game over

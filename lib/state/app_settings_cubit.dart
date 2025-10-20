@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'pref_keys.dart';
 
 /// AppSettingsCubit mengelola state non-game (UI/app-layer) seperti:
 /// - audioOn: apakah audio diaktifkan
@@ -29,6 +30,9 @@ class AppSettingsState extends Equatable {
   /// Buff magnet yang pending (detik) akan diterapkan saat game dimulai, lalu direset.
   final int pendingMagnetBuffSeconds;
 
+  /// Durasi buff magnet harian yang akan diberikan saat klaim daily reward.
+  final int dailyMagnetBuffSeconds;
+
   const AppSettingsState({
     required this.audioOn,
     required this.hapticsOn,
@@ -43,6 +47,8 @@ class AppSettingsState extends Equatable {
     this.npaEnabled = false,
     // Default tidak ada buff magnet.
     this.pendingMagnetBuffSeconds = 0,
+    // Default buff harian 12 detik.
+    this.dailyMagnetBuffSeconds = 12,
   });
 
   AppSettingsState copyWith({
@@ -56,6 +62,7 @@ class AppSettingsState extends Equatable {
     int? coins,
     bool? npaEnabled,
     int? pendingMagnetBuffSeconds,
+    int? dailyMagnetBuffSeconds,
   }) {
     return AppSettingsState(
       audioOn: audioOn ?? this.audioOn,
@@ -68,6 +75,8 @@ class AppSettingsState extends Equatable {
       npaEnabled: npaEnabled ?? this.npaEnabled,
       pendingMagnetBuffSeconds:
           pendingMagnetBuffSeconds ?? this.pendingMagnetBuffSeconds,
+      dailyMagnetBuffSeconds:
+          dailyMagnetBuffSeconds ?? this.dailyMagnetBuffSeconds,
     );
   }
 
@@ -82,23 +91,29 @@ class AppSettingsState extends Equatable {
     coins,
     npaEnabled,
     pendingMagnetBuffSeconds,
+    dailyMagnetBuffSeconds,
   ];
 }
 
 class AppSettingsCubit extends Cubit<AppSettingsState> {
-  static const _kAudioOn = 'pref_audioOn';
-  static const _kHapticsOn = 'pref_hapticsOn';
-  static const _kConsentGiven = 'pref_consentGiven';
-  static const _kAdsEnabled = 'pref_adsEnabled';
-  static const _kPaused = 'pref_paused';
+  // Default durasi buff magnet harian (detik) — satu sumber kebenaran untuk daily reward.
+  static const int defaultDailyMagnetBuffSec = 12;
+
+  static const _kAudioOn = PrefKeys.audioOn;
+  static const _kHapticsOn = PrefKeys.hapticsOn;
+  static const _kConsentGiven = PrefKeys.consentGiven;
+  static const _kAdsEnabled = PrefKeys.adsEnabled;
+  static const _kPaused = PrefKeys.paused;
   // Key baru untuk menyimpan tanggal terakhir daily reward diklaim.
-  static const _kLastDailyRewardDate = 'pref_lastDailyRewardDate';
+  static const _kLastDailyRewardDate = PrefKeys.lastDailyRewardDate;
   // Key untuk saldo coins persisten.
-  static const _kCoins = 'pref_coins';
+  static const _kCoins = PrefKeys.coins;
   // Key untuk Non-Personalized Ads.
-  static const _kNpaEnabled = 'pref_npaEnabled';
+  static const _kNpaEnabled = PrefKeys.npaEnabled;
   // Key untuk buff magnet pending.
-  static const _kPendingMagnetBuffSec = 'pref_pendingMagnetBuffSec';
+  static const _kPendingMagnetBuffSec = PrefKeys.pendingMagnetBuffSec;
+  // Key untuk durasi buff magnet harian.
+  static const _kDailyMagnetBuffSec = PrefKeys.dailyMagnetBuffSec;
 
   AppSettingsCubit()
     : super(
@@ -111,6 +126,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
           // lastDailyRewardDate default null (belum diklaim).
           // coins default 0.
           // npaEnabled default false.
+          // dailyMagnetBuffSeconds default 12.
         ),
       );
 
@@ -132,6 +148,8 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
         pendingMagnetBuffSeconds:
             prefs.getInt(_kPendingMagnetBuffSec) ??
             state.pendingMagnetBuffSeconds,
+        dailyMagnetBuffSeconds:
+            prefs.getInt(_kDailyMagnetBuffSec) ?? defaultDailyMagnetBuffSec,
       ),
     );
   }
@@ -154,6 +172,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     await prefs.setInt(_kCoins, state.coins);
     await prefs.setBool(_kNpaEnabled, state.npaEnabled);
     await prefs.setInt(_kPendingMagnetBuffSec, state.pendingMagnetBuffSeconds);
+    await prefs.setInt(_kDailyMagnetBuffSec, state.dailyMagnetBuffSeconds);
   }
 
   /// Toggle audio aktif/nonaktif.
@@ -202,6 +221,13 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
       _savePrefs();
     }
     return s;
+  }
+
+  /// Set durasi buff magnet harian (0..15 detik).
+  void setDailyMagnetBuffSeconds(int seconds) {
+    final s = seconds < 0 ? 0 : (seconds > 15 ? 15 : seconds);
+    emit(state.copyWith(dailyMagnetBuffSeconds: s));
+    _savePrefs();
   }
 
   /// Set pause/resume status dari UI overlay.

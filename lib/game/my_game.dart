@@ -6,6 +6,7 @@ import 'player.dart';
 import 'coin.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../state/pref_keys.dart';
 import 'effects.dart';
 import 'obstacle.dart';
 import 'magnet.dart';
@@ -13,6 +14,7 @@ import '../services/audio_service.dart';
 import '../services/ad_service.dart';
 import '../services/logging_service.dart';
 import '../services/haptics_service.dart';
+import 'game_config.dart';
 
 /// MyGame adalah inti loop permainan dan pengelola state.
 ///
@@ -24,6 +26,17 @@ class MyGame extends FlameGame {
   static const String overlayHud = 'Hud';
   static const String overlayGameOver = 'GameOver';
 
+  // Tunable constants: spawn cadence and magnet behavior
+  static const double coinSpawnIntervalSec = GameConfig.coinSpawnIntervalSec;
+  static const double obstacleSpawnIntervalSec =
+      GameConfig.obstacleSpawnIntervalSec;
+  static const double magnetSpawnIntervalSec =
+      GameConfig.magnetSpawnIntervalSec;
+  static const double magnetPickupDurationSec =
+      GameConfig.magnetPickupDurationSec;
+  static const double magnetPullRadius = GameConfig.magnetPullRadius;
+  static const double magnetPullStrength = GameConfig.magnetPullStrength;
+  static const double playerBaseSpeed = GameConfig.playerBaseSpeed;
   Vector2 inputDir = Vector2.zero();
 
   late final Player player;
@@ -37,11 +50,11 @@ class MyGame extends FlameGame {
   int coinsPicked = 0;
   int magnetsPicked = 0;
   int reviveCount = 0;
-  final Timer _coinTimer = Timer(1.5, repeat: true);
-  final Timer _obstacleTimer = Timer(2.5, repeat: true);
+  final Timer _coinTimer = Timer(coinSpawnIntervalSec, repeat: true);
+  final Timer _obstacleTimer = Timer(obstacleSpawnIntervalSec, repeat: true);
   final Random _rng = Random();
   double _elapsed = 0;
-  double sessionLength = 30; // seconds
+  double sessionLength = GameConfig.defaultSessionLengthSec; // seconds
   bool isPlaying = false;
   // Revive satu kali per sesi: _revivedOnce melacak apakah sudah digunakan
   bool _revivedOnce = false;
@@ -62,8 +75,8 @@ class MyGame extends FlameGame {
   // speed boost mechanics
   double playerSpeedMultiplier = 1.0;
   double _boostTimeLeft = 0.0;
-  final double _boostDuration = 0.5; // seconds
-  final double _boostAmount = 0.6; // +60% speed
+  final double _boostDuration = GameConfig.speedBoostDurationSec; // seconds
+  final double _boostAmount = GameConfig.speedBoostMultiplier; // +60% speed
 
   // screen shake
   double _shakeTimeLeft = 0.0;
@@ -72,16 +85,16 @@ class MyGame extends FlameGame {
   // Magnet power-up configuration & state:
   // - _magnetTimer schedules spawns periodically
   // - _magnetTimeLeft counts down active magnet duration
-  // - _magnetDuration controls active time per pickup
+  // - magnetPickupDurationSec controls active time per pickup
   // - magnetRadius and magnetStrength define coin pull behavior
-  final Timer _magnetTimer = Timer(8.0, repeat: true);
+  final Timer _magnetTimer = Timer(magnetSpawnIntervalSec, repeat: true);
   double _magnetTimeLeft = 0.0;
-  final double _magnetDuration = 6.0;
-  final double magnetRadius = 120.0;
-  final double magnetStrength = 220.0;
+  // Use constants for magnet radius/strength
+  final double magnetRadius = magnetPullRadius;
+  final double magnetStrength = magnetPullStrength;
   // Getter untuk HUD
   int get magnetSecondsLeft => _magnetTimeLeft.ceil();
-  double get magnetDuration => _magnetDuration;
+  double get magnetDuration => magnetPickupDurationSec;
 
   /// Durasi sesi berjalan (detik). Direset saat `startGame`.
   double get elapsed => _elapsed;
@@ -92,7 +105,7 @@ class MyGame extends FlameGame {
   int _comboCount = 0;
   int _comboMultiplier = 1;
   double _comboTimeLeft = 0.0;
-  final double _comboWindow = 2.0;
+  final double _comboWindow = GameConfig.comboWindowSec;
 
   @override
   Color backgroundColor() => const Color(0xFF101418);
@@ -151,11 +164,11 @@ class MyGame extends FlameGame {
     // Konsumsi buff magnet harian jika ada. Tangani kegagalan SharedPreferences di lingkungan test.
     SharedPreferences.getInstance()
         .then((prefs) {
-          final sec = prefs.getInt('pref_pendingMagnetBuffSec') ?? 0;
+          final sec = prefs.getInt(PrefKeys.pendingMagnetBuffSec) ?? 0;
           if (sec > 0) {
             _magnetTimeLeft = sec.toDouble();
             magnetVN.value = 1.0;
-            prefs.setInt('pref_pendingMagnetBuffSec', 0);
+            prefs.setInt(PrefKeys.pendingMagnetBuffSec, 0);
             // tandai magnet dipakai di run ini
             magnetUsedThisRun = true;
             LoggingService.log(
@@ -230,7 +243,10 @@ class MyGame extends FlameGame {
     _safeOverlayAdd(overlayHud); // kembali ke HUD setelah revive
     LoggingService.log('revive_applied');
     try {
-      _triggerShake(intensity: 8, duration: 0.18);
+      _triggerShake(
+        intensity: GameConfig.reviveShakeIntensity,
+        duration: GameConfig.reviveShakeDurationSec,
+      );
       add(FlashOverlay(size: size, color: Colors.greenAccent, duration: 0.15));
     } catch (_) {}
     try {
@@ -272,7 +288,9 @@ class MyGame extends FlameGame {
   void spawnObstacle() {
     final pos = Vector2(_rng.nextDouble() * size.x, _rng.nextDouble() * size.y);
     final angle = _rng.nextDouble() * pi * 2;
-    final speed = 80 + _rng.nextDouble() * 140;
+    final speed =
+        GameConfig.obstacleMinSpeed +
+        _rng.nextDouble() * GameConfig.obstacleMaxSpeedBonus;
     final vel = Vector2(cos(angle), sin(angle)) * speed;
     add(Obstacle(position: pos, velocity: vel));
   }
@@ -343,7 +361,7 @@ class MyGame extends FlameGame {
     if (_magnetTimeLeft > 0) {
       _magnetTimeLeft -= dt;
       if (_magnetTimeLeft < 0) _magnetTimeLeft = 0;
-      magnetVN.value = (_magnetTimeLeft / _magnetDuration).clamp(0, 1);
+      magnetVN.value = (_magnetTimeLeft / magnetPickupDurationSec).clamp(0, 1);
     }
 
     // Magnet attraction: pull nearby coins towards the player while active
@@ -359,7 +377,8 @@ class MyGame extends FlameGame {
     }
 
     // Player movement
-    final move = inputDir.normalized() * (80.0 * playerSpeedMultiplier) * dt;
+    final move =
+        inputDir.normalized() * (playerBaseSpeed * playerSpeedMultiplier) * dt;
     player.position += move;
 
     // Keep player within the screen bounds
@@ -392,7 +411,7 @@ class MyGame extends FlameGame {
         coinsPicked += 1;
         _comboCount += 1;
         _comboTimeLeft = _comboWindow;
-        _comboMultiplier = 1 + (_comboCount ~/ 3);
+        _comboMultiplier = 1 + (_comboCount ~/ GameConfig.coinsPerComboLevel);
         comboVN.value = _comboMultiplier;
 
         addScore(_comboMultiplier);
@@ -401,7 +420,10 @@ class MyGame extends FlameGame {
         _boostTimeLeft = _boostDuration;
 
         // juicy effects
-        _triggerShake(intensity: 6, duration: 0.12);
+        _triggerShake(
+          intensity: GameConfig.coinShakeIntensity,
+          duration: GameConfig.coinShakeDurationSec,
+        );
         add(FlashOverlay(size: size));
         add(PopEffect(position: coin.position.clone(), color: Colors.amber));
         add(
@@ -411,9 +433,11 @@ class MyGame extends FlameGame {
             color: Colors.white,
           ),
         );
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i < GameConfig.coinParticleCount; i++) {
           final angle = _rng.nextDouble() * pi * 2;
-          final speed = 80 + _rng.nextDouble() * 120;
+          final speed =
+              GameConfig.particleMinSpeed +
+              _rng.nextDouble() * GameConfig.particleMaxSpeedBonus;
           final vel = Vector2(cos(angle), sin(angle)) * speed;
           add(
             DotParticle(
@@ -431,7 +455,7 @@ class MyGame extends FlameGame {
       }
     }
 
-    // Magnet pickup: activates magnet for _magnetDuration and triggers visual feedback.
+    // Magnet pickup: activates magnet for magnetPickupDurationSec and triggers visual feedback.
     for (final m in children.whereType<MagnetPowerUp>()) {
       final mTopLeft = m.position - m.size / 2;
       final mBottomRight = mTopLeft + m.size;
@@ -441,14 +465,14 @@ class MyGame extends FlameGame {
           playerTopLeft.y < mBottomRight.y &&
           playerBottomRight.y > mTopLeft.y;
       if (pick) {
-        _magnetTimeLeft = _magnetDuration;
+        _magnetTimeLeft = magnetPickupDurationSec;
         magnetVN.value = 1.0; // HUD progress resets to full
         // tandai magnet dipakai di run ini
         magnetUsedThisRun = true;
         magnetsPicked += 1;
         LoggingService.log(
           'magnet_pickup',
-          fields: {'duration_sec': _magnetDuration},
+          fields: {'duration_sec': magnetPickupDurationSec},
         );
         add(FlashOverlay(size: size, color: Colors.greenAccent));
         add(PopEffect(position: m.position.clone(), color: Colors.greenAccent));
@@ -470,7 +494,10 @@ class MyGame extends FlameGame {
           playerTopLeft.y < obsBottomRight.y &&
           playerBottomRight.y > obsTopLeft.y;
       if (hit) {
-        _triggerShake(intensity: 10, duration: 0.2);
+        _triggerShake(
+          intensity: GameConfig.collisionShakeIntensity,
+          duration: GameConfig.collisionShakeDurationSec,
+        );
         add(FlashOverlay(size: size, color: Colors.red));
         AudioService.I.playHit();
         gameOver();

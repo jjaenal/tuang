@@ -8,6 +8,7 @@ import '../services/ad_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import '../services/logging_service.dart';
+import '../game/game_config.dart';
 
 class MainMenuOverlay extends StatefulWidget {
   final MyGame game;
@@ -24,6 +25,26 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
   Timer? _ticker;
   DateTime _now = DateTime.now();
   bool _debugLogging = true;
+  bool _showGameSettings = false;
+
+  Widget _buildConfigItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('$label: ', style: const TextStyle(color: Colors.white70)),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<bool> _showConsentDialog(BuildContext context) async {
     final accepted = await showDialog<bool>(
@@ -77,8 +98,8 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
 
   // Hook region gating: nanti bisa diganti dengan deteksi wilayah (EEA/UK/California)
   bool _regionRequiresConsent() {
-    // Saat ini selalu minta consent; implementasi gating menyusul.
-    return true;
+    // Gunakan konfigurasi dari GameConfig untuk menentukan kebutuhan consent.
+    return GameConfig.alwaysRequireConsent;
   }
 
   Future<void> _ensureConsentThenEnableAds(BuildContext context) async {
@@ -323,6 +344,123 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                   ],
                 ),
                 const SizedBox(height: 8),
+                // Daily magnet buff tuning slider
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.bolt, color: Colors.white70, size: 18),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'Daily Magnet',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 180,
+                      child: Slider(
+                        value: app.dailyMagnetBuffSeconds.toDouble(),
+                        min: 0,
+                        max: GameConfig.maxDailyMagnetBuffSec.toDouble(),
+                        divisions: GameConfig.maxDailyMagnetBuffSec,
+                        label: '${app.dailyMagnetBuffSeconds}s',
+                        onChanged: (val) {
+                          context
+                              .read<AppSettingsCubit>()
+                              .setDailyMagnetBuffSeconds(val.round());
+                          final messenger = ScaffoldMessenger.of(context);
+                          final seconds = val.round();
+                          final estimate = GameConfig.magnetBuffValueCoins(
+                            seconds,
+                          );
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Daily Magnet: ${seconds}s (~$estimate coins)',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '~${GameConfig.magnetBuffValueCoins(app.dailyMagnetBuffSeconds)} coins',
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.settings, color: Colors.white70, size: 18),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'Game Settings',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                    const SizedBox(width: 8),
+                    Switch(
+                      value: _showGameSettings,
+                      onChanged: (val) {
+                        setState(() => _showGameSettings = val);
+                      },
+                    ),
+                  ],
+                ),
+                if (_showGameSettings) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0x33000000),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Game Config',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildConfigItem(
+                          'Daily Reward',
+                          '${GameConfig.dailyRewardCoins} coins',
+                        ),
+                        _buildConfigItem(
+                          'Revive Cost',
+                          '${GameConfig.reviveCostCoins} coins',
+                        ),
+                        _buildConfigItem(
+                          'Double Coins Cost',
+                          '${GameConfig.doubleCoinsCoins} coins',
+                        ),
+                        _buildConfigItem(
+                          'Session Length',
+                          '${GameConfig.defaultSessionLengthSec}s',
+                        ),
+                        _buildConfigItem(
+                          'Magnet Duration',
+                          '${GameConfig.magnetPickupDurationSec}s',
+                        ),
+                        _buildConfigItem(
+                          'Daily Magnet Buff',
+                          '${GameConfig.defaultDailyMagnetBuffSec}s',
+                        ),
+                        _buildConfigItem(
+                          'Max Revives',
+                          '${GameConfig.maxRevivesPerSession}',
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -369,11 +507,39 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0x33220000),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.white24),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.card_giftcard,
+                                color: Colors.white70,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s (~${GameConfig.magnetBuffValueCoins(app.dailyMagnetBuffSeconds)} coins)',
+                                style: const TextStyle(color: Colors.white70),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 6),
                         ElevatedButton(
                           onPressed:
                               canClaim
                                   ? () async {
-                                    const rewardCoins = 25;
+                                    const rewardCoins =
+                                        GameConfig.dailyRewardCoins;
                                     LoggingService.log(
                                       'daily_reward_requested',
                                       fields: {
@@ -391,19 +557,22 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                       if (ok) {
                                         cubit.markDailyRewardClaimedNow();
                                         cubit.addCoins(rewardCoins);
-                                        cubit.grantMagnetBuff(12);
+                                        cubit.grantMagnetBuff(
+                                          app.dailyMagnetBuffSeconds,
+                                        );
                                         LoggingService.log(
                                           'daily_reward_claimed',
                                           fields: {
                                             'coins': rewardCoins,
-                                            'magnet_sec': 12,
+                                            'magnet_sec':
+                                                app.dailyMagnetBuffSeconds,
                                             'via': 'ad',
                                           },
                                         );
                                         ScaffoldMessenger.of(ctx).showSnackBar(
-                                          const SnackBar(
+                                          SnackBar(
                                             content: Text(
-                                              'Daily reward: +25 coins + magnet 12s!',
+                                              'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s!',
                                             ),
                                           ),
                                         );
@@ -422,20 +591,23 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                     } else {
                                       cubit.markDailyRewardClaimedNow();
                                       cubit.addCoins(rewardCoins);
-                                      cubit.grantMagnetBuff(12);
+                                      cubit.grantMagnetBuff(
+                                        app.dailyMagnetBuffSeconds,
+                                      );
                                       LoggingService.log(
                                         'daily_reward_claimed',
                                         fields: {
                                           'coins': rewardCoins,
-                                          'magnet_sec': 12,
+                                          'magnet_sec':
+                                              app.dailyMagnetBuffSeconds,
                                           'via': 'no_ad',
                                         },
                                       );
                                       if (!ctx.mounted) return;
                                       ScaffoldMessenger.of(ctx).showSnackBar(
-                                        const SnackBar(
+                                        SnackBar(
                                           content: Text(
-                                            'Daily reward: +25 coins + magnet 12s (tanpa iklan)',
+                                            'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s (tanpa iklan)',
                                           ),
                                         ),
                                       );

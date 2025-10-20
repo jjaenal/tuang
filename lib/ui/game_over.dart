@@ -5,6 +5,7 @@ import '../state/app_settings_cubit.dart';
 import '../services/ad_service.dart';
 import 'package:flutter/foundation.dart';
 import '../services/logging_service.dart';
+import '../game/game_config.dart';
 
 class GameOverOverlay extends StatelessWidget {
   final MyGame game;
@@ -87,6 +88,14 @@ class GameOverOverlay extends StatelessWidget {
                         'Magnet dipakai: ${magnetUsed ? 'Ya' : 'Tidak'}',
                         style: const TextStyle(color: Colors.white70),
                       ),
+                      Text(
+                        'Magnet diambil: ${game.magnetsPicked}',
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                      Text(
+                        'Koin diambil: ${game.coinsPicked}',
+                        style: const TextStyle(color: Colors.white70),
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         'Total: +$score coins',
@@ -158,16 +167,20 @@ class GameOverOverlay extends StatelessWidget {
                               }
                             }
                             if (!revived) {
-                              final spent = cubit.spendCoins(50);
+                              final spent = cubit.spendCoins(
+                                GameConfig.reviveCostCoins,
+                              );
                               if (spent) {
                                 LoggingService.log(
                                   'revive_via_coins_spent',
-                                  fields: {'cost': 50},
+                                  fields: {'cost': GameConfig.reviveCostCoins},
                                 );
                                 game.revive();
                                 messenger.showSnackBar(
                                   const SnackBar(
-                                    content: Text('Revive pakai 50 coins'),
+                                    content: Text(
+                                      'Revive pakai ${GameConfig.reviveCostCoins} coins',
+                                    ),
                                   ),
                                 );
                               } else {
@@ -175,7 +188,7 @@ class GameOverOverlay extends StatelessWidget {
                                 messenger.showSnackBar(
                                   const SnackBar(
                                     content: Text(
-                                      'Butuh 50 coins untuk revive',
+                                      'Butuh ${GameConfig.reviveCostCoins} coins untuk revive',
                                     ),
                                   ),
                                 );
@@ -223,12 +236,14 @@ class GameOverOverlay extends StatelessWidget {
                               }
                             }
                             if (!doubled) {
-                              final spent = cubit.spendCoins(50);
+                              final spent = cubit.spendCoins(
+                                GameConfig.doubleCoinsCoins,
+                              );
                               if (spent) {
                                 LoggingService.log(
                                   'double_via_coins_spent',
                                   fields: {
-                                    'cost': 50,
+                                    'cost': GameConfig.doubleCoinsCoins,
                                     'new': game.lastScore * 2,
                                   },
                                 );
@@ -236,7 +251,7 @@ class GameOverOverlay extends StatelessWidget {
                                 messenger.showSnackBar(
                                   const SnackBar(
                                     content: Text(
-                                      'Double coins pakai 50 coins',
+                                      'Double coins pakai ${GameConfig.doubleCoinsCoins} coins',
                                     ),
                                   ),
                                 );
@@ -245,7 +260,7 @@ class GameOverOverlay extends StatelessWidget {
                                 messenger.showSnackBar(
                                   const SnackBar(
                                     content: Text(
-                                      'Butuh 50 coins untuk double coins',
+                                      'Butuh ${GameConfig.doubleCoinsCoins} coins untuk double coins',
                                     ),
                                   ),
                                 );
@@ -253,7 +268,9 @@ class GameOverOverlay extends StatelessWidget {
                             }
                           }
                           : null,
-                  child: const Text('Double Coins (Iklan atau 50 coins)'),
+                  child: Text(
+                    'Double Coins (Iklan atau ${GameConfig.doubleCoinsCoins} coins)',
+                  ),
                 );
               },
             ),

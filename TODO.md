@@ -34,6 +34,7 @@
 - [x] Add sound effects + volume icon state
 - [x] Add magnet power-up visual feedback (flash overlay)
 - [x] Optional: vibration (haptics)
+- [x] Add Game Settings panel (debug, show GameConfig values)
 
 ---
 
@@ -59,7 +60,7 @@
 
 ## 🔮 Future Enhancements
 - [ ] Tuning magnet buff duration dan cost
-- [ ] Reward breakdown UI (show coins + buff details)
+- [x] Reward breakdown UI (show coins + buff details)
 - [ ] Additional power-ups (speed boost, shield, etc.)
 - [ ] Achievement system
 - [ ] Leaderboard integration

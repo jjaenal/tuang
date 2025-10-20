@@ -2,8 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flame/components.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tuang/game/my_game.dart';
+import 'package:tuang/services/audio_service.dart';
+import 'package:tuang/services/haptics_service.dart';
 
 void main() {
+  AudioService.testMode = true;
+  HapticsService.testMode = true;
   group('MyGame session timing', () {
     test(
       'timeVN updates as elapsed increases and triggers gameOver at end',
