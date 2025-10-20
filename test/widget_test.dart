@@ -13,7 +13,7 @@ import 'package:tuang/main.dart';
 void main() {
   testWidgets('App boots and renders MaterialApp', (WidgetTester tester) async {
     final game = MyGame();
-    await tester.pumpWidget(MyApp(game: game));
+    await tester.pumpWidget(MyApp(game: game, showMainMenuOnBoot: false));
     await tester.pump();
 
     // Close initial overlay to avoid layout overflow in tight test constraints

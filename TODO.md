@@ -62,7 +62,7 @@
 - [ ] Tuning magnet buff duration dan cost
 - [x] Reward breakdown UI (show coins + buff details)
 - [ ] Additional power-ups (speed boost, shield, etc.)
-- [ ] Achievement system
+- [x] Achievement system
 - [ ] Leaderboard integration
 - [ ] Multiple character skins
 - [ ] Upload to Google Play Console

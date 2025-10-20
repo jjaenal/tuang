@@ -21,7 +21,8 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final MyGame game;
-  const MyApp({super.key, required this.game});
+  final bool showMainMenuOnBoot;
+  const MyApp({super.key, required this.game, this.showMainMenuOnBoot = true});
 
   @override
   Widget build(BuildContext context) {
@@ -110,6 +111,8 @@ class MyApp extends StatelessWidget {
                     MyGame.overlayGameOver:
                         (context, g) => GameOverOverlay(game: g as MyGame),
                   },
+                  initialActiveOverlays:
+                      showMainMenuOnBoot ? const [MyGame.overlayMainMenu] : const [],
                 ),
               ),
             ),
