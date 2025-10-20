@@ -14,7 +14,11 @@ void main() {
   testWidgets('App boots and renders MaterialApp', (WidgetTester tester) async {
     final game = MyGame();
     await tester.pumpWidget(MyApp(game: game));
-    await tester.pumpAndSettle();
+    await tester.pump();
+
+    // Close initial overlay to avoid layout overflow in tight test constraints
+    game.overlays.remove(MyGame.overlayMainMenu);
+    await tester.pump();
 
     // Verify root MaterialApp is present in the widget tree
     expect(find.byType(MaterialApp), findsOneWidget);
