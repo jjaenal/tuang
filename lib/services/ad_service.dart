@@ -2,6 +2,32 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'logging_service.dart';
 
+// Ad Unit IDs via dart-define overrides with test defaults
+const String _bannerAndroidEnv = String.fromEnvironment(
+  'ADMOB_BANNER_ANDROID',
+  defaultValue: 'ca-app-pub-3940256099942544/6300978111',
+);
+const String _bannerIosEnv = String.fromEnvironment(
+  'ADMOB_BANNER_IOS',
+  defaultValue: 'ca-app-pub-3940256099942544/2934735716',
+);
+const String _interstitialAndroidEnv = String.fromEnvironment(
+  'ADMOB_INTERSTITIAL_ANDROID',
+  defaultValue: 'ca-app-pub-3940256099942544/1033173712',
+);
+const String _interstitialIosEnv = String.fromEnvironment(
+  'ADMOB_INTERSTITIAL_IOS',
+  defaultValue: 'ca-app-pub-3940256099942544/4411468910',
+);
+const String _rewardedAndroidEnv = String.fromEnvironment(
+  'ADMOB_REWARDED_ANDROID',
+  defaultValue: 'ca-app-pub-3940256099942544/5224354917',
+);
+const String _rewardedIosEnv = String.fromEnvironment(
+  'ADMOB_REWARDED_IOS',
+  defaultValue: 'ca-app-pub-3940256099942544/1712485313',
+);
+
 /// AdService: layanan iklan interstitial & rewarded untuk Android/iOS.
 /// Mengelola init, preload, penayangan, cooldown, NPA, dan slot rewarded harian.
 /// Instrumentasi melalui LoggingService: `ad_init_*`, `ad_interstitial_*`, `ad_rewarded_*`.
@@ -273,9 +299,9 @@ class AdService {
   String _interstitialUnitId() {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return 'ca-app-pub-3940256099942544/1033173712';
+        return _interstitialAndroidEnv;
       case TargetPlatform.iOS:
-        return 'ca-app-pub-3940256099942544/4411468910';
+        return _interstitialIosEnv;
       default:
         return '';
     }
@@ -285,9 +311,9 @@ class AdService {
   String _rewardedUnitId() {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return 'ca-app-pub-3940256099942544/5224354917';
+        return _rewardedAndroidEnv;
       case TargetPlatform.iOS:
-        return 'ca-app-pub-3940256099942544/1712485313';
+        return _rewardedIosEnv;
       default:
         return '';
     }
@@ -297,9 +323,9 @@ class AdService {
   String bannerUnitId() {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return 'ca-app-pub-3940256099942544/6300978111';
+        return _bannerAndroidEnv;
       case TargetPlatform.iOS:
-        return 'ca-app-pub-3940256099942544/2934735716';
+        return _bannerIosEnv;
       default:
         return '';
     }

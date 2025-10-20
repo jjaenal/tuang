@@ -28,6 +28,11 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Configure AdMob App ID via gradle property with test fallback
+        val admobAppId = (project.findProperty("ADMOB_APP_ID_ANDROID") as String?)
+            ?: "ca-app-pub-3940256099942544~3347511713"
+        resValue("string", "admob_app_id", admobAppId)
     }
 
     buildTypes {
