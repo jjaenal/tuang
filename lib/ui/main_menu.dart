@@ -75,10 +75,20 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
     return accepted == true;
   }
 
+  // Hook region gating: nanti bisa diganti dengan deteksi wilayah (EEA/UK/California)
+  bool _regionRequiresConsent() {
+    // Saat ini selalu minta consent; implementasi gating menyusul.
+    return true;
+  }
+
   Future<void> _ensureConsentThenEnableAds(BuildContext context) async {
     final cubit = context.read<AppSettingsCubit>();
     final state = cubit.state;
     if (state.consentGiven) {
+      cubit.toggleAds();
+      return;
+    }
+    if (!_regionRequiresConsent()) {
       cubit.toggleAds();
       return;
     }
@@ -300,8 +310,15 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                     const SizedBox(width: 8),
                     Switch(
                       value: app.npaEnabled,
-                      onChanged:
-                          (_) => context.read<AppSettingsCubit>().toggleNpa(),
+                      onChanged: (val) {
+                        final cubit = context.read<AppSettingsCubit>();
+                        cubit.toggleNpa();
+                        AdService.I.setNonPersonalizedAds(val);
+                        final messenger = ScaffoldMessenger.of(context);
+                        messenger.showSnackBar(
+                          SnackBar(content: Text(val ? 'NPA ON' : 'NPA OFF')),
+                        );
+                      },
                     ),
                   ],
                 ),
