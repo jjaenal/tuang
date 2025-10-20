@@ -68,7 +68,7 @@
 - [ ] Upload to Google Play Console
 - [ ] Test ads in release mode (test IDs → prod IDs)
 - [ ] Configure AdMob App ID & Unit IDs (Android/iOS)
-- [ ] Implement consent dialog (GDPR/CCPA) untuk wilayah terkait
+- [x] Implement consent dialog (GDPR/CCPA) untuk wilayah terkait
 
 ---
 

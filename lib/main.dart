@@ -112,7 +112,9 @@ class MyApp extends StatelessWidget {
                         (context, g) => GameOverOverlay(game: g as MyGame),
                   },
                   initialActiveOverlays:
-                      showMainMenuOnBoot ? const [MyGame.overlayMainMenu] : const [],
+                      showMainMenuOnBoot
+                          ? const [MyGame.overlayMainMenu]
+                          : const [],
                 ),
               ),
             ),

@@ -26,6 +26,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
   DateTime _now = DateTime.now();
   bool _debugLogging = true;
   bool _showGameSettings = false;
+  bool _consentPrompted = false;
 
   Widget _buildConfigItem(String label, String value) {
     return Padding(
@@ -127,6 +128,23 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() => _now = DateTime.now());
+    });
+    // Auto prompt consent on first boot if required and not yet given
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final cubit = context.read<AppSettingsCubit>();
+      if (_consentPrompted) return;
+      if (_regionRequiresConsent() && !cubit.state.consentGiven) {
+        _consentPrompted = true;
+        final accepted = await _showConsentDialog(context);
+        if (!mounted) return;
+        if (accepted) {
+          cubit.setConsent(true);
+          if (!cubit.state.adsEnabled) {
+            cubit.toggleAds();
+          }
+        }
+      }
     });
   }
 
