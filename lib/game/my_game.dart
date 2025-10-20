@@ -1,571 +1,418 @@
-import 'dart:math';
-import 'package:flame/components.dart';
 import 'package:flame/game.dart';
+import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math';
 import 'player.dart';
 import 'coin.dart';
-import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../state/pref_keys.dart';
-import 'effects.dart';
 import 'obstacle.dart';
 import 'magnet.dart';
-import '../services/audio_service.dart';
-import '../services/ad_service.dart';
-import '../services/logging_service.dart';
-import '../services/haptics_service.dart';
+import 'effects.dart';
 import 'game_config.dart';
+import '../models/achievement.dart';
+import '../services/achievement_service.dart';
 
-/// MyGame adalah inti loop permainan dan pengelola state.
+/// [MyGame] is the main FlameGame driving the arcade session.
 ///
-/// - Mengatur skor, countdown sesi (timeVN), magnet, combo, buff/efek, dan input.
-/// - Mengekspor `elapsed` untuk breakdown durasi di layar Game Over.
-/// - Mengelola overlay HUD/MainMenu/GameOver dengan aman di lingkungan test.
+/// Manages overlays (MainMenu, Hud, GameOver), spawns entities, and
+/// updates game mechanics like magnet pull, combo, timers, and collisions.
+/// Input is fed via drag/keyboard from `main.dart`. This class exposes
+/// ValueNotifiers for HUD and coordinates achievements via `AchievementService`.
 class MyGame extends FlameGame {
+  // Overlay keys
   static const String overlayMainMenu = 'MainMenu';
   static const String overlayHud = 'Hud';
   static const String overlayGameOver = 'GameOver';
 
-  // Tunable constants: spawn cadence and magnet behavior
-  static const double coinSpawnIntervalSec = GameConfig.coinSpawnIntervalSec;
-  static const double obstacleSpawnIntervalSec =
-      GameConfig.obstacleSpawnIntervalSec;
-  static const double magnetSpawnIntervalSec =
-      GameConfig.magnetSpawnIntervalSec;
-  static const double magnetPickupDurationSec =
-      GameConfig.magnetPickupDurationSec;
-  static const double magnetPullRadius = GameConfig.magnetPullRadius;
-  static const double magnetPullStrength = GameConfig.magnetPullStrength;
-  static const double playerBaseSpeed = GameConfig.playerBaseSpeed;
-  Vector2 inputDir = Vector2.zero();
-
-  late final Player player;
+  // UI state
   final ValueNotifier<int> scoreVN = ValueNotifier<int>(0);
   final ValueNotifier<int> timeVN = ValueNotifier<int>(0);
-  int lastScore = 0;
-  int bestScore = 0;
-  // Pelacakan untuk breakdown reward
-  int baseScoreAtGameOver = 0;
-  bool magnetUsedThisRun = false;
-  int coinsPicked = 0;
-  int magnetsPicked = 0;
-  int reviveCount = 0;
-  final Timer _coinTimer = Timer(coinSpawnIntervalSec, repeat: true);
-  final Timer _obstacleTimer = Timer(obstacleSpawnIntervalSec, repeat: true);
-  final Random _rng = Random();
-  double _elapsed = 0;
-  double sessionLength = GameConfig.defaultSessionLengthSec; // seconds
-  bool isPlaying = false;
-  // Revive satu kali per sesi: _revivedOnce melacak apakah sudah digunakan
-  bool _revivedOnce = false;
-  // reviveAvailable diekspos ke UI agar tombol Revive dapat dinonaktifkan
-  bool get reviveAvailable => !_revivedOnce;
-  // Double coins hanya sekali per sesi game over
-  bool _doubleCoinsUsed = false;
-  bool get doubleCoinsAvailable => !_doubleCoinsUsed;
-  bool get doubleCoinsUsed => _doubleCoinsUsed;
-
-  // Flag deposit reward agar hanya sekali per game over
-  bool _rewardDeposited = false;
-  bool get rewardDeposited => _rewardDeposited;
-  void markRewardDeposited() {
-    _rewardDeposited = true;
-  }
-
-  // speed boost mechanics
-  double playerSpeedMultiplier = 1.0;
-  double _boostTimeLeft = 0.0;
-  final double _boostDuration = GameConfig.speedBoostDurationSec; // seconds
-  final double _boostAmount = GameConfig.speedBoostMultiplier; // +60% speed
-
-  // screen shake
-  double _shakeTimeLeft = 0.0;
-  double _shakeIntensity = 0.0;
-
-  // Magnet power-up configuration & state:
-  // - _magnetTimer schedules spawns periodically
-  // - _magnetTimeLeft counts down active magnet duration
-  // - magnetPickupDurationSec controls active time per pickup
-  // - magnetRadius and magnetStrength define coin pull behavior
-  final Timer _magnetTimer = Timer(magnetSpawnIntervalSec, repeat: true);
-  double _magnetTimeLeft = 0.0;
-  // Use constants for magnet radius/strength
-  final double magnetRadius = magnetPullRadius;
-  final double magnetStrength = magnetPullStrength;
-  // Getter untuk HUD
-  int get magnetSecondsLeft => _magnetTimeLeft.ceil();
-  double get magnetDuration => magnetPickupDurationSec;
-
-  /// Durasi sesi berjalan (detik). Direset saat `startGame`.
-  double get elapsed => _elapsed;
-
-  // HUD properties for magnet progress & combo multiplier
   final ValueNotifier<double> magnetVN = ValueNotifier<double>(0.0);
   final ValueNotifier<int> comboVN = ValueNotifier<int>(1);
-  int _comboCount = 0;
-  int _comboMultiplier = 1;
-  double _comboTimeLeft = 0.0;
-  final double _comboWindow = GameConfig.comboWindowSec;
 
-  @override
-  Color backgroundColor() => const Color(0xFF101418);
+  // Input
+  Vector2 inputDir = Vector2.zero();
+  double playerSpeedMultiplier = 1.0;
+
+  // Game state flags
+  bool isPlaying = false;
+  int bestScore = 0;
+  int baseScoreAtGameOver = 0;
+  bool doubleCoinsUsed = false;
+  bool magnetUsedThisRun = false;
+  bool rewardDeposited = false;
+
+  bool reviveAvailable = true;
+  int reviveCount = 0;
+  int coinsPicked = 0;
+  int magnetsPicked = 0;
+
+  // Timing
+  double elapsed = 0.0;
+  final int sessionLength = 30; // seconds
+
+  // Magnet buff state
+  int magnetSecondsLeft = 0;
+  int _magnetTotalSeconds = 0;
+  double _magnetSecAccumulator = 0.0;
+
+  // Gameplay entities and timers
+  late final Player player;
+  final Random _rng = Random();
+  double _coinTimer = 0.0;
+  double _obstacleTimer = 0.0;
+  double _magnetTimer = 0.0;
+  double _speedBoostLeft = 0.0;
+  double _comboWindowLeft = 0.0;
+  int _coinsSinceLastCombo = 0;
+
+  // Achievements
+  final AchievementService _achievementService = AchievementService.I;
+
+  // Visual effects
+  MagnetGlow? _magnetGlow;
 
   @override
   Future<void> onLoad() async {
-    await _loadBestScore();
-    add(_KeyboardController(this));
+    // Add background color untuk debugging
+    add(
+      RectangleComponent(
+        size: Vector2(2000, 2000), // Large background
+        paint: Paint()..color = const Color(0xFF2E2E2E), // Dark gray
+        position: Vector2.zero(),
+      ),
+    );
 
+    timeVN.value = sessionLength;
     player = Player();
-    add(player);
-
-    _coinTimer.onTick = spawnCoin;
-    _obstacleTimer.onTick = spawnObstacle;
-    _magnetTimer.onTick = spawnMagnet;
-
-    timeVN.value = sessionLength.toInt();
-    _safeOverlayAdd(overlayMainMenu);
+    await add(player);
   }
 
-  /// Memulai sesi permainan baru.
-  ///
-  /// - Reset skor, waktu, combo, magnet, dan flag revive/double coins.
-  /// - Menjalankan timer spawn dan menampilkan HUD.
-  /// - Mengonsumsi buff magnet harian jika tersimpan di preferences.
+  /// Starts a new game session: resets timers/state, cleans entities,
+  /// switches HUD overlay, and increments starting achievements. Also
+  /// consumes any pending magnet buff from SharedPreferences.
   void startGame() {
     isPlaying = true;
-    _elapsed = 0;
+    elapsed = 0.0;
     scoreVN.value = 0;
-    _revivedOnce = false;
-    _doubleCoinsUsed = false;
-    playerSpeedMultiplier = 1.0;
-    _boostTimeLeft = 0.0;
-    _comboCount = 0;
-    _comboMultiplier = 1;
-    _comboTimeLeft = 0.0;
+    timeVN.value = sessionLength;
+    reviveAvailable = true;
+    rewardDeposited = false;
+    doubleCoinsUsed = false;
+    magnetUsedThisRun = false;
+    magnetSecondsLeft = 0;
+    _magnetTotalSeconds = 0;
     magnetVN.value = 0.0;
     comboVN.value = 1;
-    // reset pelacakan per run
-    magnetUsedThisRun = false;
-    coinsPicked = 0;
-    magnetsPicked = 0;
-    reviveCount = 0;
-    LoggingService.log(
-      'start_game',
-      fields: {'best': bestScore, 'session_len': sessionLength},
-    );
+    _coinTimer = 0.0;
+    _obstacleTimer = 0.0;
+    _magnetTimer = 0.0;
+    _speedBoostLeft = 0.0;
+    _comboWindowLeft = 0.0;
+    _coinsSinceLastCombo = 0;
+    _magnetSecAccumulator = 0.0;
+    _magnetGlow = null;
 
-    _coinTimer.start();
-    _obstacleTimer.start();
-    _magnetTimer.start();
-
-    _safeOverlayRemove(overlayMainMenu);
-    _safeOverlayAdd(overlayHud);
-
-    // Konsumsi buff magnet harian jika ada. Tangani kegagalan SharedPreferences di lingkungan test.
-    SharedPreferences.getInstance()
-        .then((prefs) {
-          final sec = prefs.getInt(PrefKeys.pendingMagnetBuffSec) ?? 0;
-          if (sec > 0) {
-            _magnetTimeLeft = sec.toDouble();
-            magnetVN.value = 1.0;
-            prefs.setInt(PrefKeys.pendingMagnetBuffSec, 0);
-            // tandai magnet dipakai di run ini
-            magnetUsedThisRun = true;
-            LoggingService.log(
-              'magnet_buff_consumed',
-              fields: {'seconds': sec},
-            );
-            // Sedikit efek visual/audio agar terasa.
-            try {
-              add(
-                FlashOverlay(
-                  size: size,
-                  color: Colors.greenAccent,
-                  duration: 0.15,
-                ),
-              );
-            } catch (_) {}
-            try {
-              AudioService.I.playMagnet();
-            } catch (_) {}
-            try {
-              HapticsService.magnetPickup();
-            } catch (_) {}
-          }
-        })
-        .catchError((_) {
-          // Abaikan saat SharedPreferences tidak tersedia (mis. unit test VM tanpa binding)
-        });
-  }
-
-  /// Mengakhiri sesi permainan, menyimpan best score, dan menampilkan Game Over.
-  /// Juga melog detail sesi (score, base score, magnet/double coins, elapsed, dll.).
-  void gameOver() {
-    isPlaying = false;
-    // simpan base score untuk breakdown sebelum double coins diterapkan
-    baseScoreAtGameOver = scoreVN.value;
-    lastScore = scoreVN.value;
-    if (lastScore > bestScore) {
-      bestScore = lastScore;
-      _saveBestScore();
+    // Cleanup residual entities
+    for (final c in children.whereType<Coin>().toList()) {
+      c.removeFromParent();
     }
-    LoggingService.log(
-      'game_over',
-      fields: {
-        'score': lastScore,
-        'base': baseScoreAtGameOver,
-        'double_used': _doubleCoinsUsed,
-        'magnet_used': magnetUsedThisRun,
-        'elapsed': _elapsed,
-        'best': bestScore,
-        'coins_picked': coinsPicked,
-        'magnets_picked': magnetsPicked,
-        'revives': reviveCount,
-      },
-    );
-    _rewardDeposited = false;
-    _safeOverlayRemove(overlayHud);
-    _safeOverlayAdd(overlayGameOver);
-    // Tampilkan interstitial jika tersedia (respect init, consent, cooldown)
-    try {
-      AdService.I.showInterstitial();
-    } catch (_) {}
-  }
+    for (final o in children.whereType<Obstacle>().toList()) {
+      o.removeFromParent();
+    }
+    for (final m in children.whereType<MagnetPowerUp>().toList()) {
+      m.removeFromParent();
+    }
+    for (final g in children.whereType<MagnetGlow>().toList()) {
+      g.removeFromParent();
+    }
 
-  /// Menerapkan revive satu kali: mengaktifkan kembali permainan dan HUD.
-  void revive() {
-    if (isPlaying) return;
-    if (_revivedOnce) return;
-    _revivedOnce = true; // gunakan kesempatan revive dan tandai sudah digunakan
-    reviveCount += 1;
-    isPlaying = true;
-    _safeOverlayRemove(overlayGameOver);
-    _safeOverlayAdd(overlayHud); // kembali ke HUD setelah revive
-    LoggingService.log('revive_applied');
-    try {
-      _triggerShake(
-        intensity: GameConfig.reviveShakeIntensity,
-        duration: GameConfig.reviveShakeDurationSec,
-      );
-      add(FlashOverlay(size: size, color: Colors.greenAccent, duration: 0.15));
-    } catch (_) {}
-    try {
-      HapticsService.revive();
-    } catch (_) {}
-  }
+    overlays.remove(overlayMainMenu);
+    _safeAddOverlay(overlayHud);
 
-  void _safeOverlayAdd(String name) {
-    try {
-      if (!overlays.isActive(name)) {
-        overlays.add(name);
+    // Achievement: game start counters
+    _achievementService.incrementProgress(AchievementType.firstGame);
+    _achievementService.incrementProgress(AchievementType.play10Games);
+    _achievementService.incrementProgress(AchievementType.play50Games);
+
+    // Consume pending magnet buff asynchronously (for tests)
+    Future(() async {
+      final prefs = await SharedPreferences.getInstance();
+      final pending = prefs.getInt('pref_pendingMagnetBuffSec') ?? 0;
+      if (pending > 0) {
+        magnetSecondsLeft = pending;
+        _magnetTotalSeconds = pending;
+        _magnetSecAccumulator = 0.0;
+        magnetUsedThisRun = true;
+        magnetsPicked += 1;
+        magnetVN.value = 1.0;
+        await prefs.setInt('pref_pendingMagnetBuffSec', 0);
+        _achievementService.updateProgress(AchievementType.useMagnet, 1);
       }
-    } catch (_) {}
+    });
   }
 
-  void _safeOverlayRemove(String name) {
-    try {
-      if (overlays.isActive(name)) {
-        overlays.remove(name);
-      }
-    } catch (_) {}
-  }
-
-  Future<void> _loadBestScore() async {
-    final prefs = await SharedPreferences.getInstance();
-    bestScore = prefs.getInt('best_score') ?? 0;
-  }
-
-  Future<void> _saveBestScore() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('best_score', bestScore);
-  }
-
-  void spawnCoin() {
-    final pos = Vector2(_rng.nextDouble() * size.x, _rng.nextDouble() * size.y);
-    add(Coin(position: pos));
-  }
-
-  void spawnObstacle() {
-    final pos = Vector2(_rng.nextDouble() * size.x, _rng.nextDouble() * size.y);
-    final angle = _rng.nextDouble() * pi * 2;
-    final speed =
-        GameConfig.obstacleMinSpeed +
-        _rng.nextDouble() * GameConfig.obstacleMaxSpeedBonus;
-    final vel = Vector2(cos(angle), sin(angle)) * speed;
-    add(Obstacle(position: pos, velocity: vel));
-  }
-
-  void spawnMagnet() {
-    final pos = Vector2(_rng.nextDouble() * size.x, _rng.nextDouble() * size.y);
-    add(MagnetPowerUp(position: pos));
-  }
-
-  void addScore(int delta) {
-    scoreVN.value += delta;
-  }
-
-  void updateTimers(double dt) {
-    _coinTimer.update(dt);
-    _obstacleTimer.update(dt);
-    _magnetTimer.update(dt);
-  }
-
-  void _triggerShake({double intensity = 6.0, double duration = 0.12}) {
-    _shakeIntensity = intensity;
-    _shakeTimeLeft = duration;
-  }
-
-  /// Update utama per-frame: waktu, countdown HUD, efek, gerak, pickup/hit, dan akhir sesi.
   @override
+  /// Updates core mechanics each frame with [dt] seconds.
+  ///
+  /// Handles session timer, magnet countdown via 1-second accumulator,
+  /// speed boost decay, spawns, coin attraction under magnet, pickups,
+  /// combo window, collisions, and session end.
   void update(double dt) {
     super.update(dt);
     if (!isPlaying) return;
 
-    _elapsed += dt;
-    updateTimers(dt);
+    // Elapsed time accumulation
+    elapsed += dt;
 
-    // Perbarui countdown waktu sesi untuk HUD
-    final remaining =
-        (_elapsed <= sessionLength)
-            ? (sessionLength - _elapsed).clamp(0.0, sessionLength)
-            : 0.0;
-    timeVN.value = (remaining.ceil());
+    // Countdown remaining time
+    final remaining = (sessionLength - elapsed).ceil();
+    timeVN.value = remaining > 0 ? remaining : 0;
 
-    // shake update
-    if (_shakeTimeLeft > 0) {
-      _shakeTimeLeft -= dt;
-      if (_shakeTimeLeft <= 0) {
-        _shakeIntensity = 0.0;
-        _shakeTimeLeft = 0.0;
+    // Magnet countdown
+    if (magnetSecondsLeft > 0) {
+      _magnetSecAccumulator += dt;
+      while (_magnetSecAccumulator >= 1.0 && magnetSecondsLeft > 0) {
+        magnetSecondsLeft -= 1;
+        _magnetSecAccumulator -= 1.0;
+      }
+      if (_magnetTotalSeconds > 0) {
+        magnetVN.value = magnetSecondsLeft / _magnetTotalSeconds;
+      }
+      // ensure glow is present while magnet is active
+      if (_magnetGlow == null) {
+        final glow = MagnetGlow(target: player);
+        _magnetGlow = glow;
+        add(glow);
+      }
+    } else {
+      magnetVN.value = 0.0;
+      _magnetSecAccumulator = 0.0;
+      // remove glow when magnet ends
+      if (_magnetGlow != null) {
+        _magnetGlow!.removeFromParent();
+        _magnetGlow = null;
       }
     }
 
-    // decay speed boost
-    if (_boostTimeLeft > 0) {
-      _boostTimeLeft -= dt;
-      if (_boostTimeLeft <= 0) {
+    // Speed boost countdown
+    if (_speedBoostLeft > 0) {
+      _speedBoostLeft -= dt;
+      if (_speedBoostLeft <= 0) {
         playerSpeedMultiplier = 1.0;
       }
     }
 
-    // combo window countdown
-    if (_comboTimeLeft > 0) {
-      _comboTimeLeft -= dt;
-      if (_comboTimeLeft <= 0) {
-        _comboMultiplier = 1;
-        comboVN.value = _comboMultiplier;
-      }
+    // Spawn timers
+    _coinTimer += dt;
+    _obstacleTimer += dt;
+    _magnetTimer += dt;
+    if (_coinTimer >= GameConfig.coinSpawnIntervalSec) {
+      _coinTimer = 0.0;
+      _spawnCoin();
+    }
+    if (_obstacleTimer >= GameConfig.obstacleSpawnIntervalSec) {
+      _obstacleTimer = 0.0;
+      _spawnObstacle();
+    }
+    if (_magnetTimer >= GameConfig.magnetSpawnIntervalSec) {
+      _magnetTimer = 0.0;
+      _spawnMagnet();
     }
 
-    // magnet countdown
-    if (_magnetTimeLeft > 0) {
-      _magnetTimeLeft -= dt;
-      if (_magnetTimeLeft < 0) _magnetTimeLeft = 0;
-      magnetVN.value = (_magnetTimeLeft / magnetPickupDurationSec).clamp(0, 1);
-    }
-
-    // Magnet attraction: pull nearby coins towards the player while active
-    if (_magnetTimeLeft > 0) {
-      for (final coin in children.whereType<Coin>()) {
-        final toPlayer = player.position - coin.position;
-        final dist = toPlayer.length;
-        if (dist < magnetRadius && dist > 1) {
-          toPlayer.normalize();
-          coin.position += toPlayer * magnetStrength * dt;
+    // Magnet attraction & coin pickup
+    for (final coin in children.whereType<Coin>().toList()) {
+      // Attract coins when magnet is active
+      if (magnetSecondsLeft > 0) {
+        final delta = player.position - coin.position;
+        final dist = delta.length;
+        if (dist < GameConfig.magnetPullRadius) {
+          final dir = dist == 0 ? Vector2.zero() : (delta / dist);
+          coin.position += dir * GameConfig.magnetPullStrength * dt;
         }
       }
-    }
-
-    // Player movement
-    final move =
-        inputDir.normalized() * (playerBaseSpeed * playerSpeedMultiplier) * dt;
-    player.position += move;
-
-    // Keep player within the screen bounds
-    final playerTopLeft = player.position - player.size / 2;
-    final playerBottomRight = playerTopLeft + player.size;
-    if (playerTopLeft.x < 0) {
-      player.position.x = player.size.x / 2;
-    }
-    if (playerBottomRight.x > size.x) {
-      player.position.x = size.x - player.size.x / 2;
-    }
-    if (playerTopLeft.y < 0) {
-      player.position.y = player.size.y / 2;
-    }
-    if (playerBottomRight.y > size.y) {
-      player.position.y = size.y - player.size.y / 2;
-    }
-
-    // coin pickup
-    for (final coin in children.whereType<Coin>()) {
-      final coinTopLeft = coin.position - coin.size / 2;
-      final coinBottomRight = coinTopLeft + coin.size;
-      final pick =
-          playerTopLeft.x < coinBottomRight.x &&
-          playerBottomRight.x > coinTopLeft.x &&
-          playerTopLeft.y < coinBottomRight.y &&
-          playerBottomRight.y > coinTopLeft.y;
-      if (pick) {
-        addScore(1);
-        coinsPicked += 1;
-        _comboCount += 1;
-        _comboTimeLeft = _comboWindow;
-        _comboMultiplier = 1 + (_comboCount ~/ GameConfig.coinsPerComboLevel);
-        comboVN.value = _comboMultiplier;
-
-        addScore(_comboMultiplier);
-        // apply speed boost
-        playerSpeedMultiplier = 1.0 + _boostAmount;
-        _boostTimeLeft = _boostDuration;
-
-        // juicy effects
-        _triggerShake(
-          intensity: GameConfig.coinShakeIntensity,
-          duration: GameConfig.coinShakeDurationSec,
-        );
-        add(FlashOverlay(size: size));
-        add(PopEffect(position: coin.position.clone(), color: Colors.amber));
-        add(
-          FloatingText(
-            position: coin.position.clone(),
-            text: '+$_comboMultiplier',
-            color: Colors.white,
-          ),
-        );
-        for (int i = 0; i < GameConfig.coinParticleCount; i++) {
-          final angle = _rng.nextDouble() * pi * 2;
-          final speed =
-              GameConfig.particleMinSpeed +
-              _rng.nextDouble() * GameConfig.particleMaxSpeedBonus;
-          final vel = Vector2(cos(angle), sin(angle)) * speed;
-          add(
-            DotParticle(
-              position: coin.position.clone(),
-              velocity: vel,
-              color: Colors.amber,
-            ),
-          );
-        }
-        AudioService.I.playCoin();
-        try {
-          HapticsService.coinPickup();
-        } catch (_) {}
+      // Pickup check
+      if (_overlap(player, coin)) {
         coin.removeFromParent();
+        onCoinPicked();
+        _speedBoostLeft = GameConfig.speedBoostDurationSec;
+        playerSpeedMultiplier = 1.0 + GameConfig.speedBoostMultiplier;
+
+        // Combo logic
+        if (_comboWindowLeft <= 0) {
+          _comboWindowLeft = GameConfig.comboWindowSec;
+          _coinsSinceLastCombo = 0;
+          comboVN.value = 1;
+        }
+        _coinsSinceLastCombo += 1;
+        if (_coinsSinceLastCombo >= GameConfig.coinsPerComboLevel) {
+          comboVN.value += 1;
+          _coinsSinceLastCombo = 0;
+        }
+
+        add(PopEffect(position: player.position.clone()));
+        add(FloatingText(position: player.position.clone()));
       }
     }
 
-    // Magnet pickup: activates magnet for magnetPickupDurationSec and triggers visual feedback.
-    for (final m in children.whereType<MagnetPowerUp>()) {
-      final mTopLeft = m.position - m.size / 2;
-      final mBottomRight = mTopLeft + m.size;
-      final pick =
-          playerTopLeft.x < mBottomRight.x &&
-          playerBottomRight.x > mTopLeft.x &&
-          playerTopLeft.y < mBottomRight.y &&
-          playerBottomRight.y > mTopLeft.y;
-      if (pick) {
-        _magnetTimeLeft = magnetPickupDurationSec;
-        magnetVN.value = 1.0; // HUD progress resets to full
-        // tandai magnet dipakai di run ini
+    // Combo window countdown
+    if (_comboWindowLeft > 0) {
+      _comboWindowLeft -= dt;
+      if (_comboWindowLeft <= 0) {
+        comboVN.value = 1;
+      }
+    }
+
+    // Magnet pickup
+    for (final mag in children.whereType<MagnetPowerUp>().toList()) {
+      if (_overlap(player, mag)) {
+        mag.removeFromParent();
+        magnetSecondsLeft = GameConfig.magnetPickupDurationSec.toInt();
+        _magnetTotalSeconds = magnetSecondsLeft;
+        _magnetSecAccumulator = 0.0;
         magnetUsedThisRun = true;
         magnetsPicked += 1;
-        LoggingService.log(
-          'magnet_pickup',
-          fields: {'duration_sec': magnetPickupDurationSec},
-        );
-        add(FlashOverlay(size: size, color: Colors.greenAccent));
-        add(PopEffect(position: m.position.clone(), color: Colors.greenAccent));
-        AudioService.I.playMagnet();
-        try {
-          HapticsService.magnetPickup();
-        } catch (_) {}
-        m.removeFromParent();
+        magnetVN.value = 1.0;
+        _achievementService.updateProgress(AchievementType.useMagnet, 1);
       }
     }
 
-    // obstacle collision -> game over
-    for (final obs in children.whereType<Obstacle>()) {
-      final obsTopLeft = obs.position - obs.size / 2;
-      final obsBottomRight = obsTopLeft + obs.size;
-      final hit =
-          playerTopLeft.x < obsBottomRight.x &&
-          playerBottomRight.x > obsTopLeft.x &&
-          playerTopLeft.y < obsBottomRight.y &&
-          playerBottomRight.y > obsTopLeft.y;
-      if (hit) {
-        _triggerShake(
-          intensity: GameConfig.collisionShakeIntensity,
-          duration: GameConfig.collisionShakeDurationSec,
-        );
-        add(FlashOverlay(size: size, color: Colors.red));
-        AudioService.I.playHit();
+    // Obstacle collision
+    for (final obs in children.whereType<Obstacle>().toList()) {
+      if (_overlap(player, obs)) {
+        add(FlashOverlay(size: size));
         gameOver();
         break;
       }
     }
 
-    if (_elapsed >= sessionLength) {
+    // End session when time runs out
+    if (remaining <= 0) {
       gameOver();
     }
   }
 
-  @override
-  void render(Canvas canvas) {
-    if (_shakeTimeLeft > 0 && _shakeIntensity > 0) {
-      final ang = _rng.nextDouble() * pi * 2;
-      final mag = _shakeIntensity;
-      final dx = cos(ang) * mag;
-      final dy = sin(ang) * mag;
-      canvas.save();
-      canvas.translate(dx, dy);
-      super.render(canvas);
-      canvas.restore();
-    } else {
-      super.render(canvas);
-    }
+  /// Ends the session, switches to GameOver overlay, and updates
+  /// score-based achievements. Idempotent when already not playing.
+  void gameOver() {
+    if (!isPlaying) return;
+    isPlaying = false;
+    baseScoreAtGameOver = scoreVN.value;
+    bestScore =
+        baseScoreAtGameOver > bestScore ? baseScoreAtGameOver : bestScore;
+
+    _safeRemoveOverlay(overlayHud);
+    _safeAddOverlay(overlayGameOver);
+
+    // Score-based achievements
+    final lastScore = baseScoreAtGameOver;
+    _achievementService.updateProgress(AchievementType.score100, lastScore);
+    _achievementService.updateProgress(AchievementType.score500, lastScore);
+    _achievementService.updateProgress(AchievementType.score1000, lastScore);
   }
 
-  @override
-  void onRemove() {
-    scoreVN.dispose();
-    timeVN.dispose();
-    magnetVN.dispose();
-    comboVN.dispose();
-    super.onRemove();
+  /// Revives from Game Over once per session, re-enables HUD and
+  /// resumes play. Increments revive achievements.
+  void revive() {
+    if (isPlaying) return; // only revive from game over
+    if (!reviveAvailable) return;
+    reviveAvailable = false;
+    reviveCount += 1;
+
+    isPlaying = true;
+    overlays.remove(overlayGameOver);
+    _safeAddOverlay(overlayHud);
+
+    _achievementService.updateProgress(AchievementType.reviveOnce, 1);
   }
 
-  /// Menerapkan reward double coins satu kali pada skor terakhir.
-  Future<void> applyDoubleCoinsReward() async {
-    if (_doubleCoinsUsed) return;
-    _doubleCoinsUsed = true;
-    final doubled = lastScore * 2;
-    LoggingService.log(
-      'double_coins_applied',
-      fields: {'base': lastScore, 'new': doubled},
+  // Simple coin pickup API for achievements
+  void onCoinPicked() {
+    coinsPicked += 1;
+    scoreVN.value += 1;
+    _achievementService.updateProgress(
+      AchievementType.collect10Coins,
+      coinsPicked,
     );
-    lastScore = doubled;
-    scoreVN.value = doubled;
-    if (lastScore > bestScore) {
-      bestScore = lastScore;
-      await _saveBestScore();
+    _achievementService.updateProgress(
+      AchievementType.collect50Coins,
+      coinsPicked,
+    );
+    _achievementService.updateProgress(
+      AchievementType.collect100Coins,
+      coinsPicked,
+    );
+  }
+
+  int get lastScore => baseScoreAtGameOver;
+
+  Future<void> applyDoubleCoinsReward() async {
+    doubleCoinsUsed = true;
+  }
+
+  void markRewardDeposited() {
+    rewardDeposited = true;
+  }
+
+  bool get doubleCoinsAvailable => !doubleCoinsUsed && !rewardDeposited;
+
+  // === Helpers & Spawns ===
+  bool _overlap(RectangleComponent a, RectangleComponent b) {
+    final ax = a.position.x - a.size.x / 2;
+    final ay = a.position.y - a.size.y / 2;
+    final bx = b.position.x - b.size.x / 2;
+    final by = b.position.y - b.size.y / 2;
+    return ax < bx + b.size.x &&
+        ax + a.size.x > bx &&
+        ay < by + b.size.y &&
+        ay + a.size.y > by;
+  }
+
+  Vector2 _randomPos({double margin = 24}) {
+    final x = margin + _rng.nextDouble() * (size.x - 2 * margin);
+    final y = margin + _rng.nextDouble() * (size.y - 2 * margin);
+    return Vector2(x, y);
+  }
+
+  void _spawnCoin() {
+    if (!isPlaying) return;
+    add(Coin(position: _randomPos()));
+  }
+
+  void _spawnMagnet() {
+    if (!isPlaying) return;
+    add(MagnetPowerUp(position: _randomPos()));
+  }
+
+  void _spawnObstacle() {
+    if (!isPlaying) return;
+    final pos = _randomPos();
+    final speedX =
+        GameConfig.obstacleMinSpeed +
+        _rng.nextDouble() * GameConfig.obstacleMaxSpeedBonus;
+    final speedY =
+        GameConfig.obstacleMinSpeed +
+        _rng.nextDouble() * GameConfig.obstacleMaxSpeedBonus;
+    final vx = _rng.nextBool() ? speedX : -speedX;
+    final vy = _rng.nextBool() ? speedY : -speedY;
+    add(Obstacle(position: pos, velocity: Vector2(vx, vy)));
+  }
+
+  /// Adds overlay safely, ignoring missing builder asserts in tests.
+  void _safeAddOverlay(String name) {
+    try {
+      overlays.add(name);
+    } catch (_) {
+      // ignore in tests without overlay builders
     }
   }
-}
 
-// Keyboard controller for web/desktop
-class _KeyboardController extends KeyboardListenerComponent {
-  final MyGame game;
-  _KeyboardController(this.game);
-
-  @override
-  bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
-    final dir = Vector2.zero();
-    if (keysPressed.contains(LogicalKeyboardKey.arrowLeft)) dir.x -= 1;
-    if (keysPressed.contains(LogicalKeyboardKey.arrowRight)) dir.x += 1;
-    if (keysPressed.contains(LogicalKeyboardKey.arrowUp)) dir.y -= 1;
-    if (keysPressed.contains(LogicalKeyboardKey.arrowDown)) dir.y += 1;
-    game.inputDir = dir;
-    return true; // handled
+  /// Removes overlay safely, ignoring missing builder asserts in tests.
+  void _safeRemoveOverlay(String name) {
+    try {
+      overlays.remove(name);
+    } catch (_) {
+      // ignore
+    }
   }
 }

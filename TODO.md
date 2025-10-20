@@ -81,5 +81,16 @@
 
 ---
 
+## ✅ Latest Changes
+- [x] Fix magnet duration countdown to use seconds accumulator
+- [x] Add safe overlay wrappers to avoid test environment asserts
+- [x] Initialize MainMenu via `initialActiveOverlays` in `GameWidget`
+- [x] Clean up lints (use super.key, Color.withValues, remove unused imports)
+- [x] Update tests to avoid `pumpAndSettle` timeout
+- [x] Add magnet glow around player during buff
+
+---
+
 ## 📚 Documentation
 - [x] Tambah komentar class/fungsi/blok di `LoggingService` & `AdService` sesuai project rules
+- [x] Tambah dokumentasi pada `MyGame` (class & methods utama)

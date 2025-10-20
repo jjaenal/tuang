@@ -1,5 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
+import 'my_game.dart';
 
 class PopEffect extends RectangleComponent {
   final double duration;
@@ -139,6 +141,54 @@ class DotParticle extends RectangleComponent {
     final t = (_elapsed / duration).clamp(0.0, 1.0);
     paint.color = color.withValues(alpha: 1.0 - t);
     if (_elapsed >= duration) {
+      removeFromParent();
+    }
+  }
+}
+
+/// MagnetGlow: ring visual that follows the player while magnet is active.
+/// Slightly pulses in radius and fades to indicate remaining duration.
+class MagnetGlow extends CircleComponent with HasGameReference<MyGame> {
+  final PositionComponent target;
+  double _t = 0.0;
+
+  MagnetGlow({required this.target})
+    : super(
+        radius: 22,
+        paint:
+            Paint()
+              ..color = Colors.greenAccent.withValues(alpha: 0.35)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 3,
+      ) {
+    anchor = Anchor.center;
+    priority = 200; // above coins, below overlays
+  }
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    position = target.position.clone();
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    // follow the target (player)
+    position = target.position.clone();
+
+    // pulse radius for a subtle breathing effect
+    _t += dt * 2.0;
+    final pulse = (math.sin(_t) + 1.0) * 0.5; // 0..1
+    radius = 22 + pulse * 4;
+
+    // fade a bit as magnet winds down
+    final magnetVNValue = game.magnetVN.value;
+    final baseAlpha = 0.25 + magnetVNValue * 0.35;
+    paint.color = Colors.greenAccent.withValues(alpha: baseAlpha);
+
+    // auto-remove when magnet ends (defensive)
+    if (game.magnetSecondsLeft <= 0) {
       removeFromParent();
     }
   }
