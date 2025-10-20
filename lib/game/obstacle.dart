@@ -11,10 +11,10 @@ class Obstacle extends RectangleComponent with HasGameReference<MyGame> {
     Vector2? size,
     Color color = const Color(0xFFDC3545),
   }) : super(
-          position: position,
-          size: size ?? Vector2(18, 18),
-          paint: Paint()..color = color,
-        ) {
+         position: position,
+         size: size ?? Vector2(18, 18),
+         paint: Paint()..color = color,
+       ) {
     anchor = Anchor.center;
   }
 

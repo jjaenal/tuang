@@ -15,10 +15,10 @@ class PopEffect extends RectangleComponent {
     this.endSize = 24,
     this.color = Colors.amber,
   }) : super(
-          position: position,
-          size: Vector2.all(4),
-          paint: Paint()..color = color,
-        ) {
+         position: position,
+         size: Vector2.all(4),
+         paint: Paint()..color = color,
+       ) {
     anchor = Anchor.center;
   }
 
@@ -49,18 +49,18 @@ class FloatingText extends TextComponent {
     this.duration = 0.6,
     Vector2? velocity,
     this.color = Colors.white,
-  })  : velocity = velocity ?? Vector2(0, -60),
-        super(
-          text: text,
-          position: position,
-          textRenderer: TextPaint(
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ) {
+  }) : velocity = velocity ?? Vector2(0, -60),
+       super(
+         text: text,
+         position: position,
+         textRenderer: TextPaint(
+           style: const TextStyle(
+             color: Colors.white,
+             fontSize: 12,
+             fontWeight: FontWeight.bold,
+           ),
+         ),
+       ) {
     anchor = Anchor.center;
   }
 
@@ -91,10 +91,10 @@ class FlashOverlay extends RectangleComponent {
     this.duration = 0.12,
     this.color = Colors.white,
   }) : super(
-          size: size,
-          position: Vector2.zero(),
-          paint: Paint()..color = color.withValues(alpha: 0.0),
-        ) {
+         size: size,
+         position: Vector2.zero(),
+         paint: Paint()..color = color.withValues(alpha: 0.0),
+       ) {
     anchor = Anchor.topLeft;
     priority = 1000;
   }
@@ -123,10 +123,10 @@ class DotParticle extends RectangleComponent {
     this.duration = 0.5,
     this.color = Colors.amber,
   }) : super(
-          position: position,
-          size: Vector2.all(3),
-          paint: Paint()..color = color,
-        ) {
+         position: position,
+         size: Vector2.all(3),
+         paint: Paint()..color = color,
+       ) {
     anchor = Anchor.center;
   }
 

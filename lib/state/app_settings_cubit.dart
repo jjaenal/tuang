@@ -15,17 +15,17 @@ class AppSettingsState extends Equatable {
   final bool consentGiven;
   final bool adsEnabled;
   final bool paused;
-  
+
   /// Menyimpan tanggal lokal (YYYY-MM-DD) kapan daily reward terakhir diklaim.
   /// Null jika belum pernah diklaim.
   final String? lastDailyRewardDate;
-  
+
   /// Saldo coins (mata uang in-game) yang persisten.
   final int coins;
-  
+
   /// Preferensi Non-Personalized Ads (GDPR/privasi). Jika true, minta NPA.
   final bool npaEnabled;
-  
+
   /// Buff magnet yang pending (detik) akan diterapkan saat game dimulai, lalu direset.
   final int pendingMagnetBuffSeconds;
 
@@ -66,12 +66,23 @@ class AppSettingsState extends Equatable {
       lastDailyRewardDate: lastDailyRewardDate ?? this.lastDailyRewardDate,
       coins: coins ?? this.coins,
       npaEnabled: npaEnabled ?? this.npaEnabled,
-      pendingMagnetBuffSeconds: pendingMagnetBuffSeconds ?? this.pendingMagnetBuffSeconds,
+      pendingMagnetBuffSeconds:
+          pendingMagnetBuffSeconds ?? this.pendingMagnetBuffSeconds,
     );
   }
 
   @override
-  List<Object?> get props => [audioOn, hapticsOn, consentGiven, adsEnabled, paused, lastDailyRewardDate, coins, npaEnabled, pendingMagnetBuffSeconds];
+  List<Object?> get props => [
+    audioOn,
+    hapticsOn,
+    consentGiven,
+    adsEnabled,
+    paused,
+    lastDailyRewardDate,
+    coins,
+    npaEnabled,
+    pendingMagnetBuffSeconds,
+  ];
 }
 
 class AppSettingsCubit extends Cubit<AppSettingsState> {
@@ -90,7 +101,8 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
   static const _kPendingMagnetBuffSec = 'pref_pendingMagnetBuffSec';
 
   AppSettingsCubit()
-      : super(const AppSettingsState(
+    : super(
+        const AppSettingsState(
           audioOn: true,
           hapticsOn: true,
           consentGiven: false,
@@ -99,23 +111,29 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
           // lastDailyRewardDate default null (belum diklaim).
           // coins default 0.
           // npaEnabled default false.
-        ));
+        ),
+      );
 
   /// Muat state dari SharedPreferences.
   /// Termasuk tanggal terakhir daily reward diklaim jika ada.
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
-    emit(AppSettingsState(
-      audioOn: prefs.getBool(_kAudioOn) ?? state.audioOn,
-      hapticsOn: prefs.getBool(_kHapticsOn) ?? state.hapticsOn,
-      consentGiven: prefs.getBool(_kConsentGiven) ?? state.consentGiven,
-      adsEnabled: prefs.getBool(_kAdsEnabled) ?? state.adsEnabled,
-      paused: prefs.getBool(_kPaused) ?? state.paused,
-      lastDailyRewardDate: prefs.getString(_kLastDailyRewardDate) ?? state.lastDailyRewardDate,
-      coins: prefs.getInt(_kCoins) ?? state.coins,
-      npaEnabled: prefs.getBool(_kNpaEnabled) ?? state.npaEnabled,
-      pendingMagnetBuffSeconds: prefs.getInt(_kPendingMagnetBuffSec) ?? state.pendingMagnetBuffSeconds,
-    ));
+    emit(
+      AppSettingsState(
+        audioOn: prefs.getBool(_kAudioOn) ?? state.audioOn,
+        hapticsOn: prefs.getBool(_kHapticsOn) ?? state.hapticsOn,
+        consentGiven: prefs.getBool(_kConsentGiven) ?? state.consentGiven,
+        adsEnabled: prefs.getBool(_kAdsEnabled) ?? state.adsEnabled,
+        paused: prefs.getBool(_kPaused) ?? state.paused,
+        lastDailyRewardDate:
+            prefs.getString(_kLastDailyRewardDate) ?? state.lastDailyRewardDate,
+        coins: prefs.getInt(_kCoins) ?? state.coins,
+        npaEnabled: prefs.getBool(_kNpaEnabled) ?? state.npaEnabled,
+        pendingMagnetBuffSeconds:
+            prefs.getInt(_kPendingMagnetBuffSec) ??
+            state.pendingMagnetBuffSeconds,
+      ),
+    );
   }
 
   /// Simpan state ke SharedPreferences.

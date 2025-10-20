@@ -12,7 +12,7 @@ class AdService {
   bool _initialized = false;
   InterstitialAd? _interstitial;
   RewardedAd? _rewarded;
-  
+
   /// Slot rewarded terpisah untuk Daily Reward agar tidak berbenturan dengan Revive.
   RewardedAd? _rewardedDaily;
 
@@ -84,10 +84,10 @@ class AdService {
         onAdFailedToLoad: (err) {
           _interstitial = null;
           _log('interstitial failed: ${err.message}');
-          LoggingService.log('ad_interstitial_failed_load', fields: {
-            'code': err.code,
-            'message': err.message,
-          });
+          LoggingService.log(
+            'ad_interstitial_failed_load',
+            fields: {'code': err.code, 'message': err.message},
+          );
         },
       ),
     );
@@ -119,10 +119,10 @@ class AdService {
       },
       onAdFailedToShowFullScreenContent: (ad, err) {
         _log('interstitial failed to show: ${err.message}');
-        LoggingService.log('ad_interstitial_failed_show', fields: {
-          'code': err.code,
-          'message': err.message,
-        });
+        LoggingService.log(
+          'ad_interstitial_failed_show',
+          fields: {'code': err.code, 'message': err.message},
+        );
         ad.dispose();
         _interstitial = null;
         preloadInterstitial();
@@ -151,10 +151,10 @@ class AdService {
         onAdFailedToLoad: (err) {
           _rewarded = null;
           _log('rewarded revive failed: ${err.message}');
-          LoggingService.log('ad_rewarded_revive_failed_load', fields: {
-            'code': err.code,
-            'message': err.message,
-          });
+          LoggingService.log(
+            'ad_rewarded_revive_failed_load',
+            fields: {'code': err.code, 'message': err.message},
+          );
         },
       ),
     );
@@ -178,10 +178,10 @@ class AdService {
       },
       onAdFailedToShowFullScreenContent: (ad, err) {
         _log('rewarded revive failed to show: ${err.message}');
-        LoggingService.log('ad_rewarded_revive_failed_show', fields: {
-          'code': err.code,
-          'message': err.message,
-        });
+        LoggingService.log(
+          'ad_rewarded_revive_failed_show',
+          fields: {'code': err.code, 'message': err.message},
+        );
         ad.dispose();
         _rewarded = null;
         rewarded = false;
@@ -191,10 +191,10 @@ class AdService {
     await ad.show(
       onUserEarnedReward: (ad, reward) {
         _log('rewarded revive earned: ${reward.amount} ${reward.type}');
-        LoggingService.log('ad_rewarded_revive_earned', fields: {
-          'amount': reward.amount,
-          'type': reward.type,
-        });
+        LoggingService.log(
+          'ad_rewarded_revive_earned',
+          fields: {'amount': reward.amount, 'type': reward.type},
+        );
         rewarded = true;
       },
     );
@@ -218,10 +218,10 @@ class AdService {
         onAdFailedToLoad: (err) {
           _rewardedDaily = null;
           _log('rewarded daily failed: ${err.message}');
-          LoggingService.log('ad_rewarded_daily_failed_load', fields: {
-            'code': err.code,
-            'message': err.message,
-          });
+          LoggingService.log(
+            'ad_rewarded_daily_failed_load',
+            fields: {'code': err.code, 'message': err.message},
+          );
         },
       ),
     );
@@ -246,10 +246,10 @@ class AdService {
       },
       onAdFailedToShowFullScreenContent: (ad, err) {
         _log('rewarded daily failed to show: ${err.message}');
-        LoggingService.log('ad_rewarded_daily_failed_show', fields: {
-          'code': err.code,
-          'message': err.message,
-        });
+        LoggingService.log(
+          'ad_rewarded_daily_failed_show',
+          fields: {'code': err.code, 'message': err.message},
+        );
         ad.dispose();
         _rewardedDaily = null;
         rewarded = false;
@@ -259,10 +259,10 @@ class AdService {
     await ad.show(
       onUserEarnedReward: (ad, reward) {
         _log('rewarded daily earned: ${reward.amount} ${reward.type}');
-        LoggingService.log('ad_rewarded_daily_earned', fields: {
-          'amount': reward.amount,
-          'type': reward.type,
-        });
+        LoggingService.log(
+          'ad_rewarded_daily_earned',
+          fields: {'amount': reward.amount, 'type': reward.type},
+        );
         rewarded = true;
       },
     );

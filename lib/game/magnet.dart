@@ -6,10 +6,7 @@ import 'my_game.dart';
 // when collected. Spawned periodically by MyGame's _magnetTimer.
 class MagnetPowerUp extends RectangleComponent with HasGameReference<MyGame> {
   MagnetPowerUp({Vector2? position, Color color = const Color(0xFF2ECC71)})
-      : super(
-          size: Vector2(18, 18),
-          paint: Paint()..color = color,
-        ) {
+    : super(size: Vector2(18, 18), paint: Paint()..color = color) {
     if (position != null) this.position = position;
     anchor = Anchor.center;
   }

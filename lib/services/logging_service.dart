@@ -33,7 +33,7 @@ class LoggingService {
     // Instrumentasi sesi: tandai awal saat `start_game`
     if (event == 'start_game') {
       _sessionStart = now;
-    // Instrumentasi sesi: hitung durasi saat `game_over`
+      // Instrumentasi sesi: hitung durasi saat `game_over`
     } else if (event == 'game_over' && _sessionStart != null) {
       final sec = now.difference(_sessionStart!).inSeconds;
       buf.write(' session_sec=$sec');

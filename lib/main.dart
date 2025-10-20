@@ -27,10 +27,19 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<AppSettingsCubit>(create: (_) => AppSettingsCubit()..load()), // load state tersimpan dari SharedPreferences
+        BlocProvider<AppSettingsCubit>(
+          create: (_) => AppSettingsCubit()..load(),
+        ), // load state tersimpan dari SharedPreferences
       ],
       child: BlocListener<AppSettingsCubit, AppSettingsState>(
-        listenWhen: (prev, curr) => prev.paused != curr.paused || prev.adsEnabled != curr.adsEnabled || prev.consentGiven != curr.consentGiven || prev.audioOn != curr.audioOn || prev.npaEnabled != curr.npaEnabled || prev.hapticsOn != curr.hapticsOn,
+        listenWhen:
+            (prev, curr) =>
+                prev.paused != curr.paused ||
+                prev.adsEnabled != curr.adsEnabled ||
+                prev.consentGiven != curr.consentGiven ||
+                prev.audioOn != curr.audioOn ||
+                prev.npaEnabled != curr.npaEnabled ||
+                prev.hapticsOn != curr.hapticsOn,
         listener: (context, state) {
           if (state.paused) {
             game.pauseEngine();
@@ -73,18 +82,33 @@ class MyApp extends StatelessWidget {
                   // Gunakan API keyboard baru (HardwareKeyboard) sesuai deprecation Flutter 3.18+
                   final pressed = HardwareKeyboard.instance.logicalKeysPressed;
                   final dir = Vector2.zero();
-                  if (pressed.contains(LogicalKeyboardKey.keyA) || pressed.contains(LogicalKeyboardKey.arrowLeft)) dir.x -= 1;
-                  if (pressed.contains(LogicalKeyboardKey.keyD) || pressed.contains(LogicalKeyboardKey.arrowRight)) dir.x += 1;
-                  if (pressed.contains(LogicalKeyboardKey.keyW) || pressed.contains(LogicalKeyboardKey.arrowUp)) dir.y -= 1;
-                  if (pressed.contains(LogicalKeyboardKey.keyS) || pressed.contains(LogicalKeyboardKey.arrowDown)) dir.y += 1;
+                  if (pressed.contains(LogicalKeyboardKey.keyA) ||
+                      pressed.contains(LogicalKeyboardKey.arrowLeft)) {
+                    dir.x -= 1;
+                  }
+                  if (pressed.contains(LogicalKeyboardKey.keyD) ||
+                      pressed.contains(LogicalKeyboardKey.arrowRight)) {
+                    dir.x += 1;
+                  }
+                  if (pressed.contains(LogicalKeyboardKey.keyW) ||
+                      pressed.contains(LogicalKeyboardKey.arrowUp)) {
+                    dir.y -= 1;
+                  }
+                  if (pressed.contains(LogicalKeyboardKey.keyS) ||
+                      pressed.contains(LogicalKeyboardKey.arrowDown)) {
+                    dir.y += 1;
+                  }
                   game.inputDir = dir;
                 },
                 child: GameWidget(
                   game: game,
                   overlayBuilderMap: {
-                    MyGame.overlayMainMenu: (context, g) => MainMenuOverlay(game: g as MyGame),
-                    MyGame.overlayHud: (context, g) => HudOverlay(game: g as MyGame),
-                    MyGame.overlayGameOver: (context, g) => GameOverOverlay(game: g as MyGame),
+                    MyGame.overlayMainMenu:
+                        (context, g) => MainMenuOverlay(game: g as MyGame),
+                    MyGame.overlayHud:
+                        (context, g) => HudOverlay(game: g as MyGame),
+                    MyGame.overlayGameOver:
+                        (context, g) => GameOverOverlay(game: g as MyGame),
                   },
                 ),
               ),

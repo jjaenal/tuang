@@ -29,35 +29,48 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
     final accepted = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Ads Consent'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              Text('Game ini menampilkan iklan untuk mendukung pengembangan.'),
-              SizedBox(height: 8),
-              Text('Dengan menekan Setuju, Anda memberikan izin untuk menampilkan iklan.'),
-              SizedBox(height: 8),
-              Text('Anda bisa mengubah pengaturan kapan saja di Main Menu.'),
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Ads Consent'),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Text(
+                    'Game ini menampilkan iklan untuk mendukung pengembangan.',
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Dengan menekan Setuju, Anda memberikan izin untuk menampilkan iklan.',
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Anda bisa mengubah pengaturan kapan saja di Main Menu.',
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Tidak Setuju'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  final uri = Uri.parse(_privacyUrl);
+                  try {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  } catch (_) {}
+                },
+                child: const Text('Kebijakan Privasi'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Setuju'),
+              ),
             ],
           ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Tidak Setuju')),
-          TextButton(
-            onPressed: () async {
-              final uri = Uri.parse(_privacyUrl);
-              try {
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
-              } catch (_) {}
-            },
-            child: const Text('Kebijakan Privasi'),
-          ),
-          ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Setuju')),
-        ],
-      ),
     );
     return accepted == true;
   }
@@ -93,7 +106,6 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
     super.dispose();
   }
 
-
   /// Muat banner ads dengan ukuran anchored adaptive agar pas di layar.
   /// Menggunakan lebar layar saat ini untuk menghitung tinggi adaptif.
   void _loadBannerIfNeeded(BuildContext ctx, AppSettingsState app) {
@@ -103,7 +115,9 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
 
     // Hitung ukuran anchored adaptive berdasarkan lebar layar saat ini.
     final width = MediaQuery.of(ctx).size.width.truncate();
-    AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(width).then((anchoredSize) {
+    AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(width).then((
+      anchoredSize,
+    ) {
       if (!mounted) return; // pastikan State masih hidup
       if (anchoredSize == null) return; // ukuran gagal dihitung, abaikan
 
@@ -139,7 +153,11 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
   String? _nextClaimCountdown(AppSettingsCubit cubit) {
     if (cubit.canClaimDailyReward) return null;
     final now = _now.toLocal();
-    final nextMidnight = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+    final nextMidnight = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).add(const Duration(days: 1));
     final diff = nextMidnight.difference(now);
     if (diff.isNegative) return '00:00:00';
     return _formatHms(diff);
@@ -152,23 +170,36 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
       child: Center(
         child: BlocBuilder<AppSettingsCubit, AppSettingsState>(
           builder: (context, app) {
-            _loadBannerIfNeeded(context, app); // siapkan banner adaptive ketika syarat terpenuhi
+            _loadBannerIfNeeded(
+              context,
+              app,
+            ); // siapkan banner adaptive ketika syarat terpenuhi
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
                   'Endless Dodge & Collect',
-                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 4),
-                Text('Best: ${widget.game.bestScore}', style: const TextStyle(color: Colors.white70)),
+                Text(
+                  'Best: ${widget.game.bestScore}',
+                  style: const TextStyle(color: Colors.white70),
+                ),
                 const SizedBox(height: 4),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.circle, color: Colors.amber, size: 14),
                     const SizedBox(width: 6),
-                    Text('Coins: ${app.coins}', style: const TextStyle(color: Colors.white70)),
+                    Text(
+                      'Coins: ${app.coins}',
+                      style: const TextStyle(color: Colors.white70),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -181,9 +212,16 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.volume_up, color: Colors.white70, size: 18),
+                    const Icon(
+                      Icons.volume_up,
+                      color: Colors.white70,
+                      size: 18,
+                    ),
                     const SizedBox(width: 6),
-                    const Text('Audio', style: TextStyle(color: Colors.white70)),
+                    const Text(
+                      'Audio',
+                      style: TextStyle(color: Colors.white70),
+                    ),
                     const SizedBox(width: 8),
                     Switch(
                       value: app.audioOn,
@@ -191,7 +229,9 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                         context.read<AppSettingsCubit>().toggleAudio();
                         final messenger = ScaffoldMessenger.of(context);
                         messenger.showSnackBar(
-                          SnackBar(content: Text(val ? 'Audio ON' : 'Audio OFF')),
+                          SnackBar(
+                            content: Text(val ? 'Audio ON' : 'Audio OFF'),
+                          ),
                         );
                       },
                     ),
@@ -202,9 +242,16 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.vibration, color: Colors.white70, size: 18),
+                    const Icon(
+                      Icons.vibration,
+                      color: Colors.white70,
+                      size: 18,
+                    ),
                     const SizedBox(width: 6),
-                    const Text('Haptics', style: TextStyle(color: Colors.white70)),
+                    const Text(
+                      'Haptics',
+                      style: TextStyle(color: Colors.white70),
+                    ),
                     const SizedBox(width: 8),
                     Switch(
                       value: app.hapticsOn,
@@ -212,7 +259,9 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                         context.read<AppSettingsCubit>().toggleHaptics();
                         final messenger = ScaffoldMessenger.of(context);
                         messenger.showSnackBar(
-                          SnackBar(content: Text(val ? 'Haptics ON' : 'Haptics OFF')),
+                          SnackBar(
+                            content: Text(val ? 'Haptics ON' : 'Haptics OFF'),
+                          ),
                         );
                       },
                     ),
@@ -238,13 +287,21 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.privacy_tip, color: Colors.white70, size: 18),
+                    const Icon(
+                      Icons.privacy_tip,
+                      color: Colors.white70,
+                      size: 18,
+                    ),
                     const SizedBox(width: 6),
-                    const Text('Non-Personalized Ads', style: TextStyle(color: Colors.white70)),
+                    const Text(
+                      'Non-Personalized Ads',
+                      style: TextStyle(color: Colors.white70),
+                    ),
                     const SizedBox(width: 8),
                     Switch(
                       value: app.npaEnabled,
-                      onChanged: (_) => context.read<AppSettingsCubit>().toggleNpa(),
+                      onChanged:
+                          (_) => context.read<AppSettingsCubit>().toggleNpa(),
                     ),
                   ],
                 ),
@@ -252,9 +309,16 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.bug_report, color: Colors.white70, size: 18),
+                    const Icon(
+                      Icons.bug_report,
+                      color: Colors.white70,
+                      size: 18,
+                    ),
                     const SizedBox(width: 6),
-                    const Text('Debug Logging', style: TextStyle(color: Colors.white70)),
+                    const Text(
+                      'Debug Logging',
+                      style: TextStyle(color: Colors.white70),
+                    ),
                     const SizedBox(width: 8),
                     Switch(
                       value: _debugLogging,
@@ -263,7 +327,11 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                         LoggingService.enabled = val;
                         final messenger = ScaffoldMessenger.of(context);
                         messenger.showSnackBar(
-                          SnackBar(content: Text(val ? 'Debug logging ON' : 'Debug logging OFF')),
+                          SnackBar(
+                            content: Text(
+                              val ? 'Debug logging ON' : 'Debug logging OFF',
+                            ),
+                          ),
                         );
                       },
                     ),
@@ -272,7 +340,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                 const SizedBox(height: 8),
                 const Divider(color: Colors.white24, height: 1),
                 const SizedBox(height: 12),
-                
+
                 /// Tombol Daily Reward: aktif jika belum klaim hari ini.
                 /// - Jika consent + ads aktif (non-web), tampilkan rewarded ad dan klaim bila sukses.
                 /// - Jika tidak, klaim langsung dan beri umpan balik via SnackBar.
@@ -285,90 +353,134 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         ElevatedButton(
-                          onPressed: canClaim
-                              ? () async {
-                                  const rewardCoins = 25;
-                                  LoggingService.log('daily_reward_requested', fields: {
-                                    'ads_enabled': app.adsEnabled,
-                                    'consent': app.consentGiven,
-                                  });
-                                  if (app.adsEnabled && app.consentGiven && !kIsWeb) {
-                                    final ok = await AdService.I.showRewardedDailyReward();
-                                    if (!ctx.mounted) return;
-                                    if (ok) {
+                          onPressed:
+                              canClaim
+                                  ? () async {
+                                    const rewardCoins = 25;
+                                    LoggingService.log(
+                                      'daily_reward_requested',
+                                      fields: {
+                                        'ads_enabled': app.adsEnabled,
+                                        'consent': app.consentGiven,
+                                      },
+                                    );
+                                    if (app.adsEnabled &&
+                                        app.consentGiven &&
+                                        !kIsWeb) {
+                                      final ok =
+                                          await AdService.I
+                                              .showRewardedDailyReward();
+                                      if (!ctx.mounted) return;
+                                      if (ok) {
+                                        cubit.markDailyRewardClaimedNow();
+                                        cubit.addCoins(rewardCoins);
+                                        cubit.grantMagnetBuff(12);
+                                        LoggingService.log(
+                                          'daily_reward_claimed',
+                                          fields: {
+                                            'coins': rewardCoins,
+                                            'magnet_sec': 12,
+                                            'via': 'ad',
+                                          },
+                                        );
+                                        ScaffoldMessenger.of(ctx).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Daily reward: +25 coins + magnet 12s!',
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        LoggingService.log(
+                                          'daily_reward_ad_unavailable',
+                                        );
+                                        ScaffoldMessenger.of(ctx).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Iklan belum tersedia',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    } else {
                                       cubit.markDailyRewardClaimedNow();
                                       cubit.addCoins(rewardCoins);
                                       cubit.grantMagnetBuff(12);
-                                      LoggingService.log('daily_reward_claimed', fields: {
-                                        'coins': rewardCoins,
-                                        'magnet_sec': 12,
-                                        'via': 'ad',
-                                      });
-                                      ScaffoldMessenger.of(ctx).showSnackBar(
-                                        const SnackBar(content: Text('Daily reward: +25 coins + magnet 12s!')),
+                                      LoggingService.log(
+                                        'daily_reward_claimed',
+                                        fields: {
+                                          'coins': rewardCoins,
+                                          'magnet_sec': 12,
+                                          'via': 'no_ad',
+                                        },
                                       );
-                                    } else {
-                                      LoggingService.log('daily_reward_ad_unavailable');
+                                      if (!ctx.mounted) return;
                                       ScaffoldMessenger.of(ctx).showSnackBar(
-                                        const SnackBar(content: Text('Iklan belum tersedia')),
+                                        const SnackBar(
+                                          content: Text(
+                                            'Daily reward: +25 coins + magnet 12s (tanpa iklan)',
+                                          ),
+                                        ),
                                       );
                                     }
-                                  } else {
-                                    cubit.markDailyRewardClaimedNow();
-                                    cubit.addCoins(rewardCoins);
-                                    cubit.grantMagnetBuff(12);
-                                    LoggingService.log('daily_reward_claimed', fields: {
-                                      'coins': rewardCoins,
-                                      'magnet_sec': 12,
-                                      'via': 'no_ad',
-                                    });
-                                    if (!ctx.mounted) return;
-                                    ScaffoldMessenger.of(ctx).showSnackBar(
-                                      const SnackBar(content: Text('Daily reward: +25 coins + magnet 12s (tanpa iklan)')),
-                                    );
                                   }
-                                }
-                              : null,
-                          child: Text(canClaim ? 'Daily Reward' : 'Daily Reward (next: ${countdown ?? "00:00:00"})'),
+                                  : null,
+                          child: Text(
+                            canClaim
+                                ? 'Daily Reward'
+                                : 'Daily Reward (next: ${countdown ?? "00:00:00"})',
+                          ),
                         ),
                         if (!canClaim && countdown != null) ...[
                           const SizedBox(height: 4),
-                          Text('Next claim: $countdown', style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                        ]
+                          Text(
+                            'Next claim: $countdown',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ],
                     );
                   },
                 ),
                 const SizedBox(height: 12),
-                
+
                 if (app.adsEnabled && app.consentGiven)
                   kIsWeb
                       ? Container(
-                          height: 50,
-                          width: 320,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: const Color(0x2233FF99),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text('Banner Ad (placeholder)', style: TextStyle(color: Colors.white70)),
-                        )
+                        height: 50,
+                        width: 320,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: const Color(0x2233FF99),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Banner Ad (placeholder)',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                      )
                       : (_bannerAd != null && _bannerReady)
-                          ? SizedBox(
-                              height: _bannerAd!.size.height.toDouble(),
-                              width: _bannerAd!.size.width.toDouble(),
-                              child: AdWidget(ad: _bannerAd!),
-                            )
-                          : Container(
-                              height: 50,
-                              width: 320,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: const Color(0x22FFFFFF),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Text('Memuat iklan...', style: TextStyle(color: Colors.white70)),
-                            ),
+                      ? SizedBox(
+                        height: _bannerAd!.size.height.toDouble(),
+                        width: _bannerAd!.size.width.toDouble(),
+                        child: AdWidget(ad: _bannerAd!),
+                      )
+                      : Container(
+                        height: 50,
+                        width: 320,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: const Color(0x22FFFFFF),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'Memuat iklan...',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                      ),
               ],
             );
           },
