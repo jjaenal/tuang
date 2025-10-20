@@ -6,6 +6,8 @@ import '../game/my_game.dart';
 import '../state/app_settings_cubit.dart';
 import '../services/ad_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:async';
+import '../services/logging_service.dart';
 
 class MainMenuOverlay extends StatefulWidget {
   final MyGame game;
@@ -19,6 +21,9 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
   static const String _privacyUrl = 'https://example.com/privacy';
   BannerAd? _bannerAd;
   bool _bannerReady = false;
+  Timer? _ticker;
+  DateTime _now = DateTime.now();
+  bool _debugLogging = true;
 
   Future<bool> _showConsentDialog(BuildContext context) async {
     final accepted = await showDialog<bool>(
@@ -70,9 +75,21 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
       cubit.toggleAds();
     }
   }
+
+  @override
+  void initState() {
+    super.initState();
+    _debugLogging = LoggingService.enabled;
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      setState(() => _now = DateTime.now());
+    });
+  }
+
   @override
   void dispose() {
     _bannerAd?.dispose();
+    _ticker?.cancel();
     super.dispose();
   }
 
@@ -108,6 +125,24 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
       ad.load();
       setState(() => _bannerAd = ad);
     });
+  }
+
+  String _formatHms(Duration d) {
+    final h = d.inHours;
+    final m = d.inMinutes % 60;
+    final s = d.inSeconds % 60;
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${two(h)}:${two(m)}:${two(s)}';
+  }
+
+  /// Hitung countdown menuju klaim berikutnya (midnight lokal) saat sudah klaim hari ini.
+  String? _nextClaimCountdown(AppSettingsCubit cubit) {
+    if (cubit.canClaimDailyReward) return null;
+    final now = _now.toLocal();
+    final nextMidnight = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+    final diff = nextMidnight.difference(now);
+    if (diff.isNegative) return '00:00:00';
+    return _formatHms(diff);
   }
 
   @override
@@ -157,6 +192,21 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                   ],
                 ),
                 const SizedBox(height: 8),
+                // Toggle haptics
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.vibration, color: Colors.white70, size: 18),
+                    const SizedBox(width: 6),
+                    const Text('Haptics', style: TextStyle(color: Colors.white70)),
+                    const SizedBox(width: 8),
+                    Switch(
+                      value: app.hapticsOn,
+                      onChanged: (_) => context.read<AppSettingsCubit>().toggleHaptics(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
                 // Toggle ads (requires consent)
                 Row(
                   mainAxisSize: MainAxisSize.min,
@@ -187,6 +237,27 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                   ],
                 ),
                 const SizedBox(height: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.bug_report, color: Colors.white70, size: 18),
+                    const SizedBox(width: 6),
+                    const Text('Debug Logging', style: TextStyle(color: Colors.white70)),
+                    const SizedBox(width: 8),
+                    Switch(
+                      value: _debugLogging,
+                      onChanged: (val) {
+                        setState(() => _debugLogging = val);
+                        LoggingService.enabled = val;
+                        final messenger = ScaffoldMessenger.of(context);
+                        messenger.showSnackBar(
+                          SnackBar(content: Text(val ? 'Debug logging ON' : 'Debug logging OFF')),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
                 const Divider(color: Colors.white24, height: 1),
                 const SizedBox(height: 12),
                 
@@ -197,37 +268,62 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                   builder: (ctx) {
                     final cubit = ctx.read<AppSettingsCubit>();
                     final canClaim = cubit.canClaimDailyReward;
-                    return ElevatedButton(
-                      onPressed: canClaim
-                          ? () async {
-                              const rewardCoins = 25;
-                              if (app.adsEnabled && app.consentGiven && !kIsWeb) {
-                                final ok = await AdService.I.showRewardedDailyReward();
-                                if (!ctx.mounted) return;
-                                if (ok) {
-                                  cubit.markDailyRewardClaimedNow();
-                                  cubit.addCoins(rewardCoins);
-                                  cubit.grantMagnetBuff(12);
-                                  ScaffoldMessenger.of(ctx).showSnackBar(
-                                    const SnackBar(content: Text('Daily reward: +25 coins + magnet 12s!')),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(ctx).showSnackBar(
-                                    const SnackBar(content: Text('Iklan belum tersedia')),
-                                  );
+                    final countdown = _nextClaimCountdown(cubit);
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ElevatedButton(
+                          onPressed: canClaim
+                              ? () async {
+                                  const rewardCoins = 25;
+                                  LoggingService.log('daily_reward_requested', fields: {
+                                    'ads_enabled': app.adsEnabled,
+                                    'consent': app.consentGiven,
+                                  });
+                                  if (app.adsEnabled && app.consentGiven && !kIsWeb) {
+                                    final ok = await AdService.I.showRewardedDailyReward();
+                                    if (!ctx.mounted) return;
+                                    if (ok) {
+                                      cubit.markDailyRewardClaimedNow();
+                                      cubit.addCoins(rewardCoins);
+                                      cubit.grantMagnetBuff(12);
+                                      LoggingService.log('daily_reward_claimed', fields: {
+                                        'coins': rewardCoins,
+                                        'magnet_sec': 12,
+                                        'via': 'ad',
+                                      });
+                                      ScaffoldMessenger.of(ctx).showSnackBar(
+                                        const SnackBar(content: Text('Daily reward: +25 coins + magnet 12s!')),
+                                      );
+                                    } else {
+                                      LoggingService.log('daily_reward_ad_unavailable');
+                                      ScaffoldMessenger.of(ctx).showSnackBar(
+                                        const SnackBar(content: Text('Iklan belum tersedia')),
+                                      );
+                                    }
+                                  } else {
+                                    cubit.markDailyRewardClaimedNow();
+                                    cubit.addCoins(rewardCoins);
+                                    cubit.grantMagnetBuff(12);
+                                    LoggingService.log('daily_reward_claimed', fields: {
+                                      'coins': rewardCoins,
+                                      'magnet_sec': 12,
+                                      'via': 'no_ad',
+                                    });
+                                    if (!ctx.mounted) return;
+                                    ScaffoldMessenger.of(ctx).showSnackBar(
+                                      const SnackBar(content: Text('Daily reward: +25 coins + magnet 12s (tanpa iklan)')),
+                                    );
+                                  }
                                 }
-                              } else {
-                                cubit.markDailyRewardClaimedNow();
-                                cubit.addCoins(rewardCoins);
-                                cubit.grantMagnetBuff(12);
-                                if (!ctx.mounted) return;
-                                ScaffoldMessenger.of(ctx).showSnackBar(
-                                  const SnackBar(content: Text('Daily reward: +25 coins + magnet 12s (tanpa iklan)')),
-                                );
-                              }
-                            }
-                          : null,
-                      child: Text(canClaim ? 'Daily Reward' : 'Sudah Klaim Hari Ini'),
+                              : null,
+                          child: Text(canClaim ? 'Daily Reward' : 'Daily Reward (next: ${countdown ?? "00:00:00"})'),
+                        ),
+                        if (!canClaim && countdown != null) ...[
+                          const SizedBox(height: 4),
+                          Text('Next claim: $countdown', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                        ]
+                      ],
                     );
                   },
                 ),

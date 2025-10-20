@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../game/my_game.dart';
 import '../state/app_settings_cubit.dart';
+import '../services/logging_service.dart';
 
 class HudOverlay extends StatelessWidget {
   final MyGame game;
@@ -79,6 +80,11 @@ class HudOverlay extends StatelessWidget {
                             ),
                           ),
                         ),
+                        const SizedBox(width: 8),
+                        Text(
+                          mag > 0 ? '${game.magnetSecondsLeft}s' : 'Off',
+                          style: const TextStyle(color: Colors.white70),
+                        ),
                       ],
                     ),
                   ),
@@ -96,6 +102,27 @@ class HudOverlay extends StatelessWidget {
                     child: Text('Combo x$combo', style: const TextStyle(color: Colors.white)),
                   ),
                 ),
+                const SizedBox(height: 6),
+                if (LoggingService.enabled)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0x33112233),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0x4488CCFF)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.bug_report, color: Colors.lightBlueAccent, size: 14),
+                        const SizedBox(width: 8),
+                        Text(
+                          'C:${game.coinsPicked} M:${game.magnetsPicked} R:${game.reviveCount}',
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
             Column(

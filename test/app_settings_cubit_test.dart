@@ -10,10 +10,12 @@ void main() {
         'pref_consentGiven': false,
         'pref_adsEnabled': false,
         'pref_paused': false,
+        'pref_hapticsOn': false,
       });
       final cubit = AppSettingsCubit();
       await cubit.load();
       expect(cubit.state.audioOn, isFalse);
+      expect(cubit.state.hapticsOn, isFalse);
 
       cubit.toggleAudio();
       expect(cubit.state.audioOn, isTrue);
@@ -21,6 +23,12 @@ void main() {
       // saved value should be true
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getBool('pref_audioOn'), isTrue);
+
+      // verify haptics toggle persists
+      cubit.toggleHaptics();
+      expect(cubit.state.hapticsOn, isTrue);
+      final prefs2 = await SharedPreferences.getInstance();
+      expect(prefs2.getBool('pref_hapticsOn'), isTrue);
 
       cubit.setConsent(true);
       expect(cubit.state.consentGiven, isTrue);

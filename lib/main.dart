@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'state/app_settings_cubit.dart';
 import 'services/ad_service.dart';
 import 'services/audio_service.dart';
+import 'services/haptics_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +30,7 @@ class MyApp extends StatelessWidget {
         BlocProvider<AppSettingsCubit>(create: (_) => AppSettingsCubit()..load()), // load state tersimpan dari SharedPreferences
       ],
       child: BlocListener<AppSettingsCubit, AppSettingsState>(
-        listenWhen: (prev, curr) => prev.paused != curr.paused || prev.adsEnabled != curr.adsEnabled || prev.consentGiven != curr.consentGiven || prev.audioOn != curr.audioOn || prev.npaEnabled != curr.npaEnabled,
+        listenWhen: (prev, curr) => prev.paused != curr.paused || prev.adsEnabled != curr.adsEnabled || prev.consentGiven != curr.consentGiven || prev.audioOn != curr.audioOn || prev.npaEnabled != curr.npaEnabled || prev.hapticsOn != curr.hapticsOn,
         listener: (context, state) {
           if (state.paused) {
             game.pauseEngine();
@@ -47,6 +48,8 @@ class MyApp extends StatelessWidget {
           if (state.audioOn) {
             AudioService.I.startBgm();
           }
+          // Sinkronkan toggle haptics
+          HapticsService.enabled = state.hapticsOn;
         },
         child: MaterialApp(
           title: 'Tuang Game',

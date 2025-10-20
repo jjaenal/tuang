@@ -4,12 +4,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// AppSettingsCubit mengelola state non-game (UI/app-layer) seperti:
 /// - audioOn: apakah audio diaktifkan
+/// - hapticsOn: apakah haptics (getaran) diaktifkan
 /// - consentGiven: apakah user telah memberikan consent (GDPR/CCPA)
 /// - adsEnabled: apakah iklan diaktifkan (hanya jika consent diberikan)
 /// - paused: apakah game sedang dipause (mengendalikan pause/resume dari UI)
 /// - lastDailyRewardDate: tanggal terakhir daily reward diklaim (format YYYY-MM-DD, lokal)
 class AppSettingsState extends Equatable {
   final bool audioOn;
+  final bool hapticsOn;
   final bool consentGiven;
   final bool adsEnabled;
   final bool paused;
@@ -29,6 +31,7 @@ class AppSettingsState extends Equatable {
 
   const AppSettingsState({
     required this.audioOn,
+    required this.hapticsOn,
     required this.consentGiven,
     required this.adsEnabled,
     required this.paused,
@@ -44,6 +47,7 @@ class AppSettingsState extends Equatable {
 
   AppSettingsState copyWith({
     bool? audioOn,
+    bool? hapticsOn,
     bool? consentGiven,
     bool? adsEnabled,
     bool? paused,
@@ -55,6 +59,7 @@ class AppSettingsState extends Equatable {
   }) {
     return AppSettingsState(
       audioOn: audioOn ?? this.audioOn,
+      hapticsOn: hapticsOn ?? this.hapticsOn,
       consentGiven: consentGiven ?? this.consentGiven,
       adsEnabled: adsEnabled ?? this.adsEnabled,
       paused: paused ?? this.paused,
@@ -66,11 +71,12 @@ class AppSettingsState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [audioOn, consentGiven, adsEnabled, paused, lastDailyRewardDate, coins, npaEnabled, pendingMagnetBuffSeconds];
+  List<Object?> get props => [audioOn, hapticsOn, consentGiven, adsEnabled, paused, lastDailyRewardDate, coins, npaEnabled, pendingMagnetBuffSeconds];
 }
 
 class AppSettingsCubit extends Cubit<AppSettingsState> {
   static const _kAudioOn = 'pref_audioOn';
+  static const _kHapticsOn = 'pref_hapticsOn';
   static const _kConsentGiven = 'pref_consentGiven';
   static const _kAdsEnabled = 'pref_adsEnabled';
   static const _kPaused = 'pref_paused';
@@ -86,6 +92,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
   AppSettingsCubit()
       : super(const AppSettingsState(
           audioOn: true,
+          hapticsOn: true,
           consentGiven: false,
           adsEnabled: false,
           paused: false,
@@ -100,6 +107,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     final prefs = await SharedPreferences.getInstance();
     emit(AppSettingsState(
       audioOn: prefs.getBool(_kAudioOn) ?? state.audioOn,
+      hapticsOn: prefs.getBool(_kHapticsOn) ?? state.hapticsOn,
       consentGiven: prefs.getBool(_kConsentGiven) ?? state.consentGiven,
       adsEnabled: prefs.getBool(_kAdsEnabled) ?? state.adsEnabled,
       paused: prefs.getBool(_kPaused) ?? state.paused,
@@ -115,6 +123,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
   Future<void> _savePrefs() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_kAudioOn, state.audioOn);
+    await prefs.setBool(_kHapticsOn, state.hapticsOn);
     await prefs.setBool(_kConsentGiven, state.consentGiven);
     await prefs.setBool(_kAdsEnabled, state.adsEnabled);
     await prefs.setBool(_kPaused, state.paused);
@@ -132,6 +141,12 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
   /// Toggle audio aktif/nonaktif.
   void toggleAudio() {
     emit(state.copyWith(audioOn: !state.audioOn));
+    _savePrefs();
+  }
+
+  /// Toggle haptics aktif/nonaktif.
+  void toggleHaptics() {
+    emit(state.copyWith(hapticsOn: !state.hapticsOn));
     _savePrefs();
   }
 

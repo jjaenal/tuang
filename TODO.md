@@ -33,7 +33,7 @@
 - [x] Add simple transition animation (fade/slide)
 - [x] Add sound effects + volume icon state
 - [x] Add magnet power-up visual feedback (flash overlay)
-- [ ] Optional: vibration (haptics)
+- [x] Optional: vibration (haptics)
 
 ---
 
@@ -44,8 +44,9 @@
 - [x] Persist daily reward state (`last_daily_reward`)
 - [x] Persist coins and pending magnet buff state
 - [x] Add AppSettingsCubit untuk state management
-- [ ] Instrumentation: session length, ad load/show rate, error codes
-- [ ] Logging: interstitial/rewarded load/show, eCPM placeholder (dev log)
+- [x] Add haptics toggle (persist)
+- [x] Instrumentation: session length, ad load/show rate, error codes
+- [x] Logging: interstitial/rewarded load/show (eCPM placeholder bisa ditambah nanti)
 
 ---
 
@@ -74,5 +75,10 @@
 - [ ] Add daily reward or login bonus (refine)
 - [ ] Add simple leaderboard (Firebase)
 - [ ] Add skins or themes
-- [ ] Add vibration feedback
+- [x] Add vibration feedback
 - [ ] Add difficulty modes (easy/normal/hard)
+
+---
+
+## 📚 Documentation
+- [x] Tambah komentar class/fungsi/blok di `LoggingService` & `AdService` sesuai project rules

@@ -1,6 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'logging_service.dart';
 
+/// AdService: layanan iklan interstitial & rewarded untuk Android/iOS.
+/// Mengelola init, preload, penayangan, cooldown, NPA, dan slot rewarded harian.
+/// Instrumentasi melalui LoggingService: `ad_init_*`, `ad_interstitial_*`, `ad_rewarded_*`.
 class AdService {
   static final AdService I = AdService._();
   AdService._();
@@ -25,13 +29,17 @@ class AdService {
     debugPrint('[AdService] $msg');
   }
 
+  /// Initialize Mobile Ads SDK; no-op di web.
+  /// Memanggil preload untuk interstitial, rewarded (revive), dan rewarded daily.
   Future<void> init() async {
     if (_initialized) return;
     if (kIsWeb) return; // fokus Android/iOS
     _log('init start');
+    LoggingService.log('ad_init_start');
     await MobileAds.instance.initialize();
     _initialized = true;
     _log('initialized');
+    LoggingService.log('ad_init_done');
     preloadInterstitial();
     preloadRewardedRevive();
     // Preload Daily Reward agar siap ketika user membuka main menu.
@@ -41,6 +49,7 @@ class AdService {
   /// Set Non-Personalized Ads preference dan reload ads yang sudah di-preload.
   void setNonPersonalizedAds(bool enable) {
     _npa = enable;
+    LoggingService.log('ad_npa_set', fields: {'enabled': enable});
     if (!_initialized || kIsWeb) return;
     try {
       _interstitial?.dispose();
@@ -59,7 +68,7 @@ class AdService {
     preloadRewardedDailyReward();
   }
 
-  // Preload interstitial sehingga siap ditampilkan tanpa menunggu
+  /// Preload interstitial sehingga siap ditampilkan tanpa menunggu.
   void preloadInterstitial() {
     if (!_initialized || kIsWeb) return;
     _log('preload interstitial');
@@ -70,16 +79,22 @@ class AdService {
         onAdLoaded: (ad) {
           _interstitial = ad;
           _log('interstitial loaded');
+          LoggingService.log('ad_interstitial_loaded');
         },
         onAdFailedToLoad: (err) {
           _interstitial = null;
           _log('interstitial failed: ${err.message}');
+          LoggingService.log('ad_interstitial_failed_load', fields: {
+            'code': err.code,
+            'message': err.message,
+          });
         },
       ),
     );
   }
 
-  // Menampilkan interstitial dengan cooldown agar tidak terlalu sering
+  /// Menampilkan interstitial dengan cooldown agar tidak terlalu sering.
+  /// Mengembalikan `true` jika pemanggilan `show()` dilakukan; hasil final via callback.
   Future<bool> showInterstitial() async {
     if (!_initialized || kIsWeb) return false;
     final ad = _interstitial;
@@ -87,18 +102,27 @@ class AdService {
     final now = nowProvider();
     if (!cooldownAllows(_lastInterstitialShown, now, interstitialCooldown)) {
       _log('interstitial blocked by cooldown');
+      LoggingService.log('ad_interstitial_blocked_cooldown');
       return false;
     }
     ad.fullScreenContentCallback = FullScreenContentCallback(
-      onAdShowedFullScreenContent: (_) => _log('interstitial shown'),
+      onAdShowedFullScreenContent: (_) {
+        _log('interstitial shown');
+        LoggingService.log('ad_interstitial_shown');
+      },
       onAdDismissedFullScreenContent: (ad) {
         _log('interstitial dismissed');
+        LoggingService.log('ad_interstitial_dismissed');
         ad.dispose();
         _interstitial = null;
         preloadInterstitial();
       },
       onAdFailedToShowFullScreenContent: (ad, err) {
         _log('interstitial failed to show: ${err.message}');
+        LoggingService.log('ad_interstitial_failed_show', fields: {
+          'code': err.code,
+          'message': err.message,
+        });
         ad.dispose();
         _interstitial = null;
         preloadInterstitial();
@@ -106,11 +130,12 @@ class AdService {
     );
     _lastInterstitialShown = now;
     _log('interstitial show()');
+    LoggingService.log('ad_interstitial_show');
     ad.show();
     return true; // kita anggap ter-trigger; result final via callback
   }
 
-  // Preload rewarded ad untuk revive agar UX mulus
+  /// Preload rewarded ad untuk Revive agar UX mulus.
   void preloadRewardedRevive() {
     if (!_initialized || kIsWeb) return;
     _log('preload rewarded revive');
@@ -121,31 +146,42 @@ class AdService {
         onAdLoaded: (ad) {
           _rewarded = ad;
           _log('rewarded revive loaded');
+          LoggingService.log('ad_rewarded_revive_loaded');
         },
         onAdFailedToLoad: (err) {
           _rewarded = null;
           _log('rewarded revive failed: ${err.message}');
+          LoggingService.log('ad_rewarded_revive_failed_load', fields: {
+            'code': err.code,
+            'message': err.message,
+          });
         },
       ),
     );
   }
 
-  // Tampilkan rewarded; return true bila pengguna memperoleh reward (menyelesaikan tontonan)
+  /// Tampilkan rewarded Revive; mengembalikan true bila pengguna memperoleh reward.
   Future<bool> showRewardedRevive() async {
     if (!_initialized || kIsWeb) return false;
     final ad = _rewarded;
     if (ad == null) return false;
     bool rewarded = false;
     _log('show rewarded revive');
+    LoggingService.log('ad_rewarded_revive_show');
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         _log('rewarded revive dismissed');
+        LoggingService.log('ad_rewarded_revive_dismissed');
         ad.dispose();
         _rewarded = null;
         preloadRewardedRevive();
       },
       onAdFailedToShowFullScreenContent: (ad, err) {
         _log('rewarded revive failed to show: ${err.message}');
+        LoggingService.log('ad_rewarded_revive_failed_show', fields: {
+          'code': err.code,
+          'message': err.message,
+        });
         ad.dispose();
         _rewarded = null;
         rewarded = false;
@@ -155,6 +191,10 @@ class AdService {
     await ad.show(
       onUserEarnedReward: (ad, reward) {
         _log('rewarded revive earned: ${reward.amount} ${reward.type}');
+        LoggingService.log('ad_rewarded_revive_earned', fields: {
+          'amount': reward.amount,
+          'type': reward.type,
+        });
         rewarded = true;
       },
     );
@@ -173,10 +213,15 @@ class AdService {
         onAdLoaded: (ad) {
           _rewardedDaily = ad;
           _log('rewarded daily loaded');
+          LoggingService.log('ad_rewarded_daily_loaded');
         },
         onAdFailedToLoad: (err) {
           _rewardedDaily = null;
           _log('rewarded daily failed: ${err.message}');
+          LoggingService.log('ad_rewarded_daily_failed_load', fields: {
+            'code': err.code,
+            'message': err.message,
+          });
         },
       ),
     );
@@ -190,15 +235,21 @@ class AdService {
     if (ad == null) return false;
     bool rewarded = false;
     _log('show rewarded daily');
+    LoggingService.log('ad_rewarded_daily_show');
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         _log('rewarded daily dismissed');
+        LoggingService.log('ad_rewarded_daily_dismissed');
         ad.dispose();
         _rewardedDaily = null;
         preloadRewardedDailyReward();
       },
       onAdFailedToShowFullScreenContent: (ad, err) {
         _log('rewarded daily failed to show: ${err.message}');
+        LoggingService.log('ad_rewarded_daily_failed_show', fields: {
+          'code': err.code,
+          'message': err.message,
+        });
         ad.dispose();
         _rewardedDaily = null;
         rewarded = false;
@@ -208,13 +259,17 @@ class AdService {
     await ad.show(
       onUserEarnedReward: (ad, reward) {
         _log('rewarded daily earned: ${reward.amount} ${reward.type}');
+        LoggingService.log('ad_rewarded_daily_earned', fields: {
+          'amount': reward.amount,
+          'type': reward.type,
+        });
         rewarded = true;
       },
     );
     return rewarded;
   }
 
-  // Test IDs
+  /// Mendapatkan unit ID interstitial untuk platform saat ini (test IDs).
   String _interstitialUnitId() {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -226,6 +281,7 @@ class AdService {
     }
   }
 
+  /// Mendapatkan unit ID rewarded untuk platform saat ini (test IDs).
   String _rewardedUnitId() {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -237,7 +293,7 @@ class AdService {
     }
   }
 
-  // Unit ID banner untuk test (Android/iOS)
+  /// Mendapatkan unit ID banner untuk platform saat ini (test IDs).
   String bannerUnitId() {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -249,6 +305,8 @@ class AdService {
     }
   }
 
+  /// Utilitas untuk memeriksa batasan cooldown interstitial.
+  /// Mengizinkan jika `last == null` atau selisih waktu >= `cooldown`.
   @visibleForTesting
   static bool cooldownAllows(DateTime? last, DateTime now, Duration cooldown) {
     // Mengizinkan bila belum pernah tampil atau jarak waktu >= cooldown

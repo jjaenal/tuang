@@ -94,6 +94,7 @@ final rewardedAdUnitId     = 'ca-app-pub-3940256099942544/5224354917';
 - Toggle Non-Personalized Ads dari Main Menu
 - Batasi revive rewarded: 1 kali per sesi
 - Daily reward memberikan coins + magnet buff untuk run berikutnya
+- Toggle Haptics di Main Menu (mobile only; web diabaikan otomatis; state dipersist)
 
 ---
 
@@ -131,3 +132,12 @@ final rewardedAdUnitId     = 'ca-app-pub-3940256099942544/5224354917';
 
 ## 📜 Lisensi
 MIT © 2025 YourName
+
+---
+
+## ✏️ Perubahan Terbaru
+- Developer: YourName
+- File diubah:
+  - `lib/services/logging_service.dart`: tambah komentar class/fungsi/blok untuk instrumentasi durasi sesi.
+  - `lib/services/ad_service.dart`: tambah komentar class/fungsi serta penjelasan instrumentasi log iklan.
+- Ringkas perubahan: dokumentasi internal ditingkatkan agar sesuai project rules (komentar pada class, fungsi, dan blok kode yang diubah), tanpa mengubah perilaku aplikasi.
