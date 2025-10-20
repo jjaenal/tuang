@@ -75,6 +75,8 @@ class MyGame extends FlameGame {
   // Getter untuk HUD
   int get magnetSecondsLeft => _magnetTimeLeft.ceil();
   double get magnetDuration => _magnetDuration;
+  // Getter durasi sesi untuk UI Game Over
+  double get elapsed => _elapsed;
 
   // HUD properties for magnet progress & combo multiplier
   final ValueNotifier<double> magnetVN = ValueNotifier<double>(0.0);
@@ -274,6 +276,12 @@ class MyGame extends FlameGame {
 
     _elapsed += dt;
     updateTimers(dt);
+
+    // Perbarui countdown waktu sesi untuk HUD
+    final remaining = (_elapsed <= sessionLength)
+        ? (sessionLength - _elapsed).clamp(0.0, sessionLength)
+        : 0.0;
+    timeVN.value = (remaining.ceil());
 
     // shake update
     if (_shakeTimeLeft > 0) {

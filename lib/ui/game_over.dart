@@ -49,6 +49,9 @@ class GameOverOverlay extends StatelessWidget {
                     children: [
                       const Text('Rincian Reward', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 6),
+                      // Durasi sesi
+                      Text('Durasi sesi: ${game.elapsed.toStringAsFixed(1)}s', style: const TextStyle(color: Colors.white70)),
+                      const SizedBox(height: 4),
                       Text('Coins dasar: $base', style: const TextStyle(color: Colors.white70)),
                       Text('Double Coins: ${doubledApplied ? 'Diterapkan' : 'Tersedia'}', style: const TextStyle(color: Colors.white70)),
                       Text('Magnet dipakai: ${magnetUsed ? 'Ya' : 'Tidak'}', style: const TextStyle(color: Colors.white70)),

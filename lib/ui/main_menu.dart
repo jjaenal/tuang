@@ -187,7 +187,13 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                     const SizedBox(width: 8),
                     Switch(
                       value: app.audioOn,
-                      onChanged: (_) => context.read<AppSettingsCubit>().toggleAudio(),
+                      onChanged: (val) {
+                        context.read<AppSettingsCubit>().toggleAudio();
+                        final messenger = ScaffoldMessenger.of(context);
+                        messenger.showSnackBar(
+                          SnackBar(content: Text(val ? 'Audio ON' : 'Audio OFF')),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -202,7 +208,13 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                     const SizedBox(width: 8),
                     Switch(
                       value: app.hapticsOn,
-                      onChanged: (_) => context.read<AppSettingsCubit>().toggleHaptics(),
+                      onChanged: (val) {
+                        context.read<AppSettingsCubit>().toggleHaptics();
+                        final messenger = ScaffoldMessenger.of(context);
+                        messenger.showSnackBar(
+                          SnackBar(content: Text(val ? 'Haptics ON' : 'Haptics OFF')),
+                        );
+                      },
                     ),
                   ],
                 ),
