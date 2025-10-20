@@ -14,6 +14,11 @@ import '../services/ad_service.dart';
 import '../services/logging_service.dart';
 import '../services/haptics_service.dart';
 
+/// MyGame adalah inti loop permainan dan pengelola state.
+///
+/// - Mengatur skor, countdown sesi (timeVN), magnet, combo, buff/efek, dan input.
+/// - Mengekspor `elapsed` untuk breakdown durasi di layar Game Over.
+/// - Mengelola overlay HUD/MainMenu/GameOver dengan aman di lingkungan test.
 class MyGame extends FlameGame {
   static const String overlayMainMenu = 'MainMenu';
   static const String overlayHud = 'Hud';
@@ -46,17 +51,19 @@ class MyGame extends FlameGame {
   bool _doubleCoinsUsed = false;
   bool get doubleCoinsAvailable => !_doubleCoinsUsed;
   bool get doubleCoinsUsed => _doubleCoinsUsed;
-  
+
   // Flag deposit reward agar hanya sekali per game over
   bool _rewardDeposited = false;
   bool get rewardDeposited => _rewardDeposited;
-  void markRewardDeposited() { _rewardDeposited = true; }
+  void markRewardDeposited() {
+    _rewardDeposited = true;
+  }
 
   // speed boost mechanics
   double playerSpeedMultiplier = 1.0;
   double _boostTimeLeft = 0.0;
   final double _boostDuration = 0.5; // seconds
-  final double _boostAmount = 0.6;   // +60% speed
+  final double _boostAmount = 0.6; // +60% speed
 
   // screen shake
   double _shakeTimeLeft = 0.0;
@@ -75,7 +82,8 @@ class MyGame extends FlameGame {
   // Getter untuk HUD
   int get magnetSecondsLeft => _magnetTimeLeft.ceil();
   double get magnetDuration => _magnetDuration;
-  // Getter durasi sesi untuk UI Game Over
+
+  /// Durasi sesi berjalan (detik). Direset saat `startGame`.
   double get elapsed => _elapsed;
 
   // HUD properties for magnet progress & combo multiplier
@@ -102,9 +110,14 @@ class MyGame extends FlameGame {
     _magnetTimer.onTick = spawnMagnet;
 
     timeVN.value = sessionLength.toInt();
-    overlays.add(overlayMainMenu);
+    _safeOverlayAdd(overlayMainMenu);
   }
 
+  /// Memulai sesi permainan baru.
+  ///
+  /// - Reset skor, waktu, combo, magnet, dan flag revive/double coins.
+  /// - Menjalankan timer spawn dan menampilkan HUD.
+  /// - Mengonsumsi buff magnet harian jika tersimpan di preferences.
   void startGame() {
     isPlaying = true;
     _elapsed = 0;
@@ -123,10 +136,10 @@ class MyGame extends FlameGame {
     coinsPicked = 0;
     magnetsPicked = 0;
     reviveCount = 0;
-    LoggingService.log('start_game', fields: {
-      'best': bestScore,
-      'session_len': sessionLength,
-    });
+    LoggingService.log(
+      'start_game',
+      fields: {'best': bestScore, 'session_len': sessionLength},
+    );
 
     _coinTimer.start();
     _obstacleTimer.start();
@@ -136,33 +149,44 @@ class MyGame extends FlameGame {
     _safeOverlayAdd(overlayHud);
 
     // Konsumsi buff magnet harian jika ada. Tangani kegagalan SharedPreferences di lingkungan test.
-    SharedPreferences.getInstance().then((prefs) {
-      final sec = prefs.getInt('pref_pendingMagnetBuffSec') ?? 0;
-      if (sec > 0) {
-        _magnetTimeLeft = sec.toDouble();
-        magnetVN.value = 1.0;
-        prefs.setInt('pref_pendingMagnetBuffSec', 0);
-        // tandai magnet dipakai di run ini
-        magnetUsedThisRun = true;
-        LoggingService.log('magnet_buff_consumed', fields: {
-          'seconds': sec,
+    SharedPreferences.getInstance()
+        .then((prefs) {
+          final sec = prefs.getInt('pref_pendingMagnetBuffSec') ?? 0;
+          if (sec > 0) {
+            _magnetTimeLeft = sec.toDouble();
+            magnetVN.value = 1.0;
+            prefs.setInt('pref_pendingMagnetBuffSec', 0);
+            // tandai magnet dipakai di run ini
+            magnetUsedThisRun = true;
+            LoggingService.log(
+              'magnet_buff_consumed',
+              fields: {'seconds': sec},
+            );
+            // Sedikit efek visual/audio agar terasa.
+            try {
+              add(
+                FlashOverlay(
+                  size: size,
+                  color: Colors.greenAccent,
+                  duration: 0.15,
+                ),
+              );
+            } catch (_) {}
+            try {
+              AudioService.I.playMagnet();
+            } catch (_) {}
+            try {
+              HapticsService.magnetPickup();
+            } catch (_) {}
+          }
+        })
+        .catchError((_) {
+          // Abaikan saat SharedPreferences tidak tersedia (mis. unit test VM tanpa binding)
         });
-        // Sedikit efek visual/audio agar terasa.
-        try {
-          add(FlashOverlay(size: size, color: Colors.greenAccent, duration: 0.15));
-        } catch (_) {}
-        try {
-          AudioService.I.playMagnet();
-        } catch (_) {}
-        try {
-          HapticsService.magnetPickup();
-        } catch (_) {}
-      }
-    }).catchError((_) {
-      // Abaikan saat SharedPreferences tidak tersedia (mis. unit test VM tanpa binding)
-    });
   }
 
+  /// Mengakhiri sesi permainan, menyimpan best score, dan menampilkan Game Over.
+  /// Juga melog detail sesi (score, base score, magnet/double coins, elapsed, dll.).
   void gameOver() {
     isPlaying = false;
     // simpan base score untuk breakdown sebelum double coins diterapkan
@@ -172,17 +196,20 @@ class MyGame extends FlameGame {
       bestScore = lastScore;
       _saveBestScore();
     }
-    LoggingService.log('game_over', fields: {
-      'score': lastScore,
-      'base': baseScoreAtGameOver,
-      'double_used': _doubleCoinsUsed,
-      'magnet_used': magnetUsedThisRun,
-      'elapsed': _elapsed,
-      'best': bestScore,
-      'coins_picked': coinsPicked,
-      'magnets_picked': magnetsPicked,
-      'revives': reviveCount,
-    });
+    LoggingService.log(
+      'game_over',
+      fields: {
+        'score': lastScore,
+        'base': baseScoreAtGameOver,
+        'double_used': _doubleCoinsUsed,
+        'magnet_used': magnetUsedThisRun,
+        'elapsed': _elapsed,
+        'best': bestScore,
+        'coins_picked': coinsPicked,
+        'magnets_picked': magnetsPicked,
+        'revives': reviveCount,
+      },
+    );
     _rewardDeposited = false;
     _safeOverlayRemove(overlayHud);
     _safeOverlayAdd(overlayGameOver);
@@ -192,6 +219,7 @@ class MyGame extends FlameGame {
     } catch (_) {}
   }
 
+  /// Menerapkan revive satu kali: mengaktifkan kembali permainan dan HUD.
   void revive() {
     if (isPlaying) return;
     if (_revivedOnce) return;
@@ -269,6 +297,7 @@ class MyGame extends FlameGame {
     _shakeTimeLeft = duration;
   }
 
+  /// Update utama per-frame: waktu, countdown HUD, efek, gerak, pickup/hit, dan akhir sesi.
   @override
   void update(double dt) {
     super.update(dt);
@@ -278,9 +307,10 @@ class MyGame extends FlameGame {
     updateTimers(dt);
 
     // Perbarui countdown waktu sesi untuk HUD
-    final remaining = (_elapsed <= sessionLength)
-        ? (sessionLength - _elapsed).clamp(0.0, sessionLength)
-        : 0.0;
+    final remaining =
+        (_elapsed <= sessionLength)
+            ? (sessionLength - _elapsed).clamp(0.0, sessionLength)
+            : 0.0;
     timeVN.value = (remaining.ceil());
 
     // shake update
@@ -335,10 +365,18 @@ class MyGame extends FlameGame {
     // Keep player within the screen bounds
     final playerTopLeft = player.position - player.size / 2;
     final playerBottomRight = playerTopLeft + player.size;
-    if (playerTopLeft.x < 0) player.position.x = player.size.x / 2;
-    if (playerBottomRight.x > size.x) player.position.x = size.x - player.size.x / 2;
-    if (playerTopLeft.y < 0) player.position.y = player.size.y / 2;
-    if (playerBottomRight.y > size.y) player.position.y = size.y - player.size.y / 2;
+    if (playerTopLeft.x < 0) {
+      player.position.x = player.size.x / 2;
+    }
+    if (playerBottomRight.x > size.x) {
+      player.position.x = size.x - player.size.x / 2;
+    }
+    if (playerTopLeft.y < 0) {
+      player.position.y = player.size.y / 2;
+    }
+    if (playerBottomRight.y > size.y) {
+      player.position.y = size.y - player.size.y / 2;
+    }
 
     // coin pickup
     for (final coin in children.whereType<Coin>()) {
@@ -366,12 +404,24 @@ class MyGame extends FlameGame {
         _triggerShake(intensity: 6, duration: 0.12);
         add(FlashOverlay(size: size));
         add(PopEffect(position: coin.position.clone(), color: Colors.amber));
-        add(FloatingText(position: coin.position.clone(), text: '+$_comboMultiplier', color: Colors.white));
+        add(
+          FloatingText(
+            position: coin.position.clone(),
+            text: '+$_comboMultiplier',
+            color: Colors.white,
+          ),
+        );
         for (int i = 0; i < 12; i++) {
           final angle = _rng.nextDouble() * pi * 2;
           final speed = 80 + _rng.nextDouble() * 120;
           final vel = Vector2(cos(angle), sin(angle)) * speed;
-          add(DotParticle(position: coin.position.clone(), velocity: vel, color: Colors.amber));
+          add(
+            DotParticle(
+              position: coin.position.clone(),
+              velocity: vel,
+              color: Colors.amber,
+            ),
+          );
         }
         AudioService.I.playCoin();
         try {
@@ -396,9 +446,10 @@ class MyGame extends FlameGame {
         // tandai magnet dipakai di run ini
         magnetUsedThisRun = true;
         magnetsPicked += 1;
-        LoggingService.log('magnet_pickup', fields: {
-          'duration_sec': _magnetDuration,
-        });
+        LoggingService.log(
+          'magnet_pickup',
+          fields: {'duration_sec': _magnetDuration},
+        );
         add(FlashOverlay(size: size, color: Colors.greenAccent));
         add(PopEffect(position: m.position.clone(), color: Colors.greenAccent));
         AudioService.I.playMagnet();
@@ -432,7 +483,6 @@ class MyGame extends FlameGame {
     }
   }
 
-
   @override
   void render(Canvas canvas) {
     if (_shakeTimeLeft > 0 && _shakeIntensity > 0) {
@@ -458,14 +508,15 @@ class MyGame extends FlameGame {
     super.onRemove();
   }
 
+  /// Menerapkan reward double coins satu kali pada skor terakhir.
   Future<void> applyDoubleCoinsReward() async {
     if (_doubleCoinsUsed) return;
     _doubleCoinsUsed = true;
     final doubled = lastScore * 2;
-    LoggingService.log('double_coins_applied', fields: {
-      'base': lastScore,
-      'new': doubled,
-    });
+    LoggingService.log(
+      'double_coins_applied',
+      fields: {'base': lastScore, 'new': doubled},
+    );
     lastScore = doubled;
     scoreVN.value = doubled;
     if (lastScore > bestScore) {
