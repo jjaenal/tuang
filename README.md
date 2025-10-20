@@ -88,6 +88,68 @@ final rewardedAdUnitId     = 'ca-app-pub-3940256099942544/5224354917';
 
 ---
 
+## 🚀 Uji Iklan di Mode Rilis (Android/iOS)
+
+### Manajemen Secret (tanpa commit)
+- **Android App ID**: set di `android/gradle.properties` (atau `~/.gradle/gradle.properties`)
+  ```properties
+  ADMOB_APP_ID_ANDROID=ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy
+  ```
+  App ID akan diinjeksikan ke `AndroidManifest.xml` via `@string/admob_app_id`.
+- **iOS App ID**: edit `ios/Runner/Info.plist`
+  ```xml
+  <key>GADApplicationIdentifier</key>
+  <string>ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy</string>
+  ```
+- **Unit IDs**: gunakan `--dart-define` saat build/run (tidak disimpan di repo)
+  - Android: `ADMOB_BANNER_ANDROID`, `ADMOB_INTERSTITIAL_ANDROID`, `ADMOB_REWARDED_ANDROID`
+  - iOS: `ADMOB_BANNER_IOS`, `ADMOB_INTERSTITIAL_IOS`, `ADMOB_REWARDED_IOS`
+
+### Build Rilis
+- **Android APK**
+  ```bash
+  flutter build apk --release \
+    --dart-define=ADMOB_BANNER_ANDROID=ca-app-pub-xxx/zzz \
+    --dart-define=ADMOB_INTERSTITIAL_ANDROID=ca-app-pub-xxx/zzz \
+    --dart-define=ADMOB_REWARDED_ANDROID=ca-app-pub-xxx/zzz
+  ```
+- **Android AAB** (untuk Play Store)
+  ```bash
+  flutter build appbundle \
+    --dart-define=ADMOB_BANNER_ANDROID=ca-app-pub-xxx/zzz \
+    --dart-define=ADMOB_INTERSTITIAL_ANDROID=ca-app-pub-xxx/zzz \
+    --dart-define=ADMOB_REWARDED_ANDROID=ca-app-pub-xxx/zzz
+  ```
+- **iOS (tanpa codesign, untuk validasi)**
+  ```bash
+  flutter build ios --no-codesign \
+    --dart-define=ADMOB_BANNER_IOS=ca-app-pub-xxx/zzz \
+    --dart-define=ADMOB_INTERSTITIAL_IOS=ca-app-pub-xxx/zzz \
+    --dart-define=ADMOB_REWARDED_IOS=ca-app-pub-xxx/zzz
+  ```
+
+### Verifikasi Fungsional
+- **Banner** tampil di Main Menu.
+- **Interstitial** muncul setelah Game Over jika preload sukses dan tidak melanggar cooldown.
+- **Rewarded** untuk Revive dan Daily Reward; pastikan callback reward dieksekusi.
+- **Non-Personalized Ads**: toggle tersedia di Main Menu.
+
+### Catatan Build Android (NDK)
+- Jika muncul peringatan versi NDK tidak cocok, set:
+  ```kotlin
+  // android/app/build.gradle.kts
+  android {
+      ndkVersion = "27.0.12077973"
+  }
+  ```
+
+### Produksi
+- Ganti App ID iOS di `Info.plist` dan set App ID Android via `gradle.properties` (bukan commit).
+- Unit ID jangan dikomit; selalu pasang via `--dart-define`.
+- Pastikan consent + privacy policy sesuai kebijakan Google Play.
+
+---
+
 ## 🧠 Pengaturan & Data
 - Simpan `high_score`, `is_muted`, `coins`, `last_daily_reward`, dan `pending_magnet_buff` dengan `SharedPreferences`
 - Toggle mute/unmute dari HUD
