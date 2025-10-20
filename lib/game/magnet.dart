@@ -2,8 +2,8 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'my_game.dart';
 
-// MagnetPowerUp: simple rectangular pickup that activates coin attraction
-// when collected. Spawned periodically by MyGame's _magnetTimer.
+/// MagnetPowerUp: pickup that activates coin attraction for a fixed duration.
+/// Spawned periodically by MyGame and removed on player collision.
 class MagnetPowerUp extends RectangleComponent with HasGameReference<MyGame> {
   MagnetPowerUp({Vector2? position, Color color = const Color(0xFF2ECC71)})
     : super(size: Vector2(18, 18), paint: Paint()..color = color) {

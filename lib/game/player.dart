@@ -2,6 +2,8 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'my_game.dart';
 
+/// Player: controllable rectangle that moves with input direction,
+/// clamps within game bounds, and changes color during speed boost.
 class Player extends RectangleComponent with HasGameReference<MyGame> {
   final double speed = 200;
 

@@ -2,6 +2,8 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'my_game.dart';
 
+/// Coin: collectible that increments score, triggers boost and combo logic
+/// when picked by the player. Rendered as a small amber square.
 class Coin extends RectangleComponent with HasGameReference<MyGame> {
   Coin({Vector2? position})
     : super(size: Vector2(16, 16), paint: Paint()..color = Colors.amber) {
