@@ -18,14 +18,21 @@ class _OptionsPanelState extends State<OptionsPanel> {
     final accepted = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Consent Iklan'),
-        content: const Text('Izinkan iklan dengan personalisasi?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Tidak')),
-          ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Setuju')),
-        ],
-      ),
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Consent Iklan'),
+            content: const Text('Izinkan iklan dengan personalisasi?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Tidak'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Setuju'),
+              ),
+            ],
+          ),
     );
     return accepted == true;
   }
@@ -66,7 +73,8 @@ class _OptionsPanelState extends State<OptionsPanel> {
                 label: 'Audio',
                 trailing: Switch(
                   value: app.audioOn,
-                  onChanged: (_) => context.read<AppSettingsCubit>().toggleAudio(),
+                  onChanged:
+                      (_) => context.read<AppSettingsCubit>().toggleAudio(),
                 ),
               ),
               const SizedBox(height: 8),
@@ -75,7 +83,8 @@ class _OptionsPanelState extends State<OptionsPanel> {
                 label: 'Haptics',
                 trailing: Switch(
                   value: app.hapticsOn,
-                  onChanged: (_) => context.read<AppSettingsCubit>().toggleHaptics(),
+                  onChanged:
+                      (_) => context.read<AppSettingsCubit>().toggleHaptics(),
                 ),
               ),
               const SizedBox(height: 8),
@@ -106,36 +115,70 @@ class _OptionsPanelState extends State<OptionsPanel> {
               ),
               const SizedBox(height: 8),
               // Daily Magnet slider (tematik petir)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.bolt, color: Colors.white70, size: 18),
-                  const SizedBox(width: 8),
-                  const Text('Daily Magnet', style: TextStyle(color: Colors.white70)),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 180,
-                    child: Slider(
-                      value: app.dailyMagnetBuffSeconds.toDouble(),
-                      min: 0,
-                      max: GameConfig.maxDailyMagnetBuffSec.toDouble(),
-                      divisions: GameConfig.maxDailyMagnetBuffSec,
-                      label: '${app.dailyMagnetBuffSeconds}s',
-                      onChanged: (val) {
-                        context
-                            .read<AppSettingsCubit>()
-                            .setDailyMagnetBuffSeconds(val.round());
-                        final seconds = val.round();
-                        final estimate = GameConfig.magnetBuffValueCoins(seconds);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Daily Magnet: ${seconds}s (~$estimate coins)'),
-                          ),
-                        );
-                      },
-                    ),
+              // Row(
+              //   mainAxisSize: MainAxisSize.min,
+              //   children: [
+              //     const Icon(Icons.bolt, color: Colors.white70, size: 18),
+              //     const SizedBox(width: 8),
+              //     const Text(
+              //       'Daily Magnet',
+              //       style: TextStyle(color: Colors.white70),
+              //     ),
+              //     const SizedBox(width: 8),
+              //     SizedBox(
+              //       width: 180,
+              //       child: Slider(
+              //         value: app.dailyMagnetBuffSeconds.toDouble(),
+              //         min: 0,
+              //         max: GameConfig.maxDailyMagnetBuffSec.toDouble(),
+              //         divisions: GameConfig.maxDailyMagnetBuffSec,
+              //         label: '${app.dailyMagnetBuffSeconds}s',
+              //         onChanged: (val) {
+              //           context
+              //               .read<AppSettingsCubit>()
+              //               .setDailyMagnetBuffSeconds(val.round());
+              //           final seconds = val.round();
+              //           final estimate = GameConfig.magnetBuffValueCoins(
+              //             seconds,
+              //           );
+              //           ScaffoldMessenger.of(context).showSnackBar(
+              //             SnackBar(
+              //               content: Text(
+              //                 'Daily Magnet: ${seconds}s (~$estimate coins)',
+              //               ),
+              //             ),
+              //           );
+              //         },
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              // Daily Magnet slider pakai OptionRow dengan spacer
+              OptionRow(
+                icon: Icons.bolt,
+                label: 'Daily Magnet',
+                trailing: SizedBox(
+                  width: 180,
+                  child: Slider(
+                    value: app.dailyMagnetBuffSeconds.toDouble(),
+                    min: 0,
+                    max: GameConfig.maxDailyMagnetBuffSec.toDouble(),
+                    divisions: GameConfig.maxDailyMagnetBuffSec,
+                    label: '${app.dailyMagnetBuffSeconds}s',
+                    onChanged: (val) {
+                      context
+                          .read<AppSettingsCubit>()
+                          .setDailyMagnetBuffSeconds(val.round());
+                      // final seconds = val.round();
+                      // final estimate = GameConfig.magnetBuffValueCoins(seconds);
+                      // ScaffoldMessenger.of(context).showSnackBar(
+                      //   SnackBar(
+                      //     content: Text('Daily Magnet: ${seconds}s (~$estimate coins)'),
+                      //   ),
+                      // );
+                    },
                   ),
-                ],
+                ),
               ),
               const SizedBox(height: 8),
               // Debug logging toggle
@@ -147,7 +190,11 @@ class _OptionsPanelState extends State<OptionsPanel> {
                   onChanged: (val) {
                     LoggingService.enabled = val;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(val ? 'Debug logging ON' : 'Debug logging OFF')),
+                      SnackBar(
+                        content: Text(
+                          val ? 'Debug logging ON' : 'Debug logging OFF',
+                        ),
+                      ),
                     );
                   },
                 ),
