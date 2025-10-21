@@ -4,6 +4,7 @@ import 'package:tuang/services/audio_service.dart';
 import 'package:tuang/services/haptics_service.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   AudioService.testMode = true;
   HapticsService.testMode = true;
   test('revive only once per session', () async {

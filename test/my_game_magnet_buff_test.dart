@@ -6,6 +6,7 @@ import 'package:tuang/services/haptics_service.dart';
 import 'package:tuang/game/my_game.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('MyGame magnet buff consumption', () {
     test('consumes pending magnet buff at start and counts down', () async {
       // Disable audio/haptics plugins in test mode

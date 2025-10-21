@@ -53,7 +53,7 @@
 
 ## 🚀 Deployment
 - [ ] Create app icon & splash screen
-- [ ] Generate release build (AAB)
+- [x] Generate release build (AAB)
 - [ ] Add privacy policy URL (store listing)
 
 ---
@@ -66,7 +66,7 @@
 - [ ] Leaderboard integration
 - [ ] Multiple character skins
 - [ ] Upload to Google Play Console
-- [ ] Test ads in release mode (test IDs → prod IDs)
+- [x] Test ads in release mode (test IDs → prod IDs)
 - [x] Configure AdMob App ID & Unit IDs (Android/iOS)
 - [x] Implement consent dialog (GDPR/CCPA) untuk wilayah terkait
 

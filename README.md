@@ -104,6 +104,8 @@ final rewardedAdUnitId     = 'ca-app-pub-3940256099942544/5224354917';
 - **Unit IDs**: gunakan `--dart-define` saat build/run (tidak disimpan di repo)
   - Android: `ADMOB_BANNER_ANDROID`, `ADMOB_INTERSTITIAL_ANDROID`, `ADMOB_REWARDED_ANDROID`
   - iOS: `ADMOB_BANNER_IOS`, `ADMOB_INTERSTITIAL_IOS`, `ADMOB_REWARDED_IOS`
+- **Privacy Policy URL (dialog consent)**: set via `--dart-define=PRIVACY_URL=https://yourdomain.com/privacy`
+- **Android Permissions**: `INTERNET` dan `ACCESS_NETWORK_STATE` diperlukan; sudah ditambahkan di manifest rilis (`android/app/src/main/AndroidManifest.xml`).
 
 ### Build Rilis
 - **Android APK**
@@ -118,14 +120,16 @@ final rewardedAdUnitId     = 'ca-app-pub-3940256099942544/5224354917';
   flutter build appbundle \
     --dart-define=ADMOB_BANNER_ANDROID=ca-app-pub-xxx/zzz \
     --dart-define=ADMOB_INTERSTITIAL_ANDROID=ca-app-pub-xxx/zzz \
-    --dart-define=ADMOB_REWARDED_ANDROID=ca-app-pub-xxx/zzz
+    --dart-define=ADMOB_REWARDED_ANDROID=ca-app-pub-xxx/zzz \
+    --dart-define=PRIVACY_URL=https://yourdomain.com/privacy
   ```
 - **iOS (tanpa codesign, untuk validasi)**
   ```bash
   flutter build ios --no-codesign \
     --dart-define=ADMOB_BANNER_IOS=ca-app-pub-xxx/zzz \
     --dart-define=ADMOB_INTERSTITIAL_IOS=ca-app-pub-xxx/zzz \
-    --dart-define=ADMOB_REWARDED_IOS=ca-app-pub-xxx/zzz
+    --dart-define=ADMOB_REWARDED_IOS=ca-app-pub-xxx/zzz \
+    --dart-define=PRIVACY_URL=https://yourdomain.com/privacy
   ```
 
 ### Verifikasi Fungsional

@@ -19,7 +19,10 @@ class MainMenuOverlay extends StatefulWidget {
 }
 
 class _MainMenuOverlayState extends State<MainMenuOverlay> {
-  static const String _privacyUrl = 'https://example.com/privacy';
+  static const String _privacyUrl = String.fromEnvironment(
+    'PRIVACY_URL',
+    defaultValue: 'https://example.com/privacy',
+  );
   BannerAd? _bannerAd;
   bool _bannerReady = false;
   Timer? _ticker;
