@@ -13,6 +13,39 @@ import '../models/character_skin.dart';
 import '../game/game_config.dart';
 import 'leaderboard_screen.dart';
 import 'options_panel.dart';
+import 'achievements_screen.dart';
+
+class _MenuCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  const _MenuCard({required this.icon, required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 140,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0x33000000),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 28),
+            const SizedBox(height: 8),
+            Text(label, style: const TextStyle(color: Colors.white)),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class MainMenuOverlay extends StatefulWidget {
   final MyGame game;
@@ -219,7 +252,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
     if (diff.isNegative) return '00:00:00';
     return _formatHms(diff);
   }
-  
+
   /// Membangun widget preview untuk skin yang aktif
   Widget _buildActiveSkinPreview(BuildContext context, String skinId) {
     // Cari skin dari daftar default skins
@@ -227,7 +260,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
       (skin) => skin.id == skinId,
       orElse: () => CharacterSkin.defaultSkins.first,
     );
-    
+
     // Tampilkan preview berdasarkan tipe skin (image atau color)
     return Container(
       width: 24,
@@ -236,12 +269,13 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
         color: skin.imagePath == null ? skin.color : null,
         border: Border.all(color: Colors.white30),
         borderRadius: BorderRadius.circular(4),
-        image: skin.imagePath != null
-            ? DecorationImage(
-                image: AssetImage('assets/images/${skin.imagePath}'),
-                fit: BoxFit.cover,
-              )
-            : null,
+        image:
+            skin.imagePath != null
+                ? DecorationImage(
+                  image: AssetImage('assets/images/${skin.imagePath}'),
+                  fit: BoxFit.cover,
+                )
+                : null,
       ),
     );
   }
@@ -260,528 +294,580 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
             return SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Endless Dodge & Collect',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Best: ${widget.game.bestScore}',
-                  style: const TextStyle(color: Colors.white70),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.circle, color: Colors.amber, size: 14),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Coins: ${app.coins}',
-                      style: const TextStyle(color: Colors.white70),
+                children: [
+                  const Text(
+                    'Endless Dodge & Collect',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () => widget.game.startGame(),
-                  child: const Text('Play'),
-                ),
-                const SizedBox(height: 8),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const LeaderboardScreen(),
-                      ),
-                    );
-                  },
-                  child: const Text('Leaderboard'),
-                ),
-                const SizedBox(height: 8),
-                ElevatedButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      barrierDismissible: true,
-                      builder: (ctx) => const Dialog(
-                        backgroundColor: Colors.transparent,
-                        child: OptionsPanel(),
-                      ),
-                    );
-                  },
-                  child: const Text('Options'),
-                ),
-                const SizedBox(height: 12),
-                // Aksi sekunder: Leaderboard sudah di atas. Tambahkan toggle "More" untuk opsi tambahan.
-                TextButton.icon(
-                  onPressed: () => setState(() => _showMore = !_showMore),
-                  icon: Icon(_showMore ? Icons.expand_less : Icons.expand_more,
-                      color: Colors.white70),
-                  label: Text(
-                    _showMore ? 'Sembunyikan Opsi' : 'Opsi Lainnya',
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Best: ${widget.game.bestScore}',
                     style: const TextStyle(color: Colors.white70),
                   ),
-                ),
-                if (_showMore) ...[
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0x22000000),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white24),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.circle, color: Colors.amber, size: 14),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Coins: ${app.coins}',
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Grid kartu utama
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      _MenuCard(
+                        icon: Icons.play_arrow,
+                        label: 'Play',
+                        onTap: () => widget.game.startGame(),
+                      ),
+                      _MenuCard(
+                        icon: Icons.person,
+                        label: 'Skins',
+                        onTap: () => _showSkinSelectionDialog(context),
+                      ),
+                      _MenuCard(
+                        icon: Icons.emoji_events,
+                        label: 'Achievements',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const AchievementsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      _MenuCard(
+                        icon: Icons.leaderboard,
+                        label: 'Leaderboard',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const LeaderboardScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      _MenuCard(
+                        icon: Icons.settings,
+                        label: 'Settings',
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: true,
+                            builder:
+                                (ctx) => const Dialog(
+                                  backgroundColor: Colors.transparent,
+                                  child: OptionsPanel(),
+                                ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Banner di bawah grid kartu
+                  const SizedBox.shrink(),
+                  const SizedBox(height: 12),
+                  // Aksi sekunder: Leaderboard sudah di atas. Tambahkan toggle "More" untuk opsi tambahan.
+                  TextButton.icon(
+                    onPressed: () => setState(() => _showMore = !_showMore),
+                    icon: Icon(
+                      _showMore ? Icons.expand_less : Icons.expand_more,
+                      color: Colors.white70,
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Toggle audio
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.volume_up,
-                              color: Colors.white70,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 6),
-                            const Text(
-                              'Audio',
-                              style: TextStyle(color: Colors.white70),
-                            ),
-                            const SizedBox(width: 8),
-                            Switch(
-                              value: app.audioOn,
-                              onChanged: (val) {
-                                context.read<AppSettingsCubit>().toggleAudio();
-                                final messenger = ScaffoldMessenger.of(context);
-                                messenger.showSnackBar(
-                                  SnackBar(
-                                    content: Text(val ? 'Audio ON' : 'Audio OFF'),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        // Toggle haptics
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.vibration,
-                              color: Colors.white70,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 6),
-                            const Text(
-                              'Haptics',
-                              style: TextStyle(color: Colors.white70),
-                            ),
-                            const SizedBox(width: 8),
-                            Switch(
-                              value: app.hapticsOn,
-                              onChanged: (val) {
-                                context.read<AppSettingsCubit>().toggleHaptics();
-                                final messenger = ScaffoldMessenger.of(context);
-                                messenger.showSnackBar(
-                                  SnackBar(
-                                    content: Text(val ? 'Haptics ON' : 'Haptics OFF'),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        // Toggle ads (requires consent)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.ad_units, color: Colors.white70, size: 18),
-                            const SizedBox(width: 6),
-                            const Text('Ads', style: TextStyle(color: Colors.white70)),
-                            const SizedBox(width: 8),
-                            Switch(
-                              value: app.adsEnabled && app.consentGiven,
-                              onChanged: (val) => _ensureConsentThenEnableAds(context),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        // Toggle Non-Personalized Ads (NPA)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.privacy_tip,
-                              color: Colors.white70,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 6),
-                            const Text(
-                              'Non-Personalized Ads',
-                              style: TextStyle(color: Colors.white70),
-                            ),
-                            const SizedBox(width: 8),
-                            Switch(
-                              value: app.npaEnabled,
-                              onChanged: (val) {
-                                final cubit = context.read<AppSettingsCubit>();
-                                cubit.toggleNpa();
-                                AdService.I.setNonPersonalizedAds(val);
-                                final messenger = ScaffoldMessenger.of(context);
-                                messenger.showSnackBar(
-                                  SnackBar(content: Text(val ? 'NPA ON' : 'NPA OFF')),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        // Daily magnet buff tuning slider
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.bolt, color: Colors.white70, size: 18),
-                            const SizedBox(width: 6),
-                            const Text(
-                              'Daily Magnet',
-                              style: TextStyle(color: Colors.white70),
-                            ),
-                            const SizedBox(width: 8),
-                            SizedBox(
-                              width: 180,
-                              child: Slider(
-                                value: app.dailyMagnetBuffSeconds.toDouble(),
-                                min: 0,
-                                max: GameConfig.maxDailyMagnetBuffSec.toDouble(),
-                                divisions: GameConfig.maxDailyMagnetBuffSec,
-                                label: '${app.dailyMagnetBuffSeconds}s',
+                    label: Text(
+                      _showMore ? 'Sembunyikan Opsi' : 'Opsi Lainnya',
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                  ),
+                  if (_showMore) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0x22000000),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Toggle audio
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.volume_up,
+                                color: Colors.white70,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              const Text(
+                                'Audio',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                              const SizedBox(width: 8),
+                              Switch(
+                                value: app.audioOn,
                                 onChanged: (val) {
                                   context
                                       .read<AppSettingsCubit>()
-                                      .setDailyMagnetBuffSeconds(val.round());
-                                  final messenger = ScaffoldMessenger.of(context);
-                                  final seconds = val.round();
-                                  final estimate = GameConfig.magnetBuffValueCoins(
-                                    seconds,
+                                      .toggleAudio();
+                                  final messenger = ScaffoldMessenger.of(
+                                    context,
                                   );
                                   messenger.showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                        'Daily Magnet: ${seconds}s (~$estimate coins)',
+                                        val ? 'Audio ON' : 'Audio OFF',
                                       ),
                                     ),
                                   );
                                 },
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '~${GameConfig.magnetBuffValueCoins(app.dailyMagnetBuffSeconds)} coins',
-                              style: const TextStyle(color: Colors.white70),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        // Character Skin Selection
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.person, color: Colors.white70, size: 18),
-                            const SizedBox(width: 6),
-                            const Text(
-                              'Character Skins',
-                              style: TextStyle(color: Colors.white70),
-                            ),
-                            const SizedBox(width: 8),
-                            _buildActiveSkinPreview(context, app.activeSkinId),
-                            const SizedBox(width: 8),
-                            ElevatedButton(
-                              onPressed: () {
-                                _showSkinSelectionDialog(context);
-                              },
-                              child: const Text('Select Skin'),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.settings, color: Colors.white70, size: 18),
-                            const SizedBox(width: 6),
-                            const Text(
-                              'Game Settings',
-                              style: TextStyle(color: Colors.white70),
-                            ),
-                            const SizedBox(width: 8),
-                            Switch(
-                              value: _showGameSettings,
-                              onChanged: (val) {
-                                setState(() => _showGameSettings = val);
-                              },
-                            ),
-                          ],
-                        ),
-                        if (_showGameSettings) ...[
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: const Color(0x33000000),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.white24),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Game Config',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                _buildConfigItem(
-                                  'Daily Reward',
-                                  '${GameConfig.dailyRewardCoins} coins',
-                                ),
-                                _buildConfigItem(
-                                  'Revive Cost',
-                                  '${GameConfig.reviveCostCoins} coins',
-                                ),
-                                _buildConfigItem(
-                                  'Double Coins Cost',
-                                  '${GameConfig.doubleCoinsCoins} coins',
-                                ),
-                                _buildConfigItem(
-                                  'Session Length',
-                                  '${GameConfig.defaultSessionLengthSec}s',
-                                ),
-                                _buildConfigItem(
-                                  'Magnet Duration',
-                                  '${GameConfig.magnetPickupDurationSec}s',
-                                ),
-                                _buildConfigItem(
-                                  'Daily Magnet Buff',
-                                  '${GameConfig.defaultDailyMagnetBuffSec}s',
-                                ),
-                                _buildConfigItem(
-                                  'Max Revives',
-                                  '${GameConfig.maxRevivesPerSession}',
-                                ),
-                              ],
-                            ),
+                            ],
                           ),
-                        ],
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.bug_report,
-                              color: Colors.white70,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 6),
-                            const Text(
-                              'Debug Logging',
-                              style: TextStyle(color: Colors.white70),
-                            ),
-                            const SizedBox(width: 8),
-                            Switch(
-                              value: _debugLogging,
-                              onChanged: (val) {
-                                setState(() => _debugLogging = val);
-                                LoggingService.enabled = val;
-                                final messenger = ScaffoldMessenger.of(context);
-                                messenger.showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      val ? 'Debug logging ON' : 'Debug logging OFF',
+                          const SizedBox(height: 8),
+                          // Toggle haptics
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.vibration,
+                                color: Colors.white70,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              const Text(
+                                'Haptics',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                              const SizedBox(width: 8),
+                              Switch(
+                                value: app.hapticsOn,
+                                onChanged: (val) {
+                                  context
+                                      .read<AppSettingsCubit>()
+                                      .toggleHaptics();
+                                  final messenger = ScaffoldMessenger.of(
+                                    context,
+                                  );
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        val ? 'Haptics ON' : 'Haptics OFF',
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          // Toggle ads (requires consent)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.ad_units,
+                                color: Colors.white70,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              const Text(
+                                'Ads',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                              const SizedBox(width: 8),
+                              Switch(
+                                value: app.adsEnabled && app.consentGiven,
+                                onChanged:
+                                    (val) =>
+                                        _ensureConsentThenEnableAds(context),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          // Toggle Non-Personalized Ads (NPA)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.privacy_tip,
+                                color: Colors.white70,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              const Text(
+                                'Non-Personalized Ads',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                              const SizedBox(width: 8),
+                              Switch(
+                                value: app.npaEnabled,
+                                onChanged: (val) {
+                                  final cubit =
+                                      context.read<AppSettingsCubit>();
+                                  cubit.toggleNpa();
+                                  AdService.I.setNonPersonalizedAds(val);
+                                  final messenger = ScaffoldMessenger.of(
+                                    context,
+                                  );
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      content: Text(val ? 'NPA ON' : 'NPA OFF'),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Character Skin Selection
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.person,
+                                color: Colors.white70,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              const Text(
+                                'Character Skins',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                              const SizedBox(width: 8),
+                              _buildActiveSkinPreview(
+                                context,
+                                app.activeSkinId,
+                              ),
+                              const SizedBox(width: 8),
+                              ElevatedButton(
+                                onPressed: () {
+                                  _showSkinSelectionDialog(context);
+                                },
+                                child: const Text('Select Skin'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.settings,
+                                color: Colors.white70,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              const Text(
+                                'Game Settings',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                              const SizedBox(width: 8),
+                              Switch(
+                                value: _showGameSettings,
+                                onChanged: (val) {
+                                  setState(() => _showGameSettings = val);
+                                },
+                              ),
+                            ],
+                          ),
+                          if (_showGameSettings) ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color(0x33000000),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.white24),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Game Config',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                );
-                              },
+                                  const SizedBox(height: 8),
+                                  _buildConfigItem(
+                                    'Daily Reward',
+                                    '${GameConfig.dailyRewardCoins} coins',
+                                  ),
+                                  _buildConfigItem(
+                                    'Revive Cost',
+                                    '${GameConfig.reviveCostCoins} coins',
+                                  ),
+                                  _buildConfigItem(
+                                    'Double Coins Cost',
+                                    '${GameConfig.doubleCoinsCoins} coins',
+                                  ),
+                                  _buildConfigItem(
+                                    'Session Length',
+                                    '${GameConfig.defaultSessionLengthSec}s',
+                                  ),
+                                  _buildConfigItem(
+                                    'Magnet Duration',
+                                    '${GameConfig.magnetPickupDurationSec}s',
+                                  ),
+                                  _buildConfigItem(
+                                    'Daily Magnet Buff',
+                                    '${GameConfig.defaultDailyMagnetBuffSec}s',
+                                  ),
+                                  _buildConfigItem(
+                                    'Max Revives',
+                                    '${GameConfig.maxRevivesPerSession}',
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
-                        ),
-                        const SizedBox(height: 8),
-                        const Divider(color: Colors.white24, height: 1),
-                        const SizedBox(height: 12),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.bug_report,
+                                color: Colors.white70,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              const Text(
+                                'Debug Logging',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                              const SizedBox(width: 8),
+                              Switch(
+                                value: _debugLogging,
+                                onChanged: (val) {
+                                  setState(() => _debugLogging = val);
+                                  LoggingService.enabled = val;
+                                  final messenger = ScaffoldMessenger.of(
+                                    context,
+                                  );
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        val
+                                            ? 'Debug logging ON'
+                                            : 'Debug logging OFF',
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Divider(color: Colors.white24, height: 1),
+                          const SizedBox(height: 12),
 
-                        /// Tombol Daily Reward
-                        Builder(
-                          builder: (ctx) {
-                            final cubit = ctx.read<AppSettingsCubit>();
-                            final canClaim = cubit.canClaimDailyReward;
-                            final countdown = _nextClaimCountdown(cubit);
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
+                          /// Tombol Daily Reward
+                          Builder(
+                            builder: (ctx) {
+                              final cubit = ctx.read<AppSettingsCubit>();
+                              final canClaim = cubit.canClaimDailyReward;
+                              final countdown = _nextClaimCountdown(cubit);
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0x33220000),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: Colors.white24),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.card_giftcard,
+                                          color: Colors.white70,
+                                          size: 16,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s (~${GameConfig.magnetBuffValueCoins(app.dailyMagnetBuffSeconds)} coins)',
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0x33220000),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.white24),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.card_giftcard,
-                                        color: Colors.white70,
-                                        size: 16,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s (~${GameConfig.magnetBuffValueCoins(app.dailyMagnetBuffSeconds)} coins)',
-                                        style: const TextStyle(color: Colors.white70),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                ElevatedButton(
-                                  onPressed:
-                                      canClaim
-                                          ? () async {
-                                            const rewardCoins = GameConfig.dailyRewardCoins;
-                                            LoggingService.log(
-                                              'daily_reward_requested',
-                                              fields: {
-                                                'ads_enabled': app.adsEnabled,
-                                                'consent': app.consentGiven,
-                                              },
-                                            );
-                                            if (app.adsEnabled && app.consentGiven && !kIsWeb) {
-                                              final ok = await AdService.I.showRewardedDailyReward();
-                                              if (!ctx.mounted) return;
-                                              if (ok) {
-                                                cubit.markDailyRewardClaimedNow();
+                                  const SizedBox(height: 6),
+                                  ElevatedButton(
+                                    onPressed:
+                                        canClaim
+                                            ? () async {
+                                              const rewardCoins =
+                                                  GameConfig.dailyRewardCoins;
+                                              LoggingService.log(
+                                                'daily_reward_requested',
+                                                fields: {
+                                                  'ads_enabled': app.adsEnabled,
+                                                  'consent': app.consentGiven,
+                                                },
+                                              );
+                                              if (app.adsEnabled &&
+                                                  app.consentGiven &&
+                                                  !kIsWeb) {
+                                                final ok =
+                                                    await AdService.I
+                                                        .showRewardedDailyReward();
+                                                if (!ctx.mounted) return;
+                                                if (ok) {
+                                                  cubit
+                                                      .markDailyRewardClaimedNow();
+                                                  cubit.addCoins(rewardCoins);
+                                                  cubit.grantMagnetBuff(
+                                                    app.dailyMagnetBuffSeconds,
+                                                  );
+                                                  LoggingService.log(
+                                                    'daily_reward_claimed',
+                                                    fields: {
+                                                      'coins': rewardCoins,
+                                                      'magnet_sec':
+                                                          app.dailyMagnetBuffSeconds,
+                                                      'via': 'ad',
+                                                    },
+                                                  );
+                                                  ScaffoldMessenger.of(
+                                                    ctx,
+                                                  ).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                        'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s!',
+                                                      ),
+                                                    ),
+                                                  );
+                                                } else {
+                                                  LoggingService.log(
+                                                    'daily_reward_ad_unavailable',
+                                                  );
+                                                  ScaffoldMessenger.of(
+                                                    ctx,
+                                                  ).showSnackBar(
+                                                    const SnackBar(
+                                                      content: Text(
+                                                        'Iklan belum tersedia',
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                              } else {
+                                                cubit
+                                                    .markDailyRewardClaimedNow();
                                                 cubit.addCoins(rewardCoins);
-                                                cubit.grantMagnetBuff(app.dailyMagnetBuffSeconds);
+                                                cubit.grantMagnetBuff(
+                                                  app.dailyMagnetBuffSeconds,
+                                                );
                                                 LoggingService.log(
                                                   'daily_reward_claimed',
                                                   fields: {
                                                     'coins': rewardCoins,
-                                                    'magnet_sec': app.dailyMagnetBuffSeconds,
-                                                    'via': 'ad',
+                                                    'magnet_sec':
+                                                        app.dailyMagnetBuffSeconds,
+                                                    'via': 'no_ad',
                                                   },
                                                 );
-                                                ScaffoldMessenger.of(ctx).showSnackBar(
+                                                if (!ctx.mounted) return;
+                                                ScaffoldMessenger.of(
+                                                  ctx,
+                                                ).showSnackBar(
                                                   SnackBar(
                                                     content: Text(
-                                                      'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s!',
+                                                      'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s (tanpa iklan)',
                                                     ),
                                                   ),
                                                 );
-                                              } else {
-                                                LoggingService.log('daily_reward_ad_unavailable');
-                                                ScaffoldMessenger.of(ctx).showSnackBar(
-                                                  const SnackBar(
-                                                    content: Text('Iklan belum tersedia'),
-                                                  ),
-                                                );
                                               }
-                                            } else {
-                                              cubit.markDailyRewardClaimedNow();
-                                              cubit.addCoins(rewardCoins);
-                                              cubit.grantMagnetBuff(app.dailyMagnetBuffSeconds);
-                                              LoggingService.log(
-                                                'daily_reward_claimed',
-                                                fields: {
-                                                  'coins': rewardCoins,
-                                                  'magnet_sec': app.dailyMagnetBuffSeconds,
-                                                  'via': 'no_ad',
-                                                },
-                                              );
-                                              if (!ctx.mounted) return;
-                                              ScaffoldMessenger.of(ctx).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s (tanpa iklan)',
-                                                  ),
-                                                ),
-                                              );
                                             }
-                                          }
-                                          : null,
-                                  child: Text(
-                                    canClaim
-                                        ? 'Daily Reward'
-                                        : 'Daily Reward (next: ${countdown ?? "00:00:00"})',
-                                  ),
-                                ),
-                                if (!canClaim && countdown != null) ...[
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Next claim: $countdown',
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 12,
+                                            : null,
+                                    child: Text(
+                                      canClaim
+                                          ? 'Daily Reward'
+                                          : 'Daily Reward (next: ${countdown ?? "00:00:00"})',
                                     ),
                                   ),
+                                  if (!canClaim && countdown != null) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Next claim: $countdown',
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
                                 ],
-                              ],
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 12),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 12),
 
-                        if (app.adsEnabled && app.consentGiven)
-                          kIsWeb
-                              ? Container(
-                                height: 50,
-                                width: 320,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: const Color(0x2233FF99),
-                                  borderRadius: BorderRadius.circular(8),
+                          if (app.adsEnabled && app.consentGiven)
+                            kIsWeb
+                                ? Container(
+                                  height: 50,
+                                  width: 320,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0x2233FF99),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'Banner Ad (placeholder)',
+                                    style: TextStyle(color: Colors.white70),
+                                  ),
+                                )
+                                : (_bannerAd != null && _bannerReady)
+                                ? SizedBox(
+                                  height: _bannerAd!.size.height.toDouble(),
+                                  width: _bannerAd!.size.width.toDouble(),
+                                  child: AdWidget(ad: _bannerAd!),
+                                )
+                                : Container(
+                                  height: 50,
+                                  width: 320,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0x22FFFFFF),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'Memuat iklan...',
+                                    style: TextStyle(color: Colors.white70),
+                                  ),
                                 ),
-                                child: const Text(
-                                  'Banner Ad (placeholder)',
-                                  style: TextStyle(color: Colors.white70),
-                                ),
-                              )
-                              : (_bannerAd != null && _bannerReady)
-                              ? SizedBox(
-                                height: _bannerAd!.size.height.toDouble(),
-                                width: _bannerAd!.size.width.toDouble(),
-                                child: AdWidget(ad: _bannerAd!),
-                              )
-                              : Container(
-                                height: 50,
-                                width: 320,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: const Color(0x22FFFFFF),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Text(
-                                  'Memuat iklan...',
-                                  style: TextStyle(color: Colors.white70),
-                                ),
-                              ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ],
-              ],
-                ),
-              );
+              ),
+            );
           },
         ),
       ),
@@ -793,142 +879,166 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
     await showDialog<void>(
       context: context,
       builder: (ctx) {
-        return StatefulBuilder(builder: (ctx, setSt) {
-          final skins = cubit.getAllSkins();
-          final activeId = cubit.state.activeSkinId;
-          return AlertDialog(
-            title: const Text('Pilih Skin Karakter'),
-            content: SizedBox(
-              width: 360,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: skins.map((s) {
-                    final isActive = s.id == activeId;
-                    final status = s.isUnlocked
-                        ? (isActive ? 'Selected' : 'Unlocked')
-                        : 'Locked';
-                    return Container(
-                      margin: const EdgeInsets.symmetric(vertical: 6),
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0x22000000),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.white24),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
+        return StatefulBuilder(
+          builder: (ctx, setSt) {
+            final skins = cubit.getAllSkins();
+            final activeId = cubit.state.activeSkinId;
+            return AlertDialog(
+              title: const Text('Pilih Skin Karakter'),
+              content: SizedBox(
+                width: 360,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children:
+                        skins.map((s) {
+                          final isActive = s.id == activeId;
+                          final status =
+                              s.isUnlocked
+                                  ? (isActive ? 'Selected' : 'Unlocked')
+                                  : 'Locked';
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: s.color,
-                              borderRadius: BorderRadius.circular(6),
-                              image: s.imagePath != null
-                                  ? DecorationImage(
-                                      image: AssetImage(s.imagePath!),
-                                      fit: BoxFit.cover,
-                                    )
-                                  : null,
+                              color: const Color(0x22000000),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.white24),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            child: Row(
                               children: [
-                                Text(
-                                  s.name,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: s.color,
+                                    borderRadius: BorderRadius.circular(6),
+                                    image:
+                                        s.imagePath != null
+                                            ? DecorationImage(
+                                              image: AssetImage(s.imagePath!),
+                                              fit: BoxFit.cover,
+                                            )
+                                            : null,
                                   ),
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  s.isUnlocked
-                                      ? status
-                                      : 'Price: ${s.price} coins',
-                                  style: const TextStyle(color: Colors.white70),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        s.name,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        s.isUnlocked
+                                            ? status
+                                            : 'Price: ${s.price} coins',
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
+                                const SizedBox(width: 8),
+                                if (!s.isUnlocked)
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      final ok = cubit.purchaseSkin(s.id);
+                                      if (ok) {
+                                        setSt(() {});
+                                        // Add sound effect when purchasing skin
+                                        if (cubit.state.audioOn) {
+                                          try {
+                                            final audioService =
+                                                context.read<AudioService>();
+                                            audioService
+                                                .playCoin(); // Gunakan sound coin untuk purchase
+                                          } catch (e) {
+                                            // Abaikan jika AudioService tidak tersedia
+                                            LoggingService.log(
+                                              'Audio error: $e',
+                                            );
+                                          }
+                                        }
+                                        ScaffoldMessenger.of(ctx).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Unlocked: ${s.name}',
+                                            ),
+                                            backgroundColor: Colors.green,
+                                          ),
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(ctx).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Coins tidak cukup'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    child: Text('Buy (${s.price})'),
+                                  )
+                                else
+                                  ElevatedButton(
+                                    onPressed:
+                                        isActive
+                                            ? null
+                                            : () {
+                                              cubit.setActiveSkin(s.id);
+                                              setSt(() {});
+                                              // Add sound effect when selecting skin
+                                              if (cubit.state.audioOn) {
+                                                try {
+                                                  final audioService =
+                                                      context
+                                                          .read<AudioService>();
+                                                  audioService
+                                                      .playCoin(); // Gunakan sound coin untuk select
+                                                } catch (e) {
+                                                  // Abaikan jika AudioService tidak tersedia
+                                                  LoggingService.log(
+                                                    'Audio error: $e',
+                                                  );
+                                                }
+                                              }
+                                              ScaffoldMessenger.of(
+                                                ctx,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    'Selected: ${s.name}',
+                                                  ),
+                                                  backgroundColor: Colors.green,
+                                                ),
+                                              );
+                                            },
+                                    child: const Text('Select'),
+                                  ),
                               ],
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          if (!s.isUnlocked)
-                            ElevatedButton(
-                              onPressed: () {
-                                final ok = cubit.purchaseSkin(s.id);
-                                if (ok) {
-                                  setSt(() {});
-                                  // Add sound effect when purchasing skin
-                                  if (cubit.state.audioOn) {
-                                    try {
-                                      final audioService = context.read<AudioService>();
-                                      audioService.playCoin(); // Gunakan sound coin untuk purchase
-                                    } catch (e) {
-                                      // Abaikan jika AudioService tidak tersedia
-                                      LoggingService.log('Audio error: $e');
-                                    }
-                                  }
-                                  ScaffoldMessenger.of(ctx).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Unlocked: ${s.name}'),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(ctx).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Coins tidak cukup'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              },
-                              child: Text('Buy (${s.price})'),
-                            )
-                          else
-                            ElevatedButton(
-                              onPressed: isActive
-                                  ? null
-                                  : () {
-                                      cubit.setActiveSkin(s.id);
-                                      setSt(() {});
-                                      // Add sound effect when selecting skin
-                                if (cubit.state.audioOn) {
-                                  try {
-                                    final audioService = context.read<AudioService>();
-                                    audioService.playCoin(); // Gunakan sound coin untuk select
-                                  } catch (e) {
-                                    // Abaikan jika AudioService tidak tersedia
-                                    LoggingService.log('Audio error: $e');
-                                  }
-                                }
-                                      ScaffoldMessenger.of(ctx).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Selected: ${s.name}'),
-                                          backgroundColor: Colors.green,
-                                        ),
-                                      );
-                                    },
-                              child: const Text('Select'),
-                            ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
+                          );
+                        }).toList(),
+                  ),
                 ),
               ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Close'),
-              ),
-            ],
-          );
-        });
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('Close'),
+                ),
+              ],
+            );
+          },
+        );
       },
     );
   }
