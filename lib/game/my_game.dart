@@ -463,18 +463,16 @@ class MyGame extends FlameGame {
   bool get doubleCoinsAvailable => !doubleCoinsUsed && !rewardDeposited;
 
   // === Helpers & Spawns ===
-  bool _overlap(Component a, Component b) {
-    if (a is RectangleComponent && b is RectangleComponent) {
-      final ax = a.position.x - a.size.x / 2;
-      final ay = a.position.y - a.size.y / 2;
-      final bx = b.position.x - b.size.x / 2;
-      final by = b.position.y - b.size.y / 2;
-      return ax < bx + b.size.x &&
-          ax + a.size.x > bx &&
-          ay < by + b.size.y &&
-          ay + a.size.y > by;
-    }
-    return false;
+  bool _overlap(PositionComponent a, PositionComponent b) {
+    // Assume center anchor; compute AABB overlap
+    final ax = a.position.x - a.size.x / 2;
+    final ay = a.position.y - a.size.y / 2;
+    final bx = b.position.x - b.size.x / 2;
+    final by = b.position.y - b.size.y / 2;
+    return ax < bx + b.size.x &&
+        ax + a.size.x > bx &&
+        ay < by + b.size.y &&
+        ay + a.size.y > by;
   }
 
   Vector2 _randomPos({double margin = 24}) {
