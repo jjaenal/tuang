@@ -52,7 +52,7 @@
 ---
 
 ## 🚀 Deployment
-- [ ] Create app icon & splash screen
+- [x] Create app icon & splash screen
 - [x] Generate release build (AAB)
 - [ ] Add privacy policy URL (store listing)
 
@@ -63,7 +63,7 @@
 - [x] Reward breakdown UI (show coins + buff details)
 - [x] Additional power-ups (speed boost, shield, etc.)
 - [x] Achievement system
-- [ ] Leaderboard integration
+- [x] Leaderboard integration
 - [ ] Multiple character skins
 - [x] Upload to Google Play Console
 - [x] Test ads in release mode (test IDs → prod IDs)

@@ -33,6 +33,9 @@ class AppSettingsState extends Equatable {
   /// Durasi buff magnet harian yang akan diberikan saat klaim daily reward.
   final int dailyMagnetBuffSeconds;
 
+  /// Nama pemain untuk leaderboard
+  final String? playerName;
+
   const AppSettingsState({
     required this.audioOn,
     required this.hapticsOn,
@@ -49,6 +52,8 @@ class AppSettingsState extends Equatable {
     this.pendingMagnetBuffSeconds = 0,
     // Default buff harian 12 detik.
     this.dailyMagnetBuffSeconds = 12,
+    // Default nama pemain.
+    this.playerName = 'Player',
   });
 
   AppSettingsState copyWith({
@@ -63,6 +68,7 @@ class AppSettingsState extends Equatable {
     bool? npaEnabled,
     int? pendingMagnetBuffSeconds,
     int? dailyMagnetBuffSeconds,
+    String? playerName,
   }) {
     return AppSettingsState(
       audioOn: audioOn ?? this.audioOn,
@@ -77,6 +83,7 @@ class AppSettingsState extends Equatable {
           pendingMagnetBuffSeconds ?? this.pendingMagnetBuffSeconds,
       dailyMagnetBuffSeconds:
           dailyMagnetBuffSeconds ?? this.dailyMagnetBuffSeconds,
+      playerName: playerName ?? this.playerName,
     );
   }
 
@@ -92,6 +99,7 @@ class AppSettingsState extends Equatable {
     npaEnabled,
     pendingMagnetBuffSeconds,
     dailyMagnetBuffSeconds,
+    playerName,
   ];
 }
 
@@ -114,6 +122,8 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
   static const _kPendingMagnetBuffSec = PrefKeys.pendingMagnetBuffSec;
   // Key untuk durasi buff magnet harian.
   static const _kDailyMagnetBuffSec = PrefKeys.dailyMagnetBuffSec;
+  // Key untuk nama pemain
+  static const _kPlayerName = PrefKeys.playerName;
 
   AppSettingsCubit()
     : super(
@@ -150,6 +160,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
             state.pendingMagnetBuffSeconds,
         dailyMagnetBuffSeconds:
             prefs.getInt(_kDailyMagnetBuffSec) ?? defaultDailyMagnetBuffSec,
+        playerName: prefs.getString(_kPlayerName) ?? state.playerName,
       ),
     );
   }
@@ -173,6 +184,11 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     await prefs.setBool(_kNpaEnabled, state.npaEnabled);
     await prefs.setInt(_kPendingMagnetBuffSec, state.pendingMagnetBuffSeconds);
     await prefs.setInt(_kDailyMagnetBuffSec, state.dailyMagnetBuffSeconds);
+
+    // Simpan nama pemain
+    if (state.playerName != null) {
+      await prefs.setString(_kPlayerName, state.playerName!);
+    }
   }
 
   /// Toggle audio aktif/nonaktif.

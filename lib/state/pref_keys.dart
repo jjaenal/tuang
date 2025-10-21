@@ -13,4 +13,8 @@ class PrefKeys {
   // Magnet-related keys
   static const String pendingMagnetBuffSec = 'pref_pendingMagnetBuffSec';
   static const String dailyMagnetBuffSec = 'pref_dailyMagnetBuffSec';
+
+  // Leaderboard-related keys
+  static const String playerName = 'pref_playerName';
+  static const String leaderboard = 'pref_leaderboard_entries';
 }

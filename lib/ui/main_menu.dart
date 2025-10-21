@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import '../services/logging_service.dart';
 import '../game/game_config.dart';
+import 'leaderboard_screen.dart';
 
 class MainMenuOverlay extends StatefulWidget {
   final MyGame game;
@@ -258,6 +259,17 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                 ElevatedButton(
                   onPressed: () => widget.game.startGame(),
                   child: const Text('Play'),
+                ),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const LeaderboardScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text('Leaderboard'),
                 ),
                 const SizedBox(height: 12),
                 // Toggle audio

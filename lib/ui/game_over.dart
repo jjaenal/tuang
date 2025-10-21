@@ -6,6 +6,7 @@ import '../services/ad_service.dart';
 import 'package:flutter/foundation.dart';
 import '../services/logging_service.dart';
 import '../game/game_config.dart';
+import '../services/leaderboard_service.dart';
 
 class GameOverOverlay extends StatelessWidget {
   final MyGame game;
@@ -118,6 +119,14 @@ class GameOverOverlay extends StatelessWidget {
                 if (!game.rewardDeposited) {
                   cubit.addCoins(game.lastScore);
                   game.markRewardDeposited();
+
+                  // Submit score ke leaderboard
+                  final leaderboard = LeaderboardService();
+                  leaderboard.submitScore(
+                    playerId: cubit.state.playerName ?? 'Player',
+                    score: game.lastScore,
+                  );
+
                   LoggingService.log(
                     'reward_deposited',
                     fields: {'amount': game.lastScore, 'action': 'restart'},
@@ -281,6 +290,14 @@ class GameOverOverlay extends StatelessWidget {
                 if (!game.rewardDeposited) {
                   cubit.addCoins(game.lastScore);
                   game.markRewardDeposited();
+
+                  // Submit score ke leaderboard
+                  final leaderboard = LeaderboardService();
+                  leaderboard.submitScore(
+                    playerId: cubit.state.playerName ?? 'Player',
+                    score: game.lastScore,
+                  );
+
                   LoggingService.log(
                     'reward_deposited',
                     fields: {
