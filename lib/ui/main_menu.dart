@@ -12,6 +12,7 @@ import '../services/logging_service.dart';
 import '../models/character_skin.dart';
 import '../game/game_config.dart';
 import 'leaderboard_screen.dart';
+import 'options_panel.dart';
 
 class MainMenuOverlay extends StatefulWidget {
   final MyGame game;
@@ -300,6 +301,20 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                     );
                   },
                   child: const Text('Leaderboard'),
+                ),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: true,
+                      builder: (ctx) => const Dialog(
+                        backgroundColor: Colors.transparent,
+                        child: OptionsPanel(),
+                      ),
+                    );
+                  },
+                  child: const Text('Options'),
                 ),
                 const SizedBox(height: 12),
                 // Aksi sekunder: Leaderboard sudah di atas. Tambahkan toggle "More" untuk opsi tambahan.
