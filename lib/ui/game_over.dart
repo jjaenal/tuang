@@ -123,7 +123,7 @@ class GameOverOverlay extends StatelessWidget {
                   // Submit score ke leaderboard
                   final leaderboard = LeaderboardService();
                   leaderboard.submitScore(
-                    playerId: cubit.state.playerName ?? 'Player',
+                    playerId: cubit.state.playerName,
                     score: game.lastScore,
                   );
 
@@ -294,7 +294,7 @@ class GameOverOverlay extends StatelessWidget {
                   // Submit score ke leaderboard
                   final leaderboard = LeaderboardService();
                   leaderboard.submitScore(
-                    playerId: cubit.state.playerName ?? 'Player',
+                    playerId: cubit.state.playerName,
                     score: game.lastScore,
                   );
 

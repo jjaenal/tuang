@@ -17,4 +17,8 @@ class PrefKeys {
   // Leaderboard-related keys
   static const String playerName = 'pref_playerName';
   static const String leaderboard = 'pref_leaderboard_entries';
+  
+  // Character skin-related keys
+  static const String activeSkinId = 'pref_activeSkinId';
+  static const String unlockedSkinIds = 'pref_unlockedSkinIds';
 }

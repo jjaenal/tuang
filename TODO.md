@@ -64,7 +64,7 @@
 - [x] Additional power-ups (speed boost, shield, etc.)
 - [x] Achievement system
 - [x] Leaderboard integration
-- [ ] Multiple character skins
+- [x] Multiple character skins
 - [x] Upload to Google Play Console
 - [x] Test ads in release mode (test IDs → prod IDs)
 - [x] Configure AdMob App ID & Unit IDs (Android/iOS)

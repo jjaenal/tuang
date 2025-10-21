@@ -13,7 +13,10 @@ import 'speed_boost.dart';
 import 'shield.dart';
 import 'game_config.dart';
 import '../models/achievement.dart';
+import '../models/character_skin.dart';
 import '../services/achievement_service.dart';
+import '../state/pref_keys.dart';
+import '../services/logging_service.dart';
 
 /// [MyGame] is the main FlameGame driving the arcade session.
 ///
@@ -96,8 +99,26 @@ class MyGame extends FlameGame {
     );
 
     timeVN.value = sessionLength;
-    player = Player();
+    
+    // Dapatkan skin aktif dari AppSettingsCubit
+    final activeSkin = await _getActiveSkin();
+    player = Player(skin: activeSkin);
     await add(player);
+  }
+  
+  // Mendapatkan skin aktif dari AppSettingsCubit
+  Future<CharacterSkin> _getActiveSkin() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final skinId = prefs.getString(PrefKeys.activeSkinId) ?? 'default';
+      return CharacterSkin.defaultSkins.firstWhere(
+        (skin) => skin.id == skinId,
+        orElse: () => CharacterSkin.defaultSkins.first,
+      );
+    } catch (e) {
+      LoggingService.log('active_skin_error', fields: {'error': e.toString()});
+      return CharacterSkin.defaultSkins.first;
+    }
   }
 
   /// Starts a new game session: resets timers/state, cleans entities,
@@ -442,15 +463,18 @@ class MyGame extends FlameGame {
   bool get doubleCoinsAvailable => !doubleCoinsUsed && !rewardDeposited;
 
   // === Helpers & Spawns ===
-  bool _overlap(RectangleComponent a, RectangleComponent b) {
-    final ax = a.position.x - a.size.x / 2;
-    final ay = a.position.y - a.size.y / 2;
-    final bx = b.position.x - b.size.x / 2;
-    final by = b.position.y - b.size.y / 2;
-    return ax < bx + b.size.x &&
-        ax + a.size.x > bx &&
-        ay < by + b.size.y &&
-        ay + a.size.y > by;
+  bool _overlap(Component a, Component b) {
+    if (a is RectangleComponent && b is RectangleComponent) {
+      final ax = a.position.x - a.size.x / 2;
+      final ay = a.position.y - a.size.y / 2;
+      final bx = b.position.x - b.size.x / 2;
+      final by = b.position.y - b.size.y / 2;
+      return ax < bx + b.size.x &&
+          ax + a.size.x > bx &&
+          ay < by + b.size.y &&
+          ay + a.size.y > by;
+    }
+    return false;
   }
 
   Vector2 _randomPos({double margin = 24}) {

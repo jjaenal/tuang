@@ -1,0 +1,6 @@
+<!-- Placeholder untuk bird_red.png -->
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <circle cx="12" cy="12" r="10" fill="#FF5252" />
+  <circle cx="8" cy="9" r="1.5" fill="white" />
+  <path d="M16,8 Q18,12 16,16 L12,12 Z" fill="#FF8A80" />
+</svg>

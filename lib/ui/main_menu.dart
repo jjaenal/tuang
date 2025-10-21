@@ -5,9 +5,11 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../game/my_game.dart';
 import '../state/app_settings_cubit.dart';
 import '../services/ad_service.dart';
+import '../services/audio_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import '../services/logging_service.dart';
+import '../models/character_skin.dart';
 import '../game/game_config.dart';
 import 'leaderboard_screen.dart';
 
@@ -215,6 +217,32 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
     if (diff.isNegative) return '00:00:00';
     return _formatHms(diff);
   }
+  
+  /// Membangun widget preview untuk skin yang aktif
+  Widget _buildActiveSkinPreview(BuildContext context, String skinId) {
+    // Cari skin dari daftar default skins
+    final skin = CharacterSkin.defaultSkins.firstWhere(
+      (skin) => skin.id == skinId,
+      orElse: () => CharacterSkin.defaultSkins.first,
+    );
+    
+    // Tampilkan preview berdasarkan tipe skin (image atau color)
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        color: skin.imagePath == null ? skin.color : null,
+        border: Border.all(color: Colors.white30),
+        borderRadius: BorderRadius.circular(4),
+        image: skin.imagePath != null
+            ? DecorationImage(
+                image: AssetImage('assets/images/${skin.imagePath}'),
+                fit: BoxFit.cover,
+              )
+            : null,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -419,6 +447,28 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                     Text(
                       '~${GameConfig.magnetBuffValueCoins(app.dailyMagnetBuffSeconds)} coins',
                       style: const TextStyle(color: Colors.white70),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                // Character Skin Selection
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.person, color: Colors.white70, size: 18),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'Character Skins',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                    const SizedBox(width: 8),
+                    _buildActiveSkinPreview(context, app.activeSkinId),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        _showSkinSelectionDialog(context);
+                      },
+                      child: const Text('Select Skin'),
                     ),
                   ],
                 ),
@@ -708,6 +758,151 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
           },
         ),
       ),
+    );
+  }
+
+  Future<void> _showSkinSelectionDialog(BuildContext context) async {
+    final cubit = context.read<AppSettingsCubit>();
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(builder: (ctx, setSt) {
+          final skins = cubit.getAllSkins();
+          final activeId = cubit.state.activeSkinId;
+          return AlertDialog(
+            title: const Text('Pilih Skin Karakter'),
+            content: SizedBox(
+              width: 360,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: skins.map((s) {
+                    final isActive = s.id == activeId;
+                    final status = s.isUnlocked
+                        ? (isActive ? 'Selected' : 'Unlocked')
+                        : 'Locked';
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0x22000000),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: s.color,
+                              borderRadius: BorderRadius.circular(6),
+                              image: s.imagePath != null
+                                  ? DecorationImage(
+                                      image: AssetImage(s.imagePath!),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  s.name,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  s.isUnlocked
+                                      ? status
+                                      : 'Price: ${s.price} coins',
+                                  style: const TextStyle(color: Colors.white70),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (!s.isUnlocked)
+                            ElevatedButton(
+                              onPressed: () {
+                                final ok = cubit.purchaseSkin(s.id);
+                                if (ok) {
+                                  setSt(() {});
+                                  // Add sound effect when purchasing skin
+                                  if (cubit.state.audioOn) {
+                                    try {
+                                      final audioService = context.read<AudioService>();
+                                      audioService.playCoin(); // Gunakan sound coin untuk purchase
+                                    } catch (e) {
+                                      // Abaikan jika AudioService tidak tersedia
+                                      LoggingService.log('Audio error: $e');
+                                    }
+                                  }
+                                  ScaffoldMessenger.of(ctx).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Unlocked: ${s.name}'),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(ctx).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Coins tidak cukup'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              },
+                              child: Text('Buy (${s.price})'),
+                            )
+                          else
+                            ElevatedButton(
+                              onPressed: isActive
+                                  ? null
+                                  : () {
+                                      cubit.setActiveSkin(s.id);
+                                      setSt(() {});
+                                      // Add sound effect when selecting skin
+                                if (cubit.state.audioOn) {
+                                  try {
+                                    final audioService = context.read<AudioService>();
+                                    audioService.playCoin(); // Gunakan sound coin untuk select
+                                  } catch (e) {
+                                    // Abaikan jika AudioService tidak tersedia
+                                    LoggingService.log('Audio error: $e');
+                                  }
+                                }
+                                      ScaffoldMessenger.of(ctx).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Selected: ${s.name}'),
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      );
+                                    },
+                              child: const Text('Select'),
+                            ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Close'),
+              ),
+            ],
+          );
+        });
+      },
     );
   }
 }

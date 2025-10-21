@@ -1,59 +1,41 @@
-import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:equatable/equatable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../models/character_skin.dart';
+import '../game/game_config.dart';
 import 'pref_keys.dart';
 
-/// AppSettingsCubit mengelola state non-game (UI/app-layer) seperti:
-/// - audioOn: apakah audio diaktifkan
-/// - hapticsOn: apakah haptics (getaran) diaktifkan
-/// - consentGiven: apakah user telah memberikan consent (GDPR/CCPA)
-/// - adsEnabled: apakah iklan diaktifkan (hanya jika consent diberikan)
-/// - paused: apakah game sedang dipause (mengendalikan pause/resume dari UI)
-/// - lastDailyRewardDate: tanggal terakhir daily reward diklaim (format YYYY-MM-DD, lokal)
 class AppSettingsState extends Equatable {
   final bool audioOn;
   final bool hapticsOn;
   final bool consentGiven;
   final bool adsEnabled;
   final bool paused;
-
-  /// Menyimpan tanggal lokal (YYYY-MM-DD) kapan daily reward terakhir diklaim.
-  /// Null jika belum pernah diklaim.
-  final String? lastDailyRewardDate;
-
-  /// Saldo coins (mata uang in-game) yang persisten.
   final int coins;
-
-  /// Preferensi Non-Personalized Ads (GDPR/privasi). Jika true, minta NPA.
   final bool npaEnabled;
-
-  /// Buff magnet yang pending (detik) akan diterapkan saat game dimulai, lalu direset.
-  final int pendingMagnetBuffSeconds;
-
-  /// Durasi buff magnet harian yang akan diberikan saat klaim daily reward.
   final int dailyMagnetBuffSeconds;
-
-  /// Nama pemain untuk leaderboard
-  final String? playerName;
+  final int pendingMagnetBuffSeconds;
+  final DateTime? lastDailyRewardClaimedAt;
+  final String playerName;
+  final String activeSkinId;
+  final List<String> unlockedSkinIds;
 
   const AppSettingsState({
-    required this.audioOn,
-    required this.hapticsOn,
-    required this.consentGiven,
-    required this.adsEnabled,
-    required this.paused,
-    // Tambahan field untuk persist daily reward.
-    this.lastDailyRewardDate,
-    // Default coins 0 jika belum ada.
+    this.audioOn = true,
+    this.hapticsOn = true,
+    this.consentGiven = false,
+    this.adsEnabled = false,
+    this.paused = false,
     this.coins = 0,
-    // Default NPA off.
     this.npaEnabled = false,
-    // Default tidak ada buff magnet.
+    this.dailyMagnetBuffSeconds = GameConfig.defaultDailyMagnetBuffSec,
     this.pendingMagnetBuffSeconds = 0,
-    // Default buff harian 12 detik.
-    this.dailyMagnetBuffSeconds = 12,
-    // Default nama pemain.
+    this.lastDailyRewardClaimedAt,
     this.playerName = 'Player',
+    this.activeSkinId = 'default',
+    this.unlockedSkinIds = const ['default'],
   });
 
   AppSettingsState copyWith({
@@ -62,13 +44,14 @@ class AppSettingsState extends Equatable {
     bool? consentGiven,
     bool? adsEnabled,
     bool? paused,
-    // Mengizinkan update tanggal daily reward.
-    String? lastDailyRewardDate,
     int? coins,
     bool? npaEnabled,
-    int? pendingMagnetBuffSeconds,
     int? dailyMagnetBuffSeconds,
+    int? pendingMagnetBuffSeconds,
+    DateTime? lastDailyRewardClaimedAt,
     String? playerName,
+    String? activeSkinId,
+    List<String>? unlockedSkinIds,
   }) {
     return AppSettingsState(
       audioOn: audioOn ?? this.audioOn,
@@ -76,14 +59,14 @@ class AppSettingsState extends Equatable {
       consentGiven: consentGiven ?? this.consentGiven,
       adsEnabled: adsEnabled ?? this.adsEnabled,
       paused: paused ?? this.paused,
-      lastDailyRewardDate: lastDailyRewardDate ?? this.lastDailyRewardDate,
       coins: coins ?? this.coins,
       npaEnabled: npaEnabled ?? this.npaEnabled,
-      pendingMagnetBuffSeconds:
-          pendingMagnetBuffSeconds ?? this.pendingMagnetBuffSeconds,
-      dailyMagnetBuffSeconds:
-          dailyMagnetBuffSeconds ?? this.dailyMagnetBuffSeconds,
+      dailyMagnetBuffSeconds: dailyMagnetBuffSeconds ?? this.dailyMagnetBuffSeconds,
+      pendingMagnetBuffSeconds: pendingMagnetBuffSeconds ?? this.pendingMagnetBuffSeconds,
+      lastDailyRewardClaimedAt: lastDailyRewardClaimedAt ?? this.lastDailyRewardClaimedAt,
       playerName: playerName ?? this.playerName,
+      activeSkinId: activeSkinId ?? this.activeSkinId,
+      unlockedSkinIds: unlockedSkinIds ?? this.unlockedSkinIds,
     );
   }
 
@@ -94,203 +77,200 @@ class AppSettingsState extends Equatable {
     consentGiven,
     adsEnabled,
     paused,
-    lastDailyRewardDate,
     coins,
     npaEnabled,
-    pendingMagnetBuffSeconds,
     dailyMagnetBuffSeconds,
+    pendingMagnetBuffSeconds,
+    lastDailyRewardClaimedAt,
     playerName,
+    activeSkinId,
+    unlockedSkinIds,
   ];
+
+  bool get canClaimDailyReward {
+    if (lastDailyRewardClaimedAt == null) return true;
+    final now = DateTime.now();
+    final diff = now.difference(lastDailyRewardClaimedAt!);
+    return diff.inHours >= 24;
+  }
 }
 
 class AppSettingsCubit extends Cubit<AppSettingsState> {
-  // Default durasi buff magnet harian (detik) — satu sumber kebenaran untuk daily reward.
-  static const int defaultDailyMagnetBuffSec = 12;
+  AppSettingsCubit() : super(const AppSettingsState());
 
-  static const _kAudioOn = PrefKeys.audioOn;
-  static const _kHapticsOn = PrefKeys.hapticsOn;
-  static const _kConsentGiven = PrefKeys.consentGiven;
-  static const _kAdsEnabled = PrefKeys.adsEnabled;
-  static const _kPaused = PrefKeys.paused;
-  // Key baru untuk menyimpan tanggal terakhir daily reward diklaim.
-  static const _kLastDailyRewardDate = PrefKeys.lastDailyRewardDate;
-  // Key untuk saldo coins persisten.
-  static const _kCoins = PrefKeys.coins;
-  // Key untuk Non-Personalized Ads.
-  static const _kNpaEnabled = PrefKeys.npaEnabled;
-  // Key untuk buff magnet pending.
-  static const _kPendingMagnetBuffSec = PrefKeys.pendingMagnetBuffSec;
-  // Key untuk durasi buff magnet harian.
-  static const _kDailyMagnetBuffSec = PrefKeys.dailyMagnetBuffSec;
-  // Key untuk nama pemain
-  static const _kPlayerName = PrefKeys.playerName;
+  // Provide forwards for tests that reference via cubit
+  static const int defaultDailyMagnetBuffSec = GameConfig.defaultDailyMagnetBuffSec;
+  static const int maxDailyMagnetBuffSec = GameConfig.maxDailyMagnetBuffSec;
 
-  AppSettingsCubit()
-    : super(
-        const AppSettingsState(
-          audioOn: true,
-          hapticsOn: true,
-          consentGiven: false,
-          adsEnabled: false,
-          paused: false,
-          // lastDailyRewardDate default null (belum diklaim).
-          // coins default 0.
-          // npaEnabled default false.
-          // dailyMagnetBuffSeconds default 12.
-        ),
-      );
-
-  /// Muat state dari SharedPreferences.
-  /// Termasuk tanggal terakhir daily reward diklaim jika ada.
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
-    emit(
-      AppSettingsState(
-        audioOn: prefs.getBool(_kAudioOn) ?? state.audioOn,
-        hapticsOn: prefs.getBool(_kHapticsOn) ?? state.hapticsOn,
-        consentGiven: prefs.getBool(_kConsentGiven) ?? state.consentGiven,
-        adsEnabled: prefs.getBool(_kAdsEnabled) ?? state.adsEnabled,
-        paused: prefs.getBool(_kPaused) ?? state.paused,
-        lastDailyRewardDate:
-            prefs.getString(_kLastDailyRewardDate) ?? state.lastDailyRewardDate,
-        coins: prefs.getInt(_kCoins) ?? state.coins,
-        npaEnabled: prefs.getBool(_kNpaEnabled) ?? state.npaEnabled,
-        pendingMagnetBuffSeconds:
-            prefs.getInt(_kPendingMagnetBuffSec) ??
-            state.pendingMagnetBuffSeconds,
-        dailyMagnetBuffSeconds:
-            prefs.getInt(_kDailyMagnetBuffSec) ?? defaultDailyMagnetBuffSec,
-        playerName: prefs.getString(_kPlayerName) ?? state.playerName,
-      ),
-    );
+    final audioOn = prefs.getBool(PrefKeys.audioOn) ?? state.audioOn;
+    final hapticsOn = prefs.getBool(PrefKeys.hapticsOn) ?? state.hapticsOn;
+    final consentGiven = prefs.getBool(PrefKeys.consentGiven) ?? state.consentGiven;
+    final adsEnabled = prefs.getBool(PrefKeys.adsEnabled) ?? state.adsEnabled;
+    final paused = prefs.getBool(PrefKeys.paused) ?? state.paused;
+    final coins = prefs.getInt(PrefKeys.coins) ?? state.coins;
+    final npaEnabled = prefs.getBool(PrefKeys.npaEnabled) ?? state.npaEnabled;
+    final dailyMagnetBuffSec = prefs.getInt(PrefKeys.dailyMagnetBuffSec) ?? state.dailyMagnetBuffSeconds;
+    final pendingMagnetBuffSec = prefs.getInt(PrefKeys.pendingMagnetBuffSec) ?? state.pendingMagnetBuffSeconds;
+    final lastRewardStr = prefs.getString(PrefKeys.lastDailyRewardDate);
+    final playerName = prefs.getString(PrefKeys.playerName) ?? state.playerName;
+    final activeSkinId = prefs.getString(PrefKeys.activeSkinId) ?? state.activeSkinId;
+    final unlockedSkinIds = prefs.getStringList(PrefKeys.unlockedSkinIds) ?? state.unlockedSkinIds;
+
+    emit(state.copyWith(
+      audioOn: audioOn,
+      hapticsOn: hapticsOn,
+      consentGiven: consentGiven,
+      adsEnabled: adsEnabled,
+      paused: paused,
+      coins: coins,
+      npaEnabled: npaEnabled,
+      dailyMagnetBuffSeconds: dailyMagnetBuffSec,
+      pendingMagnetBuffSeconds: pendingMagnetBuffSec,
+      lastDailyRewardClaimedAt: lastRewardStr == null ? null : DateTime.tryParse(lastRewardStr),
+      playerName: playerName,
+      activeSkinId: activeSkinId,
+      unlockedSkinIds: unlockedSkinIds,
+    ));
   }
 
-  /// Simpan state ke SharedPreferences.
-  /// Jika lastDailyRewardDate null, key akan dihapus.
   Future<void> _savePrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_kAudioOn, state.audioOn);
-    await prefs.setBool(_kHapticsOn, state.hapticsOn);
-    await prefs.setBool(_kConsentGiven, state.consentGiven);
-    await prefs.setBool(_kAdsEnabled, state.adsEnabled);
-    await prefs.setBool(_kPaused, state.paused);
-    final lastDate = state.lastDailyRewardDate;
-    if (lastDate == null) {
-      await prefs.remove(_kLastDailyRewardDate);
-    } else {
-      await prefs.setString(_kLastDailyRewardDate, lastDate);
-    }
-    await prefs.setInt(_kCoins, state.coins);
-    await prefs.setBool(_kNpaEnabled, state.npaEnabled);
-    await prefs.setInt(_kPendingMagnetBuffSec, state.pendingMagnetBuffSeconds);
-    await prefs.setInt(_kDailyMagnetBuffSec, state.dailyMagnetBuffSeconds);
+    await prefs.setBool(PrefKeys.audioOn, state.audioOn);
+    await prefs.setBool(PrefKeys.hapticsOn, state.hapticsOn);
+    await prefs.setBool(PrefKeys.consentGiven, state.consentGiven);
+    await prefs.setBool(PrefKeys.adsEnabled, state.adsEnabled);
+    await prefs.setBool(PrefKeys.paused, state.paused);
+    await prefs.setInt(PrefKeys.coins, state.coins);
+    await prefs.setBool(PrefKeys.npaEnabled, state.npaEnabled);
+    await prefs.setInt(PrefKeys.dailyMagnetBuffSec, state.dailyMagnetBuffSeconds);
+    await prefs.setInt(PrefKeys.pendingMagnetBuffSec, state.pendingMagnetBuffSeconds);
+    await prefs.setString(PrefKeys.playerName, state.playerName);
+    await prefs.setString(PrefKeys.activeSkinId, state.activeSkinId);
+    await prefs.setStringList(PrefKeys.unlockedSkinIds, state.unlockedSkinIds);
 
-    // Simpan nama pemain
-    if (state.playerName != null) {
-      await prefs.setString(_kPlayerName, state.playerName!);
+    if (state.lastDailyRewardClaimedAt != null) {
+      await prefs.setString(
+        PrefKeys.lastDailyRewardDate,
+        state.lastDailyRewardClaimedAt!.toIso8601String(),
+      );
     }
   }
 
-  /// Toggle audio aktif/nonaktif.
   void toggleAudio() {
     emit(state.copyWith(audioOn: !state.audioOn));
     _savePrefs();
   }
 
-  /// Toggle haptics aktif/nonaktif.
   void toggleHaptics() {
     emit(state.copyWith(hapticsOn: !state.hapticsOn));
     _savePrefs();
   }
 
-  /// Set consent (GDPR/CCPA). Biasanya true setelah user menerima dialog consent.
-  void setConsent(bool given) {
-    emit(state.copyWith(consentGiven: given));
+  void setConsent(bool value) {
+    emit(state.copyWith(consentGiven: value));
     _savePrefs();
   }
 
-  /// Toggle iklan aktif/nonaktif. Disarankan hanya mengaktifkan jika consent sudah diberikan.
   void toggleAds() {
-    final enable = !state.adsEnabled;
-    emit(state.copyWith(adsEnabled: enable));
+    emit(state.copyWith(adsEnabled: !state.adsEnabled));
     _savePrefs();
   }
 
-  /// Toggle Non-Personalized Ads (NPA).
+  void setPaused(bool value) {
+    emit(state.copyWith(paused: value));
+    _savePrefs();
+  }
+
   void toggleNpa() {
     emit(state.copyWith(npaEnabled: !state.npaEnabled));
     _savePrefs();
   }
 
-  /// Grant buff magnet (detik) untuk diaplikasikan saat game dimulai.
-  void grantMagnetBuff(int seconds) {
-    if (seconds <= 0) return;
-    emit(state.copyWith(pendingMagnetBuffSeconds: seconds));
+  void setDailyMagnetBuffSeconds(int seconds) {
+    final clamped = seconds.clamp(0, GameConfig.maxDailyMagnetBuffSec);
+    emit(state.copyWith(dailyMagnetBuffSeconds: clamped));
     _savePrefs();
   }
 
-  /// Konsumsi buff magnet: kembalikan durasi dan reset ke 0.
+  void grantMagnetBuff(int seconds) {
+    final clamped = seconds.clamp(0, GameConfig.maxDailyMagnetBuffSec);
+    emit(state.copyWith(pendingMagnetBuffSeconds: clamped));
+    _savePrefs();
+  }
+
   int consumeMagnetBuff() {
     final s = state.pendingMagnetBuffSeconds;
-    if (s > 0) {
-      emit(state.copyWith(pendingMagnetBuffSeconds: 0));
-      _savePrefs();
-    }
+    emit(state.copyWith(pendingMagnetBuffSeconds: 0));
+    _savePrefs();
     return s;
   }
 
-  /// Set durasi buff magnet harian (0..15 detik).
-  void setDailyMagnetBuffSeconds(int seconds) {
-    final s = seconds < 0 ? 0 : (seconds > 15 ? 15 : seconds);
-    emit(state.copyWith(dailyMagnetBuffSeconds: s));
+  bool get canClaimDailyReward => state.canClaimDailyReward;
+
+  void markDailyRewardClaimedNow() {
+    emit(state.copyWith(lastDailyRewardClaimedAt: DateTime.now()));
     _savePrefs();
   }
 
-  /// Set pause/resume status dari UI overlay.
-  void setPaused(bool paused) {
-    emit(state.copyWith(paused: paused));
-    _savePrefs();
-  }
-
-  /// Utility: kembalikan string tanggal lokal "YYYY-MM-DD" (tanpa jam) untuk perbandingan harian.
-  String _todayDateString() {
-    final now = DateTime.now().toLocal();
-    final y = now.year.toString().padLeft(4, '0');
-    final m = now.month.toString().padLeft(2, '0');
-    final d = now.day.toString().padLeft(2, '0');
-    return '$y-$m-$d';
-  }
-
-  /// Getter: apakah pengguna bisa klaim daily reward hari ini.
-  /// True jika belum ada klaim pada tanggal hari ini.
-  bool get canClaimDailyReward {
-    final today = _todayDateString();
-    return state.lastDailyRewardDate != today;
-  }
-
-  /// Tambah coins ke saldo dan simpan.
   void addCoins(int amount) {
     if (amount <= 0) return;
-    final next = state.coins + amount;
-    emit(state.copyWith(coins: next));
+    emit(state.copyWith(coins: state.coins + amount));
     _savePrefs();
   }
 
-  /// Coba kurangi coins dari saldo. Mengembalikan true jika berhasil.
   bool spendCoins(int amount) {
-    if (amount <= 0) return false;
+    if (amount <= 0) return true;
     if (state.coins < amount) return false;
-    final next = state.coins - amount;
-    emit(state.copyWith(coins: next));
+    emit(state.copyWith(coins: state.coins - amount));
     _savePrefs();
     return true;
   }
 
-  /// Tandai bahwa pengguna telah mengklaim daily reward pada tanggal hari ini.
-  /// Menyimpan tanggal klaim ke SharedPreferences.
-  void markDailyRewardClaimedNow() {
-    final today = _todayDateString();
-    emit(state.copyWith(lastDailyRewardDate: today));
+  // === Skins API ===
+  List<CharacterSkin> getAllSkins() {
+    final unlocked = state.unlockedSkinIds.toSet();
+    return CharacterSkin.defaultSkins.map((s) => s.copyWith(
+      isUnlocked: unlocked.contains(s.id) || (s.price == 0),
+    )).toList();
+  }
+
+  CharacterSkin getActiveSkin() {
+    final all = getAllSkins();
+    return all.firstWhere(
+      (s) => s.id == state.activeSkinId,
+      orElse: () => all.first,
+    );
+  }
+
+  bool isSkinUnlocked(String id) {
+    return state.unlockedSkinIds.contains(id);
+  }
+
+  void unlockSkin(String id) {
+    if (isSkinUnlocked(id)) return;
+    final next = List<String>.from(state.unlockedSkinIds)..add(id);
+    emit(state.copyWith(unlockedSkinIds: next));
+    _savePrefs();
+  }
+
+  bool purchaseSkin(String id) {
+    if (isSkinUnlocked(id)) return true;
+    final skin = CharacterSkin.defaultSkins.firstWhere(
+      (s) => s.id == id,
+      orElse: () => CharacterSkin(id: 'invalid', name: 'Invalid', color: Colors.grey, price: 0),
+    );
+    if (skin.id == 'invalid') return false;
+    if (!spendCoins(skin.price)) return false;
+    unlockSkin(id);
+    return true;
+  }
+
+  void setActiveSkin(String id) {
+    // Only allow selecting unlocked skins
+    if (!isSkinUnlocked(id)) return;
+    emit(state.copyWith(activeSkinId: id));
     _savePrefs();
   }
 }

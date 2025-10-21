@@ -46,10 +46,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                     .toList();
           }
         }
-        final currentRank =
-            loaded && currentPlayerId != null
-                ? leaderboard.rankOf(currentPlayerId)
-                : null;
+        final currentRank = loaded ? leaderboard.rankOf(currentPlayerId) : null;
         final lastSubmittedId =
             loaded ? leaderboard.lastSubmittedPlayerId : null;
 
@@ -266,7 +263,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                   child: Text('•'),
                                 ),
                                 title: Text(
-                                  currentPlayerId ?? '-',
+                                  currentPlayerId,
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
