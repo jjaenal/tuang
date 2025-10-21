@@ -41,6 +41,23 @@ class _HudOverlayState extends State<HudOverlay> {
     super.dispose();
   }
 
+  Widget _hudPill({
+    required Widget child,
+    Color? color,
+    double radius = 10,
+    EdgeInsets padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+  }) {
+    final baseColor = color ?? const Color(0x55000000);
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: baseColor,
+        borderRadius: BorderRadius.circular(radius),
+      ),
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final game = widget.game;
@@ -57,21 +74,21 @@ class _HudOverlayState extends State<HudOverlay> {
                 ValueListenableBuilder<int>(
                   valueListenable: game.scoreVN,
                   builder:
-                      (_, score, __) => Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0x55000000),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'Score: $score',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                          ),
+                      (_, score, __) => _hudPill(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.star, color: Colors.amber, size: 18),
+                            const SizedBox(width: 6),
+                            Text(
+                              '$score',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                 ),
@@ -79,15 +96,8 @@ class _HudOverlayState extends State<HudOverlay> {
                 // Saldo coins (persisten) dari AppSettingsCubit
                 BlocBuilder<AppSettingsCubit, AppSettingsState>(
                   builder:
-                      (context, app) => Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0x55330000),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                      (context, app) => _hudPill(
+                        color: const Color(0x55330000),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -110,15 +120,9 @@ class _HudOverlayState extends State<HudOverlay> {
                 ValueListenableBuilder<double>(
                   valueListenable: game.magnetVN,
                   builder:
-                      (_, mag, __) => Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0x3300FF66),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                      (_, mag, __) => _hudPill(
+                        color: const Color(0x3300FF66),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -134,7 +138,7 @@ class _HudOverlayState extends State<HudOverlay> {
                             ),
                             const SizedBox(width: 8),
                             SizedBox(
-                              width: 80,
+                              width: 100,
                               height: 8,
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(4),
@@ -163,15 +167,8 @@ class _HudOverlayState extends State<HudOverlay> {
                 ValueListenableBuilder<int>(
                   valueListenable: game.comboVN,
                   builder:
-                      (_, combo, __) => Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0x3344AAFF),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                      (_, combo, __) => _hudPill(
+                        color: const Color(0x3344AAFF),
                         child: Text(
                           'Combo x$combo',
                           style: const TextStyle(color: Colors.white),
@@ -180,16 +177,8 @@ class _HudOverlayState extends State<HudOverlay> {
                 ),
                 const SizedBox(height: 6),
                 if (LoggingService.enabled)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0x33112233),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0x4488CCFF)),
-                    ),
+                  _hudPill(
+                    color: const Color(0x33112233),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -214,21 +203,21 @@ class _HudOverlayState extends State<HudOverlay> {
                 ValueListenableBuilder<int>(
                   valueListenable: game.timeVN,
                   builder:
-                      (_, time, __) => Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0x55000000),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'Time: ${time}s',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                          ),
+                      (_, time, __) => _hudPill(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.timer, color: Colors.white70, size: 18),
+                            const SizedBox(width: 6),
+                            Text(
+                              '$time s',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                 ),
