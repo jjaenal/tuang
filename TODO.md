@@ -94,3 +94,18 @@
 ## 📚 Documentation
 - [x] Tambah komentar class/fungsi/blok di `LoggingService` & `AdService` sesuai project rules
 - [x] Tambah dokumentasi pada `MyGame` (class & methods utama)
+
+
+## 🎯 UI/UX Revamp Checklist
+- [ ] HUD overhaul: skor menonjol, timer jelas, ikon buff + progress
+- [ ] Game Over redesign: reward breakdown pakai ikon + CTA (Retry/Double/Leaderboard/Skins)
+- [ ] Main Menu redesign: kartu Play/Skins/Achievements/Leaderboard/Settings + posisi banner
+- [ ] Pause overlay: Resume/Restart/Quick Settings (audio/haptics) dengan backdrop semi-transparan
+- [ ] Theme tokens: palette warna, spacing scale, typography scale via ThemeData
+- [ ] Icons & badges: ikon buff, badge achievement, tooltip label untuk web focus
+- [ ] Responsive layout: SafeArea + LayoutBuilder; grid skins/achievements 2 kolom mobile, 4+ desktop
+- [ ] Accessibility: kontras ≥ 4.5:1, font ≥ 14, focus states untuk keyboard
+- [ ] Feedback polish: combo pop-up, tuning partikel, magnet glow subtle, durasi flash shield/obstacle
+- [ ] HUD performance: ValueListenable untuk update; minimalkan rebuild berat
+- [ ] Leaderboard UI polish: item ringkas (avatar initial, rank, score, waktu), submit dari Game Over
+- [ ] QA checklist: preview web/mobile, cek overlay (Main Menu, HUD, Pause, Game Over)
