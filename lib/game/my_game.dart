@@ -29,6 +29,7 @@ class MyGame extends FlameGame {
   static const String overlayMainMenu = 'MainMenu';
   static const String overlayHud = 'Hud';
   static const String overlayGameOver = 'GameOver';
+  static const String overlayPause = 'Pause';
 
   // UI state
   final ValueNotifier<int> scoreVN = ValueNotifier<int>(0);

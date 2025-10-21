@@ -100,7 +100,7 @@
 - [ ] HUD overhaul: skor menonjol, timer jelas, ikon buff + progress
 - [ ] Game Over redesign: reward breakdown pakai ikon + CTA (Retry/Double/Leaderboard/Skins)
 - [ ] Main Menu redesign: kartu Play/Skins/Achievements/Leaderboard/Settings + posisi banner
-- [ ] Pause overlay: Resume/Restart/Quick Settings (audio/haptics) dengan backdrop semi-transparan
+- [x] Pause overlay: Resume/Restart/Quick Settings (audio/haptics) dengan backdrop semi-transparan
 - [ ] Theme tokens: palette warna, spacing scale, typography scale via ThemeData
 - [ ] Icons & badges: ikon buff, badge achievement, tooltip label untuk web focus
 - [ ] Responsive layout: SafeArea + LayoutBuilder; grid skins/achievements 2 kolom mobile, 4+ desktop
