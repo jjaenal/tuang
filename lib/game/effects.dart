@@ -1,7 +1,83 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
-import 'my_game.dart';
+import 'player.dart';
+
+/// FlashOverlay: full-screen flash effect for collisions
+class FlashOverlay extends RectangleComponent {
+  FlashOverlay({required Vector2 size, Color color = const Color(0x55FF0000)})
+    : super(size: size, paint: Paint()..color = color, priority: 10) {
+    // Auto-remove after 0.2 seconds
+    Future.delayed(const Duration(milliseconds: 200), () {
+      removeFromParent();
+    });
+  }
+}
+
+/// MagnetGlow: visual effect that follows player when magnet is active
+class MagnetGlow extends CircleComponent {
+  final Player target;
+
+  MagnetGlow({required this.target})
+    : super(
+        radius: 50,
+        paint:
+            Paint()
+              ..color = const Color(0x552ECC71)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 3.0,
+        anchor: Anchor.center,
+      );
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    position = target.position;
+  }
+}
+
+/// SpeedBoostGlow: visual effect that follows player when speed boost is active
+class SpeedBoostGlow extends CircleComponent {
+  final Player target;
+
+  SpeedBoostGlow({required this.target})
+    : super(
+        radius: 30,
+        paint:
+            Paint()
+              ..color = const Color(0x55E74C3C)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 2.0,
+        anchor: Anchor.center,
+      );
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    position = target.position;
+  }
+}
+
+/// ShieldGlow: visual effect that follows player when shield is active
+class ShieldGlow extends CircleComponent {
+  final Player target;
+
+  ShieldGlow({required this.target})
+    : super(
+        radius: 25,
+        paint:
+            Paint()
+              ..color = const Color(0x553498DB)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 3.0,
+        anchor: Anchor.center,
+      );
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    position = target.position;
+  }
+}
 
 class PopEffect extends RectangleComponent {
   final double duration;
@@ -13,12 +89,12 @@ class PopEffect extends RectangleComponent {
   PopEffect({
     required Vector2 position,
     this.duration = 0.25,
-    this.startSize = 4,
-    this.endSize = 24,
-    this.color = Colors.amber,
+    this.startSize = 6,
+    this.endSize = 22,
+    this.color = const Color(0xFFFFC107),
   }) : super(
          position: position,
-         size: Vector2.all(4),
+         size: Vector2.all(6),
          paint: Paint()..color = color,
        ) {
     anchor = Anchor.center;
@@ -31,8 +107,8 @@ class PopEffect extends RectangleComponent {
     final t = (_elapsed / duration).clamp(0.0, 1.0);
     final s = startSize + (endSize - startSize) * t;
     size = Vector2.all(s);
-    final opacity = 1.0 - t;
-    paint.color = color.withValues(alpha: opacity);
+    final alpha = 1.0 - t;
+    paint.color = color.withValues(alpha: alpha);
     if (_elapsed >= duration) {
       removeFromParent();
     }
@@ -72,123 +148,12 @@ class FloatingText extends TextComponent {
     _elapsed += dt;
     position += velocity * dt;
     final t = (_elapsed / duration).clamp(0.0, 1.0);
-    final opacity = 1.0 - t;
+    final alpha = 1.0 - t;
     final current = (textRenderer as TextPaint).style;
     textRenderer = TextPaint(
-      style: current.copyWith(color: color.withValues(alpha: opacity)),
+      style: current.copyWith(color: color.withValues(alpha: alpha)),
     );
     if (_elapsed >= duration) {
-      removeFromParent();
-    }
-  }
-}
-
-class FlashOverlay extends RectangleComponent {
-  final double duration;
-  double _elapsed = 0;
-  final Color color;
-
-  FlashOverlay({
-    required Vector2 size,
-    this.duration = 0.12,
-    this.color = Colors.white,
-  }) : super(
-         size: size,
-         position: Vector2.zero(),
-         paint: Paint()..color = color.withValues(alpha: 0.0),
-       ) {
-    anchor = Anchor.topLeft;
-    priority = 1000;
-  }
-
-  @override
-  void update(double dt) {
-    super.update(dt);
-    _elapsed += dt;
-    final t = (_elapsed / duration).clamp(0.0, 1.0);
-    paint.color = color.withValues(alpha: 1.0 - t);
-    if (_elapsed >= duration) {
-      removeFromParent();
-    }
-  }
-}
-
-class DotParticle extends RectangleComponent {
-  final double duration;
-  double _elapsed = 0;
-  Vector2 velocity;
-  final Color color;
-
-  DotParticle({
-    required Vector2 position,
-    required this.velocity,
-    this.duration = 0.5,
-    this.color = Colors.amber,
-  }) : super(
-         position: position,
-         size: Vector2.all(3),
-         paint: Paint()..color = color,
-       ) {
-    anchor = Anchor.center;
-  }
-
-  @override
-  void update(double dt) {
-    super.update(dt);
-    _elapsed += dt;
-    position += velocity * dt;
-    velocity *= 0.98; // simple damping
-    final t = (_elapsed / duration).clamp(0.0, 1.0);
-    paint.color = color.withValues(alpha: 1.0 - t);
-    if (_elapsed >= duration) {
-      removeFromParent();
-    }
-  }
-}
-
-/// MagnetGlow: ring visual that follows the player while magnet is active.
-/// Slightly pulses in radius and fades to indicate remaining duration.
-class MagnetGlow extends CircleComponent with HasGameReference<MyGame> {
-  final PositionComponent target;
-  double _t = 0.0;
-
-  MagnetGlow({required this.target})
-    : super(
-        radius: 22,
-        paint:
-            Paint()
-              ..color = Colors.greenAccent.withValues(alpha: 0.35)
-              ..style = PaintingStyle.stroke
-              ..strokeWidth = 3,
-      ) {
-    anchor = Anchor.center;
-    priority = 200; // above coins, below overlays
-  }
-
-  @override
-  Future<void> onLoad() async {
-    await super.onLoad();
-    position = target.position.clone();
-  }
-
-  @override
-  void update(double dt) {
-    super.update(dt);
-    // follow the target (player)
-    position = target.position.clone();
-
-    // pulse radius for a subtle breathing effect
-    _t += dt * 2.0;
-    final pulse = (math.sin(_t) + 1.0) * 0.5; // 0..1
-    radius = 22 + pulse * 4;
-
-    // fade a bit as magnet winds down
-    final magnetVNValue = game.magnetVN.value;
-    final baseAlpha = 0.25 + magnetVNValue * 0.35;
-    paint.color = Colors.greenAccent.withValues(alpha: baseAlpha);
-
-    // auto-remove when magnet ends (defensive)
-    if (game.magnetSecondsLeft <= 0) {
       removeFromParent();
     }
   }

@@ -1,13 +1,16 @@
-import 'package:flame/game.dart';
+import 'dart:math';
+import 'dart:async';
 import 'package:flame/components.dart';
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:math';
 import 'player.dart';
 import 'coin.dart';
 import 'obstacle.dart';
 import 'magnet.dart';
 import 'effects.dart';
+import 'speed_boost.dart';
+import 'shield.dart';
 import 'game_config.dart';
 import '../models/achievement.dart';
 import '../services/achievement_service.dart';
@@ -62,15 +65,24 @@ class MyGame extends FlameGame {
   double _coinTimer = 0.0;
   double _obstacleTimer = 0.0;
   double _magnetTimer = 0.0;
+  double _speedBoostTimer = 0.0;
+  double _shieldTimer = 0.0;
+  // Variabel untuk efek power-up
   double _speedBoostLeft = 0.0;
   double _comboWindowLeft = 0.0;
   int _coinsSinceLastCombo = 0;
+
+  // Power-up status
+  double speedBoostSecondsLeft = 0.0;
+  double shieldSecondsLeft = 0.0;
 
   // Achievements
   final AchievementService _achievementService = AchievementService.I;
 
   // Visual effects
   MagnetGlow? _magnetGlow;
+  SpeedBoostGlow? _speedBoostGlow;
+  ShieldGlow? _shieldGlow;
 
   @override
   Future<void> onLoad() async {
@@ -122,6 +134,12 @@ class MyGame extends FlameGame {
     }
     for (final m in children.whereType<MagnetPowerUp>().toList()) {
       m.removeFromParent();
+    }
+    for (final s in children.whereType<SpeedBoostPowerUp>().toList()) {
+      s.removeFromParent();
+    }
+    for (final sh in children.whereType<ShieldPowerUp>().toList()) {
+      sh.removeFromParent();
     }
     for (final g in children.whereType<MagnetGlow>().toList()) {
       g.removeFromParent();
@@ -199,7 +217,35 @@ class MyGame extends FlameGame {
     if (_speedBoostLeft > 0) {
       _speedBoostLeft -= dt;
       if (_speedBoostLeft <= 0) {
-        playerSpeedMultiplier = 1.0;
+        // fallback ke power-up boost jika masih aktif
+        playerSpeedMultiplier =
+            speedBoostSecondsLeft > 0
+                ? GameConfig.speedBoostPowerUpMultiplier
+                : 1.0;
+        if (_speedBoostGlow != null && speedBoostSecondsLeft <= 0) {
+          _speedBoostGlow?.removeFromParent();
+          _speedBoostGlow = null;
+        }
+      } else if (_speedBoostGlow == null) {
+        final glow = SpeedBoostGlow(target: player);
+        _speedBoostGlow = glow;
+        add(glow);
+      }
+    }
+
+    // Shield countdown
+    if (shieldSecondsLeft > 0) {
+      shieldSecondsLeft -= dt;
+      if (shieldSecondsLeft <= 0) {
+        shieldSecondsLeft = 0;
+        if (_shieldGlow != null) {
+          _shieldGlow?.removeFromParent();
+          _shieldGlow = null;
+        }
+      } else if (_shieldGlow == null) {
+        final glow = ShieldGlow(target: player);
+        _shieldGlow = glow;
+        add(glow);
       }
     }
 
@@ -207,6 +253,8 @@ class MyGame extends FlameGame {
     _coinTimer += dt;
     _obstacleTimer += dt;
     _magnetTimer += dt;
+    _speedBoostTimer += dt;
+    _shieldTimer += dt;
     if (_coinTimer >= GameConfig.coinSpawnIntervalSec) {
       _coinTimer = 0.0;
       _spawnCoin();
@@ -218,6 +266,14 @@ class MyGame extends FlameGame {
     if (_magnetTimer >= GameConfig.magnetSpawnIntervalSec) {
       _magnetTimer = 0.0;
       _spawnMagnet();
+    }
+    if (_speedBoostTimer >= GameConfig.speedBoostSpawnIntervalSec) {
+      _speedBoostTimer = 0.0;
+      _spawnSpeedBoost();
+    }
+    if (_shieldTimer >= GameConfig.shieldSpawnIntervalSec) {
+      _shieldTimer = 0.0;
+      _spawnShield();
     }
 
     // Magnet attraction & coin pickup
@@ -277,12 +333,41 @@ class MyGame extends FlameGame {
       }
     }
 
+    // Speed boost pickup
+    for (final speedBoost in children.whereType<SpeedBoostPowerUp>().toList()) {
+      if (_overlap(player, speedBoost)) {
+        speedBoost.removeFromParent();
+        speedBoostSecondsLeft = GameConfig.speedBoostPickupDurationSec;
+        playerSpeedMultiplier = max(
+          playerSpeedMultiplier,
+          GameConfig.speedBoostPowerUpMultiplier,
+        );
+      }
+    }
+
+    // Shield pickup
+    for (final shield in children.whereType<ShieldPowerUp>().toList()) {
+      if (_overlap(player, shield)) {
+        shield.removeFromParent();
+        shieldSecondsLeft = GameConfig.shieldPickupDurationSec;
+      }
+    }
+
     // Obstacle collision
     for (final obs in children.whereType<Obstacle>().toList()) {
       if (_overlap(player, obs)) {
-        add(FlashOverlay(size: size));
-        gameOver();
-        break;
+        // Jika shield aktif, gunakan shield dan hapus obstacle
+        if (shieldSecondsLeft > 0) {
+          shieldSecondsLeft = 0;
+          obs.removeFromParent();
+          add(
+            FlashOverlay(size: size, color: const Color(0x553498DB)),
+          ); // Blue flash untuk shield
+        } else {
+          add(FlashOverlay(size: size));
+          gameOver();
+          break;
+        }
       }
     }
 
@@ -382,6 +467,16 @@ class MyGame extends FlameGame {
   void _spawnMagnet() {
     if (!isPlaying) return;
     add(MagnetPowerUp(position: _randomPos()));
+  }
+
+  void _spawnSpeedBoost() {
+    if (!isPlaying) return;
+    add(SpeedBoostPowerUp(position: _randomPos()));
+  }
+
+  void _spawnShield() {
+    if (!isPlaying) return;
+    add(ShieldPowerUp(position: _randomPos()));
   }
 
   void _spawnObstacle() {

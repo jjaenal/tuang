@@ -16,7 +16,14 @@ class GameConfig {
   static const double obstacleSpawnIntervalSec = 2.5;
 
   /// How often magnet power-ups spawn (seconds)
-  static const double magnetSpawnIntervalSec = 8.0;
+  /// Tuned: Reduced from 8.0 to 7.0 for more frequent magnet opportunities
+  static const double magnetSpawnIntervalSec = 7.0;
+
+  /// How often speed boost power-ups spawn (seconds)
+  static const double speedBoostSpawnIntervalSec = 12.0;
+
+  /// How often shield power-ups spawn (seconds)
+  static const double shieldSpawnIntervalSec = 15.0;
 
   // === Session Settings ===
   /// Default session length in seconds
@@ -34,13 +41,27 @@ class GameConfig {
 
   // === Magnet Power-up ===
   /// How long magnet effect lasts when picked up (seconds)
-  static const double magnetPickupDurationSec = 6.0;
+  /// Tuned: Increased from 6.0 to 8.0 for better value
+  static const double magnetPickupDurationSec = 8.0;
 
   /// Radius within which coins are attracted to player (pixels)
-  static const double magnetPullRadius = 120.0;
+  /// Tuned: Increased from 120.0 to 140.0 for better collection
+  static const double magnetPullRadius = 140.0;
 
   /// Strength of magnet attraction (pixels per second)
-  static const double magnetPullStrength = 220.0;
+  /// Tuned: Increased from 220.0 to 280.0 for more satisfying pull
+  static const double magnetPullStrength = 280.0;
+
+  // === Speed Boost Power-up ===
+  /// How long speed boost effect lasts when picked up (seconds)
+  static const double speedBoostPickupDurationSec = 5.0;
+
+  /// Speed multiplier during speed boost power-up (1.0 = normal, 1.4 = 40% faster)
+  static const double speedBoostPowerUpMultiplier = 1.4;
+
+  // === Shield Power-up ===
+  /// How long shield protection lasts when picked up (seconds)
+  static const double shieldPickupDurationSec = 8.0;
 
   // === Combo System ===
   /// Time window to maintain combo multiplier (seconds)
@@ -54,13 +75,16 @@ class GameConfig {
   static const int maxRevivesPerSession = 1;
 
   /// Default daily magnet buff duration (seconds)
-  static const int defaultDailyMagnetBuffSec = 12;
+  /// Tuned: Increased from 12 to 15 for better daily reward value
+  static const int defaultDailyMagnetBuffSec = 15;
 
   /// Maximum daily magnet buff duration (seconds)
-  static const int maxDailyMagnetBuffSec = 15;
+  /// Tuned: Increased from 15 to 20 for rewarded ad incentive
+  static const int maxDailyMagnetBuffSec = 20;
 
   /// Daily reward coins amount
-  static const int dailyRewardCoins = 25;
+  /// Tuned: Increased from 25 to 30 for better progression
+  static const int dailyRewardCoins = 30;
 
   /// Cost in coins for revive fallback
   static const int reviveCostCoins = 50;
@@ -70,7 +94,8 @@ class GameConfig {
 
   // === Economy ===
   /// Estimated value (in coins) per second of magnet buff for breakdown UI
-  static const int magnetBuffValuePerSecondCoins = 1;
+  /// Tuned: Increased from 1 to 2 coins per second for better perceived value
+  static const int magnetBuffValuePerSecondCoins = 2;
 
   /// Compute estimated coin value for a magnet buff of [seconds].
   /// Clamps to [maxDailyMagnetBuffSec]. Returns non-negative integer.
