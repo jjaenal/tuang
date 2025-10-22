@@ -24,7 +24,9 @@ import '../services/logging_service.dart';
 /// updates game mechanics like magnet pull, combo, timers, and collisions.
 /// Input is fed via drag/keyboard from `main.dart`. This class exposes
 /// ValueNotifiers for HUD and coordinates achievements via `AchievementService`.
-class MyGame extends FlameGame {
+enum GameOverCause { timeout, collision }
+
+class MyGame extends FlameGame with HasCollisionDetection {
   // Overlay keys
   static const String overlayMainMenu = 'MainMenu';
   static const String overlayHud = 'Hud';
@@ -48,6 +50,7 @@ class MyGame extends FlameGame {
   bool doubleCoinsUsed = false;
   bool magnetUsedThisRun = false;
   bool rewardDeposited = false;
+  GameOverCause? lastGameOverCause;
 
   bool reviveAvailable = true;
   int reviveCount = 0;
@@ -100,13 +103,13 @@ class MyGame extends FlameGame {
     );
 
     timeVN.value = sessionLength;
-    
+
     // Dapatkan skin aktif dari AppSettingsCubit
     final activeSkin = await _getActiveSkin();
     player = Player(skin: activeSkin);
     await add(player);
   }
-  
+
   // Mendapatkan skin aktif dari AppSettingsCubit
   Future<CharacterSkin> _getActiveSkin() async {
     try {
@@ -132,6 +135,7 @@ class MyGame extends FlameGame {
     timeVN.value = sessionLength;
     reviveAvailable = true;
     rewardDeposited = false;
+    lastGameOverCause = null;
     doubleCoinsUsed = false;
     magnetUsedThisRun = false;
     magnetSecondsLeft = 0;
@@ -387,6 +391,8 @@ class MyGame extends FlameGame {
           ); // Blue flash untuk shield
         } else {
           add(FlashOverlay(size: size));
+          // Set penyebab game over: collision
+          lastGameOverCause = GameOverCause.collision;
           gameOver();
           break;
         }
@@ -395,6 +401,8 @@ class MyGame extends FlameGame {
 
     // End session when time runs out
     if (remaining <= 0) {
+      // Set penyebab game over: timeout
+      lastGameOverCause = GameOverCause.timeout;
       gameOver();
     }
   }

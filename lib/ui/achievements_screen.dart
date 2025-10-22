@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/achievement.dart';
 import '../services/achievement_service.dart';
+import 'theme/app_theme.dart';
 
 /// Screen untuk menampilkan daftar achievements
 class AchievementsScreen extends StatefulWidget {
@@ -22,13 +23,16 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
       appBar: AppBar(
         title: const Text('Achievements'),
         centerTitle: true,
-        backgroundColor: Colors.blue.shade800,
+        backgroundColor: AppTheme.darkBase,
       ),
-      body: Column(
-        children: [
-          _buildProgressHeader(unlockedCount, allAchievements.length),
-          Expanded(child: _buildAchievementsList(allAchievements)),
-        ],
+      body: Container(
+        decoration: BoxDecoration(gradient: AppTheme.darkGradient),
+        child: Column(
+          children: [
+            _buildProgressHeader(unlockedCount, allAchievements.length),
+            Expanded(child: _buildAchievementsList(allAchievements)),
+          ],
+        ),
       ),
     );
   }
@@ -39,7 +43,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.blue.shade700,
+      color: AppTheme.darkBase,
       child: Column(
         children: [
           Text(
@@ -53,7 +57,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: unlocked / total,
-            backgroundColor: Colors.blue.shade300,
+            backgroundColor: AppTheme.darkBase.withAlpha(100),
             valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
           ),
           const SizedBox(height: 4),
@@ -85,36 +89,44 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       elevation: 3,
-      color: isUnlocked ? Colors.blue.shade50 : Colors.grey.shade100,
+      color:
+          isUnlocked
+              ? AppTheme.darkBase.withAlpha(200)
+              : AppTheme.darkBase.withAlpha(100),
       child: ListTile(
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: isUnlocked ? Colors.amber : Colors.grey.shade300,
+            color: isUnlocked ? Colors.amber : Colors.grey.shade600,
             shape: BoxShape.circle,
           ),
           child: Icon(
             achievement.type.icon,
-            color: isUnlocked ? Colors.white : Colors.grey.shade700,
+            color: isUnlocked ? Colors.white : Colors.grey.shade300,
           ),
         ),
         title: Text(
           achievement.type.title,
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: isUnlocked ? Colors.black : Colors.grey.shade700,
+            color: isUnlocked ? Colors.white : Colors.grey.shade400,
           ),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(achievement.type.description),
+            Text(
+              achievement.type.description,
+              style: TextStyle(
+                color: isUnlocked ? Colors.grey.shade300 : Colors.grey.shade500,
+              ),
+            ),
             const SizedBox(height: 4),
             LinearProgressIndicator(
               value: achievement.progress / achievement.targetValue,
-              backgroundColor: Colors.grey.shade300,
+              backgroundColor: AppTheme.darkBase.withAlpha(100),
               valueColor: AlwaysStoppedAnimation<Color>(
-                isUnlocked ? Colors.green : Colors.blue,
+                isUnlocked ? Colors.green : Colors.amber,
               ),
             ),
             const SizedBox(height: 2),
@@ -122,7 +134,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
               '${achievement.progress}/${achievement.targetValue}',
               style: TextStyle(
                 fontSize: 12,
-                color: isUnlocked ? Colors.green : Colors.grey.shade700,
+                color: isUnlocked ? Colors.green : Colors.amber,
               ),
             ),
           ],
@@ -130,7 +142,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
         trailing:
             isUnlocked
                 ? const Icon(Icons.check_circle, color: Colors.green)
-                : const Icon(Icons.lock_outline, color: Colors.grey),
+                : Icon(Icons.lock_outline, color: Colors.grey.shade500),
       ),
     );
   }

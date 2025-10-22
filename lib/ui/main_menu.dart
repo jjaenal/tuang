@@ -14,33 +14,169 @@ import '../game/game_config.dart';
 import 'leaderboard_screen.dart';
 import 'options_panel.dart';
 import 'achievements_screen.dart';
+import 'components/bokeh_background.dart';
+import 'theme/app_theme.dart';
 
-class _MenuCard extends StatelessWidget {
+class _HeroButton extends StatefulWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  const _MenuCard({required this.icon, required this.label, required this.onTap});
+  const _HeroButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  State<_HeroButton> createState() => _HeroButtonState();
+}
+
+class _HeroButtonState extends State<_HeroButton> {
+  bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: 140,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: const Color(0x33000000),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white24),
+    const baseSurface = Color(0xFF1A1F24);
+    const shadowDark = Color(0xFF0D1013);
+    const shadowLight = Color(0xFF2A3138);
+
+    final idleShadows = const [
+      BoxShadow(color: shadowDark, blurRadius: 24, offset: Offset(10, 10)),
+      BoxShadow(color: shadowLight, blurRadius: 24, offset: Offset(-10, -10)),
+    ];
+    final pressedShadows = const [
+      BoxShadow(color: shadowDark, blurRadius: 12, offset: Offset(4, 4)),
+      BoxShadow(color: shadowLight, blurRadius: 12, offset: Offset(-4, -4)),
+    ];
+
+    return GestureDetector(
+      onTap: widget.onTap,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTapUp: (_) => setState(() => _pressed = false),
+      child: AnimatedScale(
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOutCubic,
+        scale: _pressed ? 0.98 : 1.0,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOutCubic,
+          width: 200,
+          height: 80,
+          decoration: BoxDecoration(
+            color: baseSurface,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: _pressed ? pressedShadows : idleShadows,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1BB6A6), Color(0xFF0E9487)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(widget.icon, color: Colors.white, size: 30),
+                const SizedBox(width: 10),
+                Text(
+                  widget.label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white, size: 28),
-            const SizedBox(height: 8),
-            Text(label, style: const TextStyle(color: Colors.white)),
-          ],
+      ),
+    );
+  }
+}
+
+class _SecondaryButton extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  const _SecondaryButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  State<_SecondaryButton> createState() => _SecondaryButtonState();
+}
+
+class _SecondaryButtonState extends State<_SecondaryButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    const baseSurface = Color(0xFF1A1F24);
+    const shadowDark = Color(0xFF0D1013);
+    const shadowLight = Color(0xFF2A3138);
+
+    final idleShadows = const [
+      BoxShadow(color: shadowDark, blurRadius: 20, offset: Offset(8, 8)),
+      BoxShadow(color: shadowLight, blurRadius: 20, offset: Offset(-8, -8)),
+    ];
+    final pressedShadows = const [
+      BoxShadow(color: shadowDark, blurRadius: 10, offset: Offset(3, 3)),
+      BoxShadow(color: shadowLight, blurRadius: 10, offset: Offset(-3, -3)),
+    ];
+
+    return GestureDetector(
+      onTap: widget.onTap,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTapUp: (_) => setState(() => _pressed = false),
+      child: AnimatedScale(
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOutCubic,
+        scale: _pressed ? 0.985 : 1.0,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOutCubic,
+          width: 120,
+          height: 60,
+          decoration: BoxDecoration(
+            color: baseSurface,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: _pressed ? pressedShadows : idleShadows,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF20252B), Color(0xFF171B1F)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(widget.icon, color: Colors.white70, size: 20),
+                const SizedBox(height: 4),
+                Text(
+                  widget.label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -64,29 +200,8 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
   bool _bannerReady = false;
   Timer? _ticker;
   DateTime _now = DateTime.now();
-  bool _debugLogging = true;
-  bool _showGameSettings = false;
-  bool _showMore = false;
-  bool _consentPrompted = false;
 
-  Widget _buildConfigItem(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('$label: ', style: const TextStyle(color: Colors.white70)),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  bool _consentPrompted = false;
 
   Future<bool> _showConsentDialog(BuildContext context) async {
     final accepted = await showDialog<bool>(
@@ -144,28 +259,9 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
     return GameConfig.alwaysRequireConsent;
   }
 
-  Future<void> _ensureConsentThenEnableAds(BuildContext context) async {
-    final cubit = context.read<AppSettingsCubit>();
-    final state = cubit.state;
-    if (state.consentGiven) {
-      cubit.toggleAds();
-      return;
-    }
-    if (!_regionRequiresConsent()) {
-      cubit.toggleAds();
-      return;
-    }
-    final accepted = await _showConsentDialog(context);
-    if (accepted) {
-      cubit.setConsent(true);
-      cubit.toggleAds();
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    _debugLogging = LoggingService.enabled;
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() => _now = DateTime.now());
@@ -282,8 +378,10 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xAA000000),
+    return BokehBackground(
+      backgroundColor: Colors.black,
+      bokehCount: 12,
+      intensity: 0.6,
       child: Center(
         child: BlocBuilder<AppSettingsCubit, AppSettingsState>(
           builder: (context, app) {
@@ -295,49 +393,100 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Endless Dodge & Collect',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                  // Game Title dengan shadow effect
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'ENDLESS DODGE & COLLECT',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.8),
+                            blurRadius: 4,
+                            offset: const Offset(2, 2),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Best: ${widget.game.bestScore}',
-                    style: const TextStyle(color: Colors.white70),
-                  ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
+                  // Stats row
                   Row(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.circle, color: Colors.amber, size: 14),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Coins: ${app.coins}',
-                        style: const TextStyle(color: Colors.white70),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'Best: ${widget.game.bestScore}',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.circle,
+                              color: Colors.amber,
+                              size: 14,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${app.coins}',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  // Grid kartu utama
+                  const SizedBox(height: 24),
+                  // Hero Play Button
+                  _HeroButton(
+                    icon: Icons.play_arrow,
+                    label: 'PLAY',
+                    onTap: () => widget.game.startGame(),
+                  ),
+                  const SizedBox(height: 20),
+                  // Secondary buttons grid
                   Wrap(
                     spacing: 12,
                     runSpacing: 12,
                     alignment: WrapAlignment.center,
                     children: [
-                      _MenuCard(
-                        icon: Icons.play_arrow,
-                        label: 'Play',
-                        onTap: () => widget.game.startGame(),
-                      ),
-                      _MenuCard(
+                      _SecondaryButton(
                         icon: Icons.person,
                         label: 'Skins',
                         onTap: () => _showSkinSelectionDialog(context),
                       ),
-                      _MenuCard(
+                      _SecondaryButton(
                         icon: Icons.emoji_events,
                         label: 'Achievements',
                         onTap: () {
@@ -348,7 +497,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                           );
                         },
                       ),
-                      _MenuCard(
+                      _SecondaryButton(
                         icon: Icons.leaderboard,
                         label: 'Leaderboard',
                         onTap: () {
@@ -359,13 +508,14 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                           );
                         },
                       ),
-                      _MenuCard(
+                      _SecondaryButton(
                         icon: Icons.settings,
                         label: 'Settings',
                         onTap: () {
                           showDialog(
                             context: context,
                             barrierDismissible: true,
+                            barrierColor: AppTheme.barrierColorDark,
                             builder:
                                 (ctx) => const Dialog(
                                   backgroundColor: Colors.transparent,
@@ -380,491 +530,232 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                   // Banner di bawah grid kartu
                   const SizedBox.shrink(),
                   const SizedBox(height: 12),
-                  // Aksi sekunder: Leaderboard sudah di atas. Tambahkan toggle "More" untuk opsi tambahan.
-                  TextButton.icon(
-                    onPressed: () => setState(() => _showMore = !_showMore),
-                    icon: Icon(
-                      _showMore ? Icons.expand_less : Icons.expand_more,
-                      color: Colors.white70,
+                  // Info untuk Settings
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
                     ),
-                    label: Text(
-                      _showMore ? 'Sembunyikan Opsi' : 'Opsi Lainnya',
-                      style: const TextStyle(color: Colors.white70),
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.info_outline,
+                          color: Colors.white60,
+                          size: 20,
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Untuk pengaturan Audio, Haptics, Ads, dan lainnya,\nbuka menu Settings di atas',
+                          style: TextStyle(
+                            color: Colors.white60,
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        // Quick Skin Preview (tetap ada karena berguna)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.person,
+                              color: Colors.white70,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Active Skin:',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            _buildActiveSkinPreview(context, app.activeSkinId),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  if (_showMore) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0x22000000),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white24),
-                      ),
-                      child: Column(
+                  const SizedBox(height: 16),
+
+                  /// Tombol Daily Reward
+                  Builder(
+                    builder: (ctx) {
+                      final cubit = ctx.read<AppSettingsCubit>();
+                      final canClaim = cubit.canClaimDailyReward;
+                      final countdown = _nextClaimCountdown(cubit);
+                      return Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Toggle audio
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.volume_up,
-                                color: Colors.white70,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 6),
-                              const Text(
-                                'Audio',
-                                style: TextStyle(color: Colors.white70),
-                              ),
-                              const SizedBox(width: 8),
-                              Switch(
-                                value: app.audioOn,
-                                onChanged: (val) {
-                                  context
-                                      .read<AppSettingsCubit>()
-                                      .toggleAudio();
-                                  final messenger = ScaffoldMessenger.of(
-                                    context,
-                                  );
-                                  messenger.showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        val ? 'Audio ON' : 'Audio OFF',
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0x33220000),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.white24),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.card_giftcard,
+                                  color: Colors.white70,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s (~${GameConfig.magnetBuffValueCoins(app.dailyMagnetBuffSeconds)} coins)',
+                                  style: const TextStyle(color: Colors.white70),
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          // Toggle haptics
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.vibration,
-                                color: Colors.white70,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 6),
-                              const Text(
-                                'Haptics',
-                                style: TextStyle(color: Colors.white70),
-                              ),
-                              const SizedBox(width: 8),
-                              Switch(
-                                value: app.hapticsOn,
-                                onChanged: (val) {
-                                  context
-                                      .read<AppSettingsCubit>()
-                                      .toggleHaptics();
-                                  final messenger = ScaffoldMessenger.of(
-                                    context,
-                                  );
-                                  messenger.showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        val ? 'Haptics ON' : 'Haptics OFF',
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
+                          const SizedBox(height: 6),
+                          ElevatedButton(
+                            onPressed:
+                                canClaim
+                                    ? () async {
+                                      const rewardCoins =
+                                          GameConfig.dailyRewardCoins;
+                                      LoggingService.log(
+                                        'daily_reward_requested',
+                                        fields: {
+                                          'ads_enabled': app.adsEnabled,
+                                          'consent': app.consentGiven,
+                                        },
+                                      );
+                                      if (app.adsEnabled &&
+                                          app.consentGiven &&
+                                          !kIsWeb) {
+                                        final ok =
+                                            await AdService.I
+                                                .showRewardedDailyReward();
+                                        if (!ctx.mounted) return;
+                                        if (ok) {
+                                          cubit.markDailyRewardClaimedNow();
+                                          cubit.addCoins(rewardCoins);
+                                          cubit.grantMagnetBuff(
+                                            app.dailyMagnetBuffSeconds,
+                                          );
+                                          LoggingService.log(
+                                            'daily_reward_claimed',
+                                            fields: {
+                                              'coins': rewardCoins,
+                                              'magnet_sec':
+                                                  app.dailyMagnetBuffSeconds,
+                                              'via': 'ad',
+                                            },
+                                          );
+                                          ScaffoldMessenger.of(
+                                            ctx,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s!',
+                                              ),
+                                            ),
+                                          );
+                                        } else {
+                                          LoggingService.log(
+                                            'daily_reward_ad_unavailable',
+                                          );
+                                          ScaffoldMessenger.of(
+                                            ctx,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Iklan belum tersedia',
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      } else {
+                                        cubit.markDailyRewardClaimedNow();
+                                        cubit.addCoins(rewardCoins);
+                                        cubit.grantMagnetBuff(
+                                          app.dailyMagnetBuffSeconds,
+                                        );
+                                        LoggingService.log(
+                                          'daily_reward_claimed',
+                                          fields: {
+                                            'coins': rewardCoins,
+                                            'magnet_sec':
+                                                app.dailyMagnetBuffSeconds,
+                                            'via': 'no_ad',
+                                          },
+                                        );
+                                        if (!ctx.mounted) return;
+                                        ScaffoldMessenger.of(ctx).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s (tanpa iklan)',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    }
+                                    : null,
+                            child: Text(
+                              canClaim
+                                  ? 'Daily Reward'
+                                  : 'Daily Reward (next: ${countdown ?? "00:00:00"})',
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          // Toggle ads (requires consent)
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.ad_units,
+                          if (!canClaim && countdown != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'Next claim: $countdown',
+                              style: const TextStyle(
                                 color: Colors.white70,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 6),
-                              const Text(
-                                'Ads',
-                                style: TextStyle(color: Colors.white70),
-                              ),
-                              const SizedBox(width: 8),
-                              Switch(
-                                value: app.adsEnabled && app.consentGiven,
-                                onChanged:
-                                    (val) =>
-                                        _ensureConsentThenEnableAds(context),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          // Toggle Non-Personalized Ads (NPA)
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.privacy_tip,
-                                color: Colors.white70,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 6),
-                              const Text(
-                                'Non-Personalized Ads',
-                                style: TextStyle(color: Colors.white70),
-                              ),
-                              const SizedBox(width: 8),
-                              Switch(
-                                value: app.npaEnabled,
-                                onChanged: (val) {
-                                  final cubit =
-                                      context.read<AppSettingsCubit>();
-                                  cubit.toggleNpa();
-                                  AdService.I.setNonPersonalizedAds(val);
-                                  final messenger = ScaffoldMessenger.of(
-                                    context,
-                                  );
-                                  messenger.showSnackBar(
-                                    SnackBar(
-                                      content: Text(val ? 'NPA ON' : 'NPA OFF'),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-
-                          // Character Skin Selection
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.person,
-                                color: Colors.white70,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 6),
-                              const Text(
-                                'Character Skins',
-                                style: TextStyle(color: Colors.white70),
-                              ),
-                              const SizedBox(width: 8),
-                              _buildActiveSkinPreview(
-                                context,
-                                app.activeSkinId,
-                              ),
-                              const SizedBox(width: 8),
-                              ElevatedButton(
-                                onPressed: () {
-                                  _showSkinSelectionDialog(context);
-                                },
-                                child: const Text('Select Skin'),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.settings,
-                                color: Colors.white70,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 6),
-                              const Text(
-                                'Game Settings',
-                                style: TextStyle(color: Colors.white70),
-                              ),
-                              const SizedBox(width: 8),
-                              Switch(
-                                value: _showGameSettings,
-                                onChanged: (val) {
-                                  setState(() => _showGameSettings = val);
-                                },
-                              ),
-                            ],
-                          ),
-                          if (_showGameSettings) ...[
-                            const SizedBox(height: 8),
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: const Color(0x33000000),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.white24),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Game Config',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  _buildConfigItem(
-                                    'Daily Reward',
-                                    '${GameConfig.dailyRewardCoins} coins',
-                                  ),
-                                  _buildConfigItem(
-                                    'Revive Cost',
-                                    '${GameConfig.reviveCostCoins} coins',
-                                  ),
-                                  _buildConfigItem(
-                                    'Double Coins Cost',
-                                    '${GameConfig.doubleCoinsCoins} coins',
-                                  ),
-                                  _buildConfigItem(
-                                    'Session Length',
-                                    '${GameConfig.defaultSessionLengthSec}s',
-                                  ),
-                                  _buildConfigItem(
-                                    'Magnet Duration',
-                                    '${GameConfig.magnetPickupDurationSec}s',
-                                  ),
-                                  _buildConfigItem(
-                                    'Daily Magnet Buff',
-                                    '${GameConfig.defaultDailyMagnetBuffSec}s',
-                                  ),
-                                  _buildConfigItem(
-                                    'Max Revives',
-                                    '${GameConfig.maxRevivesPerSession}',
-                                  ),
-                                ],
+                                fontSize: 12,
                               ),
                             ),
                           ],
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.bug_report,
-                                color: Colors.white70,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 6),
-                              const Text(
-                                'Debug Logging',
-                                style: TextStyle(color: Colors.white70),
-                              ),
-                              const SizedBox(width: 8),
-                              Switch(
-                                value: _debugLogging,
-                                onChanged: (val) {
-                                  setState(() => _debugLogging = val);
-                                  LoggingService.enabled = val;
-                                  final messenger = ScaffoldMessenger.of(
-                                    context,
-                                  );
-                                  messenger.showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        val
-                                            ? 'Debug logging ON'
-                                            : 'Debug logging OFF',
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          const Divider(color: Colors.white24, height: 1),
-                          const SizedBox(height: 12),
-
-                          /// Tombol Daily Reward
-                          Builder(
-                            builder: (ctx) {
-                              final cubit = ctx.read<AppSettingsCubit>();
-                              final canClaim = cubit.canClaimDailyReward;
-                              final countdown = _nextClaimCountdown(cubit);
-                              return Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0x33220000),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(color: Colors.white24),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.card_giftcard,
-                                          color: Colors.white70,
-                                          size: 16,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s (~${GameConfig.magnetBuffValueCoins(app.dailyMagnetBuffSeconds)} coins)',
-                                          style: const TextStyle(
-                                            color: Colors.white70,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  ElevatedButton(
-                                    onPressed:
-                                        canClaim
-                                            ? () async {
-                                              const rewardCoins =
-                                                  GameConfig.dailyRewardCoins;
-                                              LoggingService.log(
-                                                'daily_reward_requested',
-                                                fields: {
-                                                  'ads_enabled': app.adsEnabled,
-                                                  'consent': app.consentGiven,
-                                                },
-                                              );
-                                              if (app.adsEnabled &&
-                                                  app.consentGiven &&
-                                                  !kIsWeb) {
-                                                final ok =
-                                                    await AdService.I
-                                                        .showRewardedDailyReward();
-                                                if (!ctx.mounted) return;
-                                                if (ok) {
-                                                  cubit
-                                                      .markDailyRewardClaimedNow();
-                                                  cubit.addCoins(rewardCoins);
-                                                  cubit.grantMagnetBuff(
-                                                    app.dailyMagnetBuffSeconds,
-                                                  );
-                                                  LoggingService.log(
-                                                    'daily_reward_claimed',
-                                                    fields: {
-                                                      'coins': rewardCoins,
-                                                      'magnet_sec':
-                                                          app.dailyMagnetBuffSeconds,
-                                                      'via': 'ad',
-                                                    },
-                                                  );
-                                                  ScaffoldMessenger.of(
-                                                    ctx,
-                                                  ).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                        'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s!',
-                                                      ),
-                                                    ),
-                                                  );
-                                                } else {
-                                                  LoggingService.log(
-                                                    'daily_reward_ad_unavailable',
-                                                  );
-                                                  ScaffoldMessenger.of(
-                                                    ctx,
-                                                  ).showSnackBar(
-                                                    const SnackBar(
-                                                      content: Text(
-                                                        'Iklan belum tersedia',
-                                                      ),
-                                                    ),
-                                                  );
-                                                }
-                                              } else {
-                                                cubit
-                                                    .markDailyRewardClaimedNow();
-                                                cubit.addCoins(rewardCoins);
-                                                cubit.grantMagnetBuff(
-                                                  app.dailyMagnetBuffSeconds,
-                                                );
-                                                LoggingService.log(
-                                                  'daily_reward_claimed',
-                                                  fields: {
-                                                    'coins': rewardCoins,
-                                                    'magnet_sec':
-                                                        app.dailyMagnetBuffSeconds,
-                                                    'via': 'no_ad',
-                                                  },
-                                                );
-                                                if (!ctx.mounted) return;
-                                                ScaffoldMessenger.of(
-                                                  ctx,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s (tanpa iklan)',
-                                                    ),
-                                                  ),
-                                                );
-                                              }
-                                            }
-                                            : null,
-                                    child: Text(
-                                      canClaim
-                                          ? 'Daily Reward'
-                                          : 'Daily Reward (next: ${countdown ?? "00:00:00"})',
-                                    ),
-                                  ),
-                                  if (!canClaim && countdown != null) ...[
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Next claim: $countdown',
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 12),
-
-                          if (app.adsEnabled && app.consentGiven)
-                            kIsWeb
-                                ? Container(
-                                  height: 50,
-                                  width: 320,
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0x2233FF99),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Text(
-                                    'Banner Ad (placeholder)',
-                                    style: TextStyle(color: Colors.white70),
-                                  ),
-                                )
-                                : (_bannerAd != null && _bannerReady)
-                                ? SizedBox(
-                                  height: _bannerAd!.size.height.toDouble(),
-                                  width: _bannerAd!.size.width.toDouble(),
-                                  child: AdWidget(ad: _bannerAd!),
-                                )
-                                : Container(
-                                  height: 50,
-                                  width: 320,
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0x22FFFFFF),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Text(
-                                    'Memuat iklan...',
-                                    style: TextStyle(color: Colors.white70),
-                                  ),
-                                ),
                         ],
-                      ),
-                    ),
-                  ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  if (app.adsEnabled && app.consentGiven)
+                    kIsWeb
+                        ? Container(
+                          height: 50,
+                          width: 320,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: const Color(0x2233FF99),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'Banner Ad (placeholder)',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        )
+                        : (_bannerAd != null && _bannerReady)
+                        ? SizedBox(
+                          height: _bannerAd!.size.height.toDouble(),
+                          width: _bannerAd!.size.width.toDouble(),
+                          child: AdWidget(ad: _bannerAd!),
+                        )
+                        : Container(
+                          height: 50,
+                          width: 320,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: const Color(0x22FFFFFF),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'Memuat iklan...',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        ),
                 ],
               ),
             );
@@ -878,6 +769,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
     final cubit = context.read<AppSettingsCubit>();
     await showDialog<void>(
       context: context,
+      barrierColor: AppTheme.barrierColorDark,
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setSt) {

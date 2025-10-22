@@ -4,19 +4,19 @@ import 'package:flutter/material.dart';
 class CharacterSkin {
   /// ID unik untuk skin
   final String id;
-  
+
   /// Nama skin yang ditampilkan ke user
   final String name;
-  
+
   /// Warna utama skin
   final Color color;
-  
+
   /// Harga skin dalam coins (0 untuk skin default/gratis)
   final int price;
-  
+
   /// Path ke asset gambar (opsional, untuk future implementation)
   final String? imagePath;
-  
+
   /// Apakah skin ini sudah terbuka/dimiliki oleh player
   final bool isUnlocked;
 

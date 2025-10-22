@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../state/app_settings_cubit.dart';
 import '../services/ad_service.dart';
 import '../services/logging_service.dart';
+import '../state/app_settings_cubit.dart';
 import '../game/game_config.dart';
 import 'components/menu_components.dart';
+import 'components/neumorphic_button.dart';
+import 'theme/app_theme.dart';
 
 class OptionsPanel extends StatefulWidget {
   const OptionsPanel({super.key});
@@ -18,18 +20,27 @@ class _OptionsPanelState extends State<OptionsPanel> {
     final accepted = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
+      barrierColor: AppTheme.barrierColorDark,
       builder:
           (ctx) => AlertDialog(
             title: const Text('Consent Iklan'),
             content: const Text('Izinkan iklan dengan personalisasi?'),
             actions: [
-              TextButton(
+              NeumorphicButton(
+                label: 'Tidak',
                 onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Tidak'),
+                primary: false,
+                size: ButtonSize.compact,
+                // width: 120,
+                // height: 44,
               ),
-              ElevatedButton(
+              NeumorphicButton(
+                label: 'Setuju',
                 onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('Setuju'),
+                primary: true,
+                size: ButtonSize.compact,
+                // width: 120,
+                // height: 44,
               ),
             ],
           ),
@@ -67,6 +78,7 @@ class _OptionsPanelState extends State<OptionsPanel> {
           child: MenuPanel(
             title: 'Options',
             onClose: () => Navigator.of(context).pop(),
+            dark: true,
             children: [
               OptionRow(
                 icon: Icons.volume_up,
@@ -114,45 +126,6 @@ class _OptionsPanelState extends State<OptionsPanel> {
                 ),
               ),
               const SizedBox(height: 8),
-              // Daily Magnet slider (tematik petir)
-              // Row(
-              //   mainAxisSize: MainAxisSize.min,
-              //   children: [
-              //     const Icon(Icons.bolt, color: Colors.white70, size: 18),
-              //     const SizedBox(width: 8),
-              //     const Text(
-              //       'Daily Magnet',
-              //       style: TextStyle(color: Colors.white70),
-              //     ),
-              //     const SizedBox(width: 8),
-              //     SizedBox(
-              //       width: 180,
-              //       child: Slider(
-              //         value: app.dailyMagnetBuffSeconds.toDouble(),
-              //         min: 0,
-              //         max: GameConfig.maxDailyMagnetBuffSec.toDouble(),
-              //         divisions: GameConfig.maxDailyMagnetBuffSec,
-              //         label: '${app.dailyMagnetBuffSeconds}s',
-              //         onChanged: (val) {
-              //           context
-              //               .read<AppSettingsCubit>()
-              //               .setDailyMagnetBuffSeconds(val.round());
-              //           final seconds = val.round();
-              //           final estimate = GameConfig.magnetBuffValueCoins(
-              //             seconds,
-              //           );
-              //           ScaffoldMessenger.of(context).showSnackBar(
-              //             SnackBar(
-              //               content: Text(
-              //                 'Daily Magnet: ${seconds}s (~$estimate coins)',
-              //               ),
-              //             ),
-              //           );
-              //         },
-              //       ),
-              //     ),
-              //   ],
-              // ),
               // Daily Magnet slider pakai OptionRow dengan spacer
               OptionRow(
                 icon: Icons.bolt,

@@ -45,7 +45,10 @@ class _HudOverlayState extends State<HudOverlay> {
     required Widget child,
     Color? color,
     double radius = 10,
-    EdgeInsets padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    EdgeInsets padding = const EdgeInsets.symmetric(
+      horizontal: 12,
+      vertical: 6,
+    ),
   }) {
     final baseColor = color ?? const Color(0x55000000);
     return Container(
@@ -78,7 +81,11 @@ class _HudOverlayState extends State<HudOverlay> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.star, color: Colors.amber, size: 18),
+                            const Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: 18,
+                            ),
                             const SizedBox(width: 6),
                             Text(
                               '$score',
@@ -122,7 +129,10 @@ class _HudOverlayState extends State<HudOverlay> {
                   builder:
                       (_, mag, __) => _hudPill(
                         color: const Color(0x3300FF66),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -207,7 +217,11 @@ class _HudOverlayState extends State<HudOverlay> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.timer, color: Colors.white70, size: 18),
+                            const Icon(
+                              Icons.timer,
+                              color: Colors.white70,
+                              size: 18,
+                            ),
                             const SizedBox(width: 6),
                             Text(
                               '$time s',

@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
+import 'neumorphic_button.dart';
 
 class MenuPanel extends StatelessWidget {
   final String title;
   final List<Widget> children;
   final VoidCallback? onClose;
-  const MenuPanel({super.key, required this.title, required this.children, this.onClose});
+  // Tambah opsi tampilan gelap sesuai warna dasar
+  final bool dark;
+  const MenuPanel({
+    super.key,
+    required this.title,
+    required this.children,
+    this.onClose,
+    this.dark = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -12,17 +22,11 @@ class MenuPanel extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       constraints: const BoxConstraints(maxWidth: 360),
       decoration: BoxDecoration(
-        color: const Color(0xFF5B3A1A),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF6B481F), Color(0xFF4A2F14)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
+        color: dark ? AppTheme.darkBase : AppTheme.lightBase,
+        gradient: dark ? AppTheme.darkGradient : AppTheme.lightGradient,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFB2834A), width: 2),
-        boxShadow: const [
-          BoxShadow(color: Colors.black38, blurRadius: 8, offset: Offset(0, 4)),
-        ],
+        border: dark ? AppTheme.darkBorder : AppTheme.lightBorder,
+        boxShadow: dark ? AppTheme.darkShadow : AppTheme.lightShadow,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -30,7 +34,7 @@ class MenuPanel extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFCC9A53),
+              color: dark ? AppTheme.darkHeader : AppTheme.lightHeader,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -38,15 +42,18 @@ class MenuPanel extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: Colors.black,
+                  style: TextStyle(
+                    color: dark ? Colors.white : Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 if (onClose != null)
                   InkWell(
                     onTap: onClose,
-                    child: const Icon(Icons.close, color: Colors.black87),
+                    child: Icon(
+                      Icons.close,
+                      color: dark ? Colors.white70 : Colors.black87,
+                    ),
                   ),
               ],
             ),
@@ -55,10 +62,14 @@ class MenuPanel extends StatelessWidget {
           ...children,
           const SizedBox(height: 8),
           if (onClose != null)
-            TextButton.icon(
-              onPressed: onClose,
-              icon: const Icon(Icons.close, color: Colors.white70),
-              label: const Text('Close', style: TextStyle(color: Colors.white70)),
+            SizedBox(
+              width: 220,
+              child: NeumorphicButton(
+                label: 'Close',
+                icon: Icons.close,
+                onPressed: onClose,
+                primary: false,
+              ),
             ),
         ],
       ),
@@ -75,14 +86,12 @@ class MenuButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 280,
-      child: ElevatedButton.icon(
-        icon: icon != null ? Icon(icon) : const Icon(Icons.circle, size: 0),
-        label: Text(label),
+      width: 220,
+      child: NeumorphicButton(
+        label: label,
         onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-        ),
+        icon: icon,
+        primary: false,
       ),
     );
   }
@@ -92,7 +101,12 @@ class OptionRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final Widget trailing;
-  const OptionRow({super.key, required this.icon, required this.label, required this.trailing});
+  const OptionRow({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.trailing,
+  });
 
   @override
   Widget build(BuildContext context) {

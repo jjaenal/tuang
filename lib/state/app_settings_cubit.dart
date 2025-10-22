@@ -61,9 +61,12 @@ class AppSettingsState extends Equatable {
       paused: paused ?? this.paused,
       coins: coins ?? this.coins,
       npaEnabled: npaEnabled ?? this.npaEnabled,
-      dailyMagnetBuffSeconds: dailyMagnetBuffSeconds ?? this.dailyMagnetBuffSeconds,
-      pendingMagnetBuffSeconds: pendingMagnetBuffSeconds ?? this.pendingMagnetBuffSeconds,
-      lastDailyRewardClaimedAt: lastDailyRewardClaimedAt ?? this.lastDailyRewardClaimedAt,
+      dailyMagnetBuffSeconds:
+          dailyMagnetBuffSeconds ?? this.dailyMagnetBuffSeconds,
+      pendingMagnetBuffSeconds:
+          pendingMagnetBuffSeconds ?? this.pendingMagnetBuffSeconds,
+      lastDailyRewardClaimedAt:
+          lastDailyRewardClaimedAt ?? this.lastDailyRewardClaimedAt,
       playerName: playerName ?? this.playerName,
       activeSkinId: activeSkinId ?? this.activeSkinId,
       unlockedSkinIds: unlockedSkinIds ?? this.unlockedSkinIds,
@@ -99,40 +102,51 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
   AppSettingsCubit() : super(const AppSettingsState());
 
   // Provide forwards for tests that reference via cubit
-  static const int defaultDailyMagnetBuffSec = GameConfig.defaultDailyMagnetBuffSec;
+  static const int defaultDailyMagnetBuffSec =
+      GameConfig.defaultDailyMagnetBuffSec;
   static const int maxDailyMagnetBuffSec = GameConfig.maxDailyMagnetBuffSec;
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
     final audioOn = prefs.getBool(PrefKeys.audioOn) ?? state.audioOn;
     final hapticsOn = prefs.getBool(PrefKeys.hapticsOn) ?? state.hapticsOn;
-    final consentGiven = prefs.getBool(PrefKeys.consentGiven) ?? state.consentGiven;
+    final consentGiven =
+        prefs.getBool(PrefKeys.consentGiven) ?? state.consentGiven;
     final adsEnabled = prefs.getBool(PrefKeys.adsEnabled) ?? state.adsEnabled;
     final paused = prefs.getBool(PrefKeys.paused) ?? state.paused;
     final coins = prefs.getInt(PrefKeys.coins) ?? state.coins;
     final npaEnabled = prefs.getBool(PrefKeys.npaEnabled) ?? state.npaEnabled;
-    final dailyMagnetBuffSec = prefs.getInt(PrefKeys.dailyMagnetBuffSec) ?? state.dailyMagnetBuffSeconds;
-    final pendingMagnetBuffSec = prefs.getInt(PrefKeys.pendingMagnetBuffSec) ?? state.pendingMagnetBuffSeconds;
+    final dailyMagnetBuffSec =
+        prefs.getInt(PrefKeys.dailyMagnetBuffSec) ??
+        state.dailyMagnetBuffSeconds;
+    final pendingMagnetBuffSec =
+        prefs.getInt(PrefKeys.pendingMagnetBuffSec) ??
+        state.pendingMagnetBuffSeconds;
     final lastRewardStr = prefs.getString(PrefKeys.lastDailyRewardDate);
     final playerName = prefs.getString(PrefKeys.playerName) ?? state.playerName;
-    final activeSkinId = prefs.getString(PrefKeys.activeSkinId) ?? state.activeSkinId;
-    final unlockedSkinIds = prefs.getStringList(PrefKeys.unlockedSkinIds) ?? state.unlockedSkinIds;
+    final activeSkinId =
+        prefs.getString(PrefKeys.activeSkinId) ?? state.activeSkinId;
+    final unlockedSkinIds =
+        prefs.getStringList(PrefKeys.unlockedSkinIds) ?? state.unlockedSkinIds;
 
-    emit(state.copyWith(
-      audioOn: audioOn,
-      hapticsOn: hapticsOn,
-      consentGiven: consentGiven,
-      adsEnabled: adsEnabled,
-      paused: paused,
-      coins: coins,
-      npaEnabled: npaEnabled,
-      dailyMagnetBuffSeconds: dailyMagnetBuffSec,
-      pendingMagnetBuffSeconds: pendingMagnetBuffSec,
-      lastDailyRewardClaimedAt: lastRewardStr == null ? null : DateTime.tryParse(lastRewardStr),
-      playerName: playerName,
-      activeSkinId: activeSkinId,
-      unlockedSkinIds: unlockedSkinIds,
-    ));
+    emit(
+      state.copyWith(
+        audioOn: audioOn,
+        hapticsOn: hapticsOn,
+        consentGiven: consentGiven,
+        adsEnabled: adsEnabled,
+        paused: paused,
+        coins: coins,
+        npaEnabled: npaEnabled,
+        dailyMagnetBuffSeconds: dailyMagnetBuffSec,
+        pendingMagnetBuffSeconds: pendingMagnetBuffSec,
+        lastDailyRewardClaimedAt:
+            lastRewardStr == null ? null : DateTime.tryParse(lastRewardStr),
+        playerName: playerName,
+        activeSkinId: activeSkinId,
+        unlockedSkinIds: unlockedSkinIds,
+      ),
+    );
   }
 
   Future<void> _savePrefs() async {
@@ -144,8 +158,14 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     await prefs.setBool(PrefKeys.paused, state.paused);
     await prefs.setInt(PrefKeys.coins, state.coins);
     await prefs.setBool(PrefKeys.npaEnabled, state.npaEnabled);
-    await prefs.setInt(PrefKeys.dailyMagnetBuffSec, state.dailyMagnetBuffSeconds);
-    await prefs.setInt(PrefKeys.pendingMagnetBuffSec, state.pendingMagnetBuffSeconds);
+    await prefs.setInt(
+      PrefKeys.dailyMagnetBuffSec,
+      state.dailyMagnetBuffSeconds,
+    );
+    await prefs.setInt(
+      PrefKeys.pendingMagnetBuffSec,
+      state.pendingMagnetBuffSeconds,
+    );
     await prefs.setString(PrefKeys.playerName, state.playerName);
     await prefs.setString(PrefKeys.activeSkinId, state.activeSkinId);
     await prefs.setStringList(PrefKeys.unlockedSkinIds, state.unlockedSkinIds);
@@ -231,9 +251,12 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
   // === Skins API ===
   List<CharacterSkin> getAllSkins() {
     final unlocked = state.unlockedSkinIds.toSet();
-    return CharacterSkin.defaultSkins.map((s) => s.copyWith(
-      isUnlocked: unlocked.contains(s.id) || (s.price == 0),
-    )).toList();
+    return CharacterSkin.defaultSkins
+        .map(
+          (s) =>
+              s.copyWith(isUnlocked: unlocked.contains(s.id) || (s.price == 0)),
+        )
+        .toList();
   }
 
   CharacterSkin getActiveSkin() {
@@ -259,7 +282,13 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     if (isSkinUnlocked(id)) return true;
     final skin = CharacterSkin.defaultSkins.firstWhere(
       (s) => s.id == id,
-      orElse: () => CharacterSkin(id: 'invalid', name: 'Invalid', color: Colors.grey, price: 0),
+      orElse:
+          () => CharacterSkin(
+            id: 'invalid',
+            name: 'Invalid',
+            color: Colors.grey,
+            price: 0,
+          ),
     );
     if (skin.id == 'invalid') return false;
     if (!spendCoins(skin.price)) return false;

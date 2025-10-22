@@ -5,8 +5,8 @@ import '../state/app_settings_cubit.dart';
 import '../services/ad_service.dart';
 import 'package:flutter/foundation.dart';
 import '../services/logging_service.dart';
-import '../game/game_config.dart';
 import '../services/leaderboard_service.dart';
+import 'components/neumorphic_button.dart';
 
 class GameOverOverlay extends StatelessWidget {
   final MyGame game;
@@ -113,7 +113,9 @@ class GameOverOverlay extends StatelessWidget {
               },
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
+            NeumorphicButton(
+              label: 'Restart',
+              primary: false,
               onPressed: () {
                 final cubit = context.read<AppSettingsCubit>();
                 if (!game.rewardDeposited) {
@@ -139,147 +141,114 @@ class GameOverOverlay extends StatelessWidget {
                 game.overlays.remove(MyGame.overlayGameOver);
                 game.startGame();
               },
-              child: const Text('Restart'),
             ),
             const SizedBox(height: 8),
-            BlocBuilder<AppSettingsCubit, AppSettingsState>(
-              builder: (context, settings) {
-                final canRevive =
-                    game.reviveAvailable &&
-                    ((settings.consentGiven && settings.adsEnabled) ||
-                        settings.coins >= 50);
-                return ElevatedButton(
-                  onPressed:
-                      canRevive
-                          ? () async {
-                            final messenger = ScaffoldMessenger.of(context);
-                            final cubit = context.read<AppSettingsCubit>();
-                            final adsAllowed =
-                                settings.consentGiven && settings.adsEnabled;
-                            bool revived = false;
-                            LoggingService.log(
-                              'revive_requested',
-                              fields: {
-                                'ads_allowed': adsAllowed,
-                                'coins': settings.coins,
-                              },
-                            );
-                            if (adsAllowed && !kIsWeb) {
-                              final ok = await AdService.I.showRewardedRevive();
-                              if (!context.mounted) return;
-                              if (ok) {
-                                LoggingService.log('revive_via_ad_ok');
-                                game.revive();
-                                revived = true;
-                              } else {
-                                LoggingService.log('revive_via_ad_fail');
-                              }
-                            }
-                            if (!revived) {
-                              final spent = cubit.spendCoins(
-                                GameConfig.reviveCostCoins,
-                              );
-                              if (spent) {
-                                LoggingService.log(
-                                  'revive_via_coins_spent',
-                                  fields: {'cost': GameConfig.reviveCostCoins},
-                                );
-                                game.revive();
-                                messenger.showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Revive pakai ${GameConfig.reviveCostCoins} coins',
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                LoggingService.log('revive_insufficient_coins');
-                                messenger.showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Butuh ${GameConfig.reviveCostCoins} coins untuk revive',
-                                    ),
-                                  ),
-                                );
-                              }
-                            }
-                          }
-                          : null,
-                  child: const Text('Revive (Iklan atau 50 coins)'),
-                );
-              },
-            ),
+            // Tombol Revive: sembunyikan hanya saat game over karena timeout
+            if (game.lastGameOverCause != GameOverCause.timeout)
+              BlocBuilder<AppSettingsCubit, AppSettingsState>(
+                builder: (context, settings) {
+                  final adsAllowed =
+                      settings.consentGiven && settings.adsEnabled;
+                  return NeumorphicButton(
+                    label: 'Revive',
+                    primary: false,
+                    onPressed: () async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      LoggingService.log(
+                        'revive_requested',
+                        fields: {'ads_allowed': adsAllowed},
+                      );
+                      // Jika revive tidak tersedia (habis dipakai), beri info
+                      if (!game.reviveAvailable) {
+                        LoggingService.log('revive_unavailable_no_charge');
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Revive tidak tersedia.'),
+                          ),
+                        );
+                        return;
+                      }
+                      // Jika iklan tidak diizinkan/tersedia atau di web, beri info
+                      if (!adsAllowed || kIsWeb) {
+                        LoggingService.log('revive_unavailable_ads');
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Revive hanya via iklan. Iklan tidak tersedia.',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                      // Jalankan alur iklan
+                      final ok = await AdService.I.showRewardedRevive();
+                      if (!context.mounted) return;
+                      if (ok) {
+                        LoggingService.log('revive_via_ad_ok');
+                        game.revive();
+                      } else {
+                        LoggingService.log('revive_via_ad_fail');
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Revive hanya via iklan. Iklan tidak tersedia.',
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  );
+                },
+              ),
             const SizedBox(height: 8),
+            // Tombol Double Rewards: selalu tampilkan tanpa kecuali
             BlocBuilder<AppSettingsCubit, AppSettingsState>(
               builder: (context, settings) {
+                final adsAllowed = settings.consentGiven && settings.adsEnabled;
                 final canDouble =
-                    game.doubleCoinsAvailable &&
-                    ((settings.consentGiven && settings.adsEnabled) ||
-                        settings.coins >= 50);
-                return ElevatedButton(
+                    game.doubleCoinsAvailable && adsAllowed && !kIsWeb;
+                return NeumorphicButton(
+                  label: 'Double Coins',
+                  primary: false,
                   onPressed:
                       canDouble
                           ? () async {
                             final messenger = ScaffoldMessenger.of(context);
-                            final cubit = context.read<AppSettingsCubit>();
-                            final adsAllowed =
-                                settings.consentGiven && settings.adsEnabled;
-                            bool doubled = false;
                             LoggingService.log(
                               'double_requested',
                               fields: {
                                 'ads_allowed': adsAllowed,
-                                'coins': settings.coins,
                                 'base': game.lastScore,
                               },
                             );
-                            if (adsAllowed && !kIsWeb) {
-                              final ok = await AdService.I.showRewardedRevive();
-                              if (!context.mounted) return;
-                              if (ok) {
-                                LoggingService.log('double_via_ad_ok');
-                                await game.applyDoubleCoinsReward();
-                                doubled = true;
-                              } else {
-                                LoggingService.log('double_via_ad_fail');
-                              }
-                            }
-                            if (!doubled) {
-                              final spent = cubit.spendCoins(
-                                GameConfig.doubleCoinsCoins,
+                            final ok = await AdService.I.showRewardedRevive();
+                            if (!context.mounted) return;
+                            if (ok) {
+                              LoggingService.log('double_via_ad_ok');
+                              await game.applyDoubleCoinsReward();
+                            } else {
+                              LoggingService.log('double_via_ad_fail');
+                              messenger.showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Double Coins hanya via iklan. Iklan tidak tersedia.',
+                                  ),
+                                ),
                               );
-                              if (spent) {
-                                LoggingService.log(
-                                  'double_via_coins_spent',
-                                  fields: {
-                                    'cost': GameConfig.doubleCoinsCoins,
-                                    'new': game.lastScore * 2,
-                                  },
-                                );
-                                await game.applyDoubleCoinsReward();
-                                messenger.showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Double coins pakai ${GameConfig.doubleCoinsCoins} coins',
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                LoggingService.log('double_insufficient_coins');
-                                messenger.showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Butuh ${GameConfig.doubleCoinsCoins} coins untuk double coins',
-                                    ),
-                                  ),
-                                );
-                              }
                             }
                           }
-                          : null,
-                  child: Text(
-                    'Double Coins (Iklan atau ${GameConfig.doubleCoinsCoins} coins)',
-                  ),
+                          : () async {
+                            // Tombol selalu tampil, tapi jika tidak bisa double (ads tidak tersedia), tampilkan pesan
+                            final messenger = ScaffoldMessenger.of(context);
+                            LoggingService.log('double_unavailable');
+                            messenger.showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Double Coins hanya via iklan. Iklan tidak tersedia.',
+                                ),
+                              ),
+                            );
+                          },
                 );
               },
             ),

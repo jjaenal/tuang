@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../services/leaderboard_service.dart';
 import '../state/app_settings_cubit.dart';
+import 'components/neumorphic_button.dart';
+import 'theme/app_theme.dart';
 
 /// Screen untuk menampilkan leaderboard dengan top scores
 class LeaderboardScreen extends StatefulWidget {
@@ -53,36 +55,34 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         return Scaffold(
           appBar: AppBar(
             title: const Text('Leaderboard'),
-            backgroundColor: Colors.deepPurple,
+            backgroundColor: AppTheme.darkBase,
             actions: [
-              TextButton.icon(
-                onPressed:
-                    loaded ? () => setState(() => _showAll = !_showAll) : null,
-                icon: Icon(
-                  _showAll ? Icons.list_alt : Icons.filter_1,
-                  color: Colors.white,
-                ),
-                label: Text(
-                  _showAll ? 'Top 50' : 'Top 10',
-                  style: const TextStyle(color: Colors.white),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                child: SizedBox(
+                  width: 120,
+                  child: NeumorphicButton(
+                    label: _showAll ? 'Top 50' : 'Top 10',
+                    icon: _showAll ? Icons.list_alt : Icons.filter_1,
+                    onPressed:
+                        loaded
+                            ? () => setState(() => _showAll = !_showAll)
+                            : null,
+                    primary: false,
+                    size: ButtonSize.compact,
+                    // width: 120,
+                    // height: 36,
+                  ),
                 ),
               ),
             ],
           ),
           body: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.deepPurple, Colors.black],
-              ),
-            ),
+            decoration: BoxDecoration(gradient: AppTheme.darkGradient),
             child:
                 !loaded
                     ? const Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.deepPurple,
-                      ),
+                      child: CircularProgressIndicator(color: Colors.amber),
                     )
                     : fullTop50.isEmpty
                     ? const Center(
@@ -102,24 +102,24 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                             decoration: InputDecoration(
                               hintText: 'Cari pemain...',
                               hintStyle: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.6),
+                                color: Colors.white.withAlpha(153),
                               ),
                               filled: true,
-                              fillColor: Colors.black45,
+                              fillColor: AppTheme.darkBase.withAlpha(200),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 12,
                                 vertical: 10,
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(
-                                  color: Colors.white24,
+                                borderSide: BorderSide(
+                                  color: AppTheme.lightBorderColor,
                                 ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(
-                                  color: Colors.white24,
+                                borderSide: BorderSide(
+                                  color: AppTheme.lightBorderColor,
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
