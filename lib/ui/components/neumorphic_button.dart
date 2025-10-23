@@ -67,9 +67,10 @@ class _NeumorphicButtonState extends State<NeumorphicButton> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: const [],
                 border: Border.all(
-                  color: _focused
-                      ? Colors.lightBlueAccent
-                      : _hovered
+                  color:
+                      _focused
+                          ? Colors.lightBlueAccent
+                          : _hovered
                           ? Colors.white24
                           : Colors.white12,
                 ),

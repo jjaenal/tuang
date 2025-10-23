@@ -105,13 +105,13 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
     final base = game.baseScoreAtGameOver;
     final total = game.lastScore;
     final l10n = AppLocalizations.of(context);
-    final tTitle = l10n?.doubleRewardTitle ?? 'Double Reward';
-    final tApplied = l10n?.doubleCoinsApplied ?? 'Double Coins diterapkan!';
-    String tBase(int v) => l10n?.baseCoinsLabel(v) ?? 'Base: +$v';
-    String tBonus(int v) => l10n?.bonusDoubleLabel(v) ?? 'Bonus Double: +$v';
-    String tTotal(int v) => l10n?.totalCoinsLabel(v) ?? 'Total: +$v coins';
-    final tContinue = l10n?.continuePlay ?? 'Lanjut main';
-    final tBackHome = l10n?.backHome ?? 'Kembali ke Home';
+    final tTitle = l10n.doubleRewardTitle;
+    final tApplied = l10n.doubleCoinsApplied;
+    String tBase(int v) => l10n.baseCoinsLabel(v);
+    String tBonus(int v) => l10n.bonusDoubleLabel(v);
+    String tTotal(int v) => l10n.totalCoinsLabel(v);
+    final tContinue = l10n.continuePlay;
+    final tBackHome = l10n.backHome;
 
     return Stack(
       children: [
@@ -154,11 +154,17 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(Icons.savings, color: Colors.amber, size: 18),
+                                  const Icon(
+                                    Icons.savings,
+                                    color: Colors.amber,
+                                    size: 18,
+                                  ),
                                   const SizedBox(width: 6),
                                   Text(
                                     tBase(base),
-                                    style: const TextStyle(color: Colors.white70),
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -166,11 +172,17 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(Icons.auto_awesome, color: Colors.lightBlueAccent, size: 18),
+                                  const Icon(
+                                    Icons.auto_awesome,
+                                    color: Colors.lightBlueAccent,
+                                    size: 18,
+                                  ),
                                   const SizedBox(width: 6),
                                   Text(
                                     tBonus(base),
-                                    style: const TextStyle(color: Colors.white70),
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -178,7 +190,11 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(Icons.check_circle, color: Colors.greenAccent, size: 18),
+                                  const Icon(
+                                    Icons.check_circle,
+                                    color: Colors.greenAccent,
+                                    size: 18,
+                                  ),
                                   const SizedBox(width: 6),
                                   Text(
                                     tTotal(total),
@@ -212,7 +228,10 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
                               );
                               LoggingService.log(
                                 'reward_deposited',
-                                fields: {'amount': total, 'action': 'restart_from_double'},
+                                fields: {
+                                  'amount': total,
+                                  'action': 'restart_from_double',
+                                },
                               );
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -248,7 +267,10 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
                               );
                               LoggingService.log(
                                 'reward_deposited',
-                                fields: {'amount': total, 'action': 'back_to_menu_from_double'},
+                                fields: {
+                                  'amount': total,
+                                  'action': 'back_to_menu_from_double',
+                                },
                               );
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -272,9 +294,13 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
                   child: IgnorePointer(
                     child: AnimatedBuilder(
                       animation: _confettiController,
-                      builder: (context, _) => CustomPaint(
-                        painter: _ConfettiPainter(_particles, _confettiController.value),
-                      ),
+                      builder:
+                          (context, _) => CustomPaint(
+                            painter: _ConfettiPainter(
+                              _particles,
+                              _confettiController.value,
+                            ),
+                          ),
                     ),
                   ),
                 ),
@@ -295,7 +321,15 @@ class _Particle {
   final double size;
   final Color color;
   final double spin;
-  _Particle(this.x0, this.y0, this.vx, this.vy, this.size, this.color, this.spin);
+  _Particle(
+    this.x0,
+    this.y0,
+    this.vx,
+    this.vy,
+    this.size,
+    this.color,
+    this.spin,
+  );
 }
 
 class _ConfettiPainter extends CustomPainter {
@@ -310,7 +344,7 @@ class _ConfettiPainter extends CustomPainter {
       final x = (p.x0 * size.width) + (p.vx * t * size.width * 0.25);
       final y = (p.y0 * size.height) + (p.vy * t * size.height * 0.45);
       final opacity = (1.0 - t).clamp(0.0, 1.0);
-      paint.color = p.color.withOpacity(opacity);
+      paint.color = p.color.withValues(alpha: opacity);
       // Draw small circle as confetti piece
       canvas.drawCircle(Offset(x, y), p.size, paint);
     }

@@ -179,6 +179,8 @@ class GameOverOverlay extends StatelessWidget {
 
                     // Submit score ke leaderboard
                     final leaderboard = LeaderboardService();
+                    // Capture messenger before async await to avoid context after async gap
+                    final messenger = ScaffoldMessenger.of(context);
                     await leaderboard.submitScoreAsync(
                       playerId: cubit.state.playerName,
                       score: game.lastScore,
@@ -188,7 +190,7 @@ class GameOverOverlay extends StatelessWidget {
                       'reward_deposited',
                       fields: {'amount': game.lastScore, 'action': 'restart'},
                     );
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                       SnackBar(
                         content: Text('Reward: +${game.lastScore} coins'),
                       ),
@@ -327,6 +329,8 @@ class GameOverOverlay extends StatelessWidget {
                     game.markRewardDeposited();
 
                     final leaderboard = LeaderboardService();
+                    // Capture messenger before async await to avoid context after async gap
+                    final messenger2 = ScaffoldMessenger.of(context);
                     await leaderboard.submitScoreAsync(
                       playerId: cubit.state.playerName,
                       score: game.lastScore,
@@ -339,7 +343,7 @@ class GameOverOverlay extends StatelessWidget {
                         'action': 'back_to_menu',
                       },
                     );
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger2.showSnackBar(
                       SnackBar(
                         content: Text('Reward: +${game.lastScore} coins'),
                       ),

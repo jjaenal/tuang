@@ -88,8 +88,11 @@ class LeaderboardService {
       _entries.removeRange(cap, _entries.length);
     }
   }
-  
-  Future<bool> submitScoreAsync({required String playerId, required int score}) async {
+
+  Future<bool> submitScoreAsync({
+    required String playerId,
+    required int score,
+  }) async {
     if (playerId.isEmpty) {
       throw ArgumentError('playerId cannot be empty');
     }
@@ -103,14 +106,12 @@ class LeaderboardService {
     final client = SupabaseService.I.client;
     if (client != null) {
       try {
-        await client
-            .from('scores')
-            .upsert({
-              'player_id': playerId,
-              'player_name': playerId,
-              'score': score,
-              'updated_at': DateTime.now().toIso8601String(),
-            }, onConflict: 'player_id');
+        await client.from('scores').upsert({
+          'player_id': playerId,
+          'player_name': playerId,
+          'score': score,
+          'updated_at': DateTime.now().toIso8601String(),
+        }, onConflict: 'player_id');
         debugPrint('Score submitted to Supabase: $playerId - $score');
       } catch (e) {
         debugPrint('Error submitting score to Supabase: $e');

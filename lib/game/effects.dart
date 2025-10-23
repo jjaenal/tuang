@@ -20,14 +20,15 @@ class MagnetGlow extends CircleComponent {
   final Player target;
 
   MagnetGlow({required this.target})
-      : super(
-          radius: 50,
-          paint: Paint()
-            ..color = const Color(0x442ECC71)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2.0,
-          anchor: Anchor.center,
-        );
+    : super(
+        radius: 50,
+        paint:
+            Paint()
+              ..color = const Color(0x442ECC71)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 2.0,
+        anchor: Anchor.center,
+      );
 
   @override
   void update(double dt) {
@@ -41,14 +42,15 @@ class SpeedBoostGlow extends CircleComponent {
   final Player target;
 
   SpeedBoostGlow({required this.target})
-      : super(
-          radius: 30,
-          paint: Paint()
-            ..color = const Color(0x40E74C3C)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2.0,
-          anchor: Anchor.center,
-        );
+    : super(
+        radius: 30,
+        paint:
+            Paint()
+              ..color = const Color(0x40E74C3C)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 2.0,
+        anchor: Anchor.center,
+      );
 
   @override
   void update(double dt) {
@@ -62,14 +64,15 @@ class ShieldGlow extends CircleComponent {
   final Player target;
 
   ShieldGlow({required this.target})
-      : super(
-          radius: 25,
-          paint: Paint()
-            ..color = const Color(0x443498DB)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2.0,
-          anchor: Anchor.center,
-        );
+    : super(
+        radius: 25,
+        paint:
+            Paint()
+              ..color = const Color(0x443498DB)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 2.0,
+        anchor: Anchor.center,
+      );
 
   @override
   void update(double dt) {

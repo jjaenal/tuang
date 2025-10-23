@@ -32,7 +32,11 @@ class SupabaseService {
   Future<SupabaseHealthStatus> getHealth() async {
     await ensureInit();
     if (_client == null) {
-      return const SupabaseHealthStatus(initialized: false, canRead: false, canWrite: false);
+      return const SupabaseHealthStatus(
+        initialized: false,
+        canRead: false,
+        canWrite: false,
+      );
     }
     bool readOk = false;
     bool writeOk = false;
@@ -51,7 +55,11 @@ class SupabaseService {
       await _client!.from('scores').delete().eq('player_id', testId);
       writeOk = true;
     } catch (_) {}
-    return SupabaseHealthStatus(initialized: true, canRead: readOk, canWrite: writeOk);
+    return SupabaseHealthStatus(
+      initialized: true,
+      canRead: readOk,
+      canWrite: writeOk,
+    );
   }
 }
 

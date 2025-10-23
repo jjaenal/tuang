@@ -123,13 +123,17 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     final coins = prefs.getInt(PrefKeys.coins) ?? state.coins;
     final npaEnabled = prefs.getBool(PrefKeys.npaEnabled) ?? state.npaEnabled;
     final dailyMagnetBuffSec =
-        prefs.getInt(PrefKeys.dailyMagnetBuffSec) ?? state.dailyMagnetBuffSeconds;
+        prefs.getInt(PrefKeys.dailyMagnetBuffSec) ??
+        state.dailyMagnetBuffSeconds;
     final pendingMagnetBuffSec =
-        prefs.getInt(PrefKeys.pendingMagnetBuffSec) ?? state.pendingMagnetBuffSeconds;
+        prefs.getInt(PrefKeys.pendingMagnetBuffSec) ??
+        state.pendingMagnetBuffSeconds;
     final lastRewardStr = prefs.getString(PrefKeys.lastDailyRewardDate);
     final playerName = prefs.getString(PrefKeys.playerName) ?? state.playerName;
-    final activeSkinId = prefs.getString(PrefKeys.activeSkinId) ?? state.activeSkinId;
-    final unlockedSkinIds = prefs.getStringList(PrefKeys.unlockedSkinIds) ?? state.unlockedSkinIds;
+    final activeSkinId =
+        prefs.getString(PrefKeys.activeSkinId) ?? state.activeSkinId;
+    final unlockedSkinIds =
+        prefs.getStringList(PrefKeys.unlockedSkinIds) ?? state.unlockedSkinIds;
     final difficultyKey = prefs.getString(PrefKeys.difficulty);
 
     emit(
@@ -197,7 +201,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     emit(state.copyWith(consentGiven: value));
     _savePrefs();
   }
-  
+
   void setPlayerName(String name) {
     if (name.isNotEmpty) {
       emit(state.copyWith(playerName: name));
@@ -299,12 +303,13 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     if (isSkinUnlocked(id)) return true;
     final skin = CharacterSkin.defaultSkins.firstWhere(
       (s) => s.id == id,
-      orElse: () => CharacterSkin(
-        id: 'invalid',
-        name: 'Invalid',
-        color: Colors.grey,
-        price: 0,
-      ),
+      orElse:
+          () => CharacterSkin(
+            id: 'invalid',
+            name: 'Invalid',
+            color: Colors.grey,
+            price: 0,
+          ),
     );
     if (skin.id == 'invalid') return false;
     if (!spendCoins(skin.price)) return false;

@@ -19,6 +19,7 @@ import '../models/character_skin.dart';
 import '../services/achievement_service.dart';
 import '../state/pref_keys.dart';
 import '../services/logging_service.dart';
+import '../services/audio_service.dart';
 
 /// [MyGame] is the main FlameGame driving the arcade session.
 ///
@@ -138,10 +139,7 @@ class MyGame extends FlameGame with HasCollisionDetection {
         paint: Paint()..color = Colors.black.withValues(alpha: 0.30),
         anchor: Anchor.topLeft,
       );
-      final js = JoystickComponent(
-        knob: knob,
-        background: bg,
-      );
+      final js = JoystickComponent(knob: knob, background: bg);
       js.anchor = Anchor.bottomCenter;
       js.position = Vector2(size.x / 2, size.y - 64);
       js.priority = 1000; // tampil di atas entity game
@@ -399,6 +397,8 @@ class MyGame extends FlameGame with HasCollisionDetection {
       // Pickup check
       if (_overlap(player, coin)) {
         coin.removeFromParent();
+        // Play coin SFX
+        AudioService.I.playCoin();
         onCoinPicked();
         _speedBoostLeft = GameConfig.speedBoostDurationSec;
         playerSpeedMultiplier = _baseSpeedMul + GameConfig.speedBoostMultiplier;
@@ -432,6 +432,8 @@ class MyGame extends FlameGame with HasCollisionDetection {
     for (final mag in children.whereType<MagnetPowerUp>().toList()) {
       if (_overlap(player, mag)) {
         mag.removeFromParent();
+        // Play magnet SFX
+        AudioService.I.playMagnet();
         magnetSecondsLeft = GameConfig.magnetPickupDurationSec.toInt();
         _magnetTotalSeconds = magnetSecondsLeft;
         _magnetSecAccumulator = 0.0;
@@ -469,6 +471,8 @@ class MyGame extends FlameGame with HasCollisionDetection {
         if (shieldSecondsLeft > 0) {
           shieldSecondsLeft = 0;
           obs.removeFromParent();
+          // Play hit SFX (shield absorbs)
+          AudioService.I.playHit();
           add(
             FlashOverlay(
               size: size,
@@ -479,6 +483,8 @@ class MyGame extends FlameGame with HasCollisionDetection {
         } else {
           // Game over via collision: gunakan gameOver() agar skor & Best ter-update
           lastGameOverCause = GameOverCause.collision;
+          // Play hit SFX
+          AudioService.I.playHit();
           gameOver();
           add(
             FlashOverlay(
@@ -564,17 +570,15 @@ class MyGame extends FlameGame with HasCollisionDetection {
     );
   }
 
-  int get lastScore => doubleCoinsUsed ? baseScoreAtGameOver * 2 : baseScoreAtGameOver;
+  int get lastScore =>
+      doubleCoinsUsed ? baseScoreAtGameOver * 2 : baseScoreAtGameOver;
 
   Future<void> applyDoubleCoinsReward() async {
     if (doubleCoinsUsed) return;
     doubleCoinsUsed = true;
     LoggingService.log(
       'double_applied',
-      fields: {
-        'base': baseScoreAtGameOver,
-        'total': lastScore,
-      },
+      fields: {'base': baseScoreAtGameOver, 'total': lastScore},
     );
   }
 

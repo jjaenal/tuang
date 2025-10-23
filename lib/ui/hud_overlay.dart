@@ -53,34 +53,41 @@ class _HudOverlayState extends State<HudOverlay> {
     bool prominent = false,
   }) {
     final baseColor = color ?? const Color(0x88000000);
-    
+
     return RepaintBoundary(
       child: Container(
         padding: padding,
         decoration: BoxDecoration(
-          gradient: prominent 
-            ? LinearGradient(
-                colors: [
-                  baseColor.withValues(alpha: 0.9),
-                  baseColor.withValues(alpha: 0.7),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : null,
+          gradient:
+              prominent
+                  ? LinearGradient(
+                    colors: [
+                      baseColor.withValues(alpha: 0.9),
+                      baseColor.withValues(alpha: 0.7),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                  : null,
           color: prominent ? null : baseColor,
           borderRadius: BorderRadius.circular(radius),
-          boxShadow: prominent ? [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ] : null,
-          border: prominent ? Border.all(
-            color: Colors.white.withValues(alpha: 0.2),
-            width: 1,
-          ) : null,
+          boxShadow:
+              prominent
+                  ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                  : null,
+          border:
+              prominent
+                  ? Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    width: 1,
+                  )
+                  : null,
         ),
         child: child,
       ),
@@ -102,11 +109,7 @@ class _HudOverlayState extends State<HudOverlay> {
               color: Colors.amber.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(
-              Icons.star,
-              color: Colors.amber,
-              size: 24,
-            ),
+            child: const Icon(Icons.star, color: Colors.amber, size: 24),
           ),
           const SizedBox(width: 12),
           Text(
@@ -116,12 +119,7 @@ class _HudOverlayState extends State<HudOverlay> {
               fontSize: 28,
               fontWeight: FontWeight.w900,
               letterSpacing: 1.2,
-              shadows: [
-                Shadow(
-                  color: Colors.amber,
-                  blurRadius: 8,
-                ),
-              ],
+              shadows: [Shadow(color: Colors.amber, blurRadius: 8)],
             ),
           ),
         ],
@@ -134,7 +132,7 @@ class _HudOverlayState extends State<HudOverlay> {
     // Warna berubah berdasarkan waktu: hijau -> kuning -> merah
     Color timerColor = Colors.green;
     Color bgColor = const Color(0xFF1B5E20);
-    
+
     if (time <= 10) {
       timerColor = Colors.red;
       bgColor = const Color(0xFF8B0000);
@@ -150,11 +148,7 @@ class _HudOverlayState extends State<HudOverlay> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.timer,
-            color: timerColor,
-            size: 22,
-          ),
+          Icon(Icons.timer, color: timerColor, size: 22),
           const SizedBox(width: 8),
           Text(
             '${time}s',
@@ -162,12 +156,7 @@ class _HudOverlayState extends State<HudOverlay> {
               color: Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              shadows: [
-                Shadow(
-                  color: timerColor,
-                  blurRadius: 6,
-                ),
-              ],
+              shadows: [Shadow(color: timerColor, blurRadius: 6)],
             ),
           ),
         ],
@@ -178,7 +167,7 @@ class _HudOverlayState extends State<HudOverlay> {
   /// Widget untuk magnet buff dengan progress visual yang lebih menarik
   Widget _buildMagnetBuff(double magnetProgress) {
     final isActive = magnetProgress > 0;
-    
+
     return _hudPill(
       color: isActive ? const Color(0xFF00C853) : const Color(0x55666666),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -187,13 +176,14 @@ class _HudOverlayState extends State<HudOverlay> {
         children: [
           // Ikon magnet dengan efek glow saat aktif
           Container(
-             padding: const EdgeInsets.all(6),
-             decoration: BoxDecoration(
-               color: isActive 
-                 ? Colors.greenAccent.withValues(alpha: 0.3)
-                 : Colors.grey.withValues(alpha: 0.2),
-               borderRadius: BorderRadius.circular(6),
-             ),
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color:
+                  isActive
+                      ? Colors.greenAccent.withValues(alpha: 0.3)
+                      : Colors.grey.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(6),
+            ),
             child: Icon(
               Icons.bolt,
               color: isActive ? Colors.greenAccent : Colors.grey,
@@ -201,7 +191,7 @@ class _HudOverlayState extends State<HudOverlay> {
             ),
           ),
           const SizedBox(width: 10),
-          
+
           // Progress bar dengan design yang lebih menarik
           Container(
             width: 80,
@@ -210,9 +200,12 @@ class _HudOverlayState extends State<HudOverlay> {
               borderRadius: BorderRadius.circular(6),
               color: const Color(0x33000000),
               border: Border.all(
-                 color: isActive ? Colors.greenAccent.withValues(alpha: 0.5) : Colors.grey.withValues(alpha: 0.3),
-                 width: 1,
-               ),
+                color:
+                    isActive
+                        ? Colors.greenAccent.withValues(alpha: 0.5)
+                        : Colors.grey.withValues(alpha: 0.3),
+                width: 1,
+              ),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(5),
@@ -226,9 +219,9 @@ class _HudOverlayState extends State<HudOverlay> {
               ),
             ),
           ),
-          
+
           const SizedBox(width: 8),
-          
+
           // Text countdown atau status
           Text(
             isActive ? '${widget.game.magnetSecondsLeft}s' : 'OFF',
@@ -261,7 +254,7 @@ class _HudOverlayState extends State<HudOverlay> {
                   valueListenable: game.scoreVN,
                   builder: (_, score, __) => _buildProminentScore(score),
                 ),
-                
+
                 // Timer dengan warna dinamis
                 ValueListenableBuilder<int>(
                   valueListenable: game.timeVN,
@@ -269,9 +262,9 @@ class _HudOverlayState extends State<HudOverlay> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // Second row: Buff indicators dan controls
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -286,111 +279,119 @@ class _HudOverlayState extends State<HudOverlay> {
                       valueListenable: game.magnetVN,
                       builder: (_, mag, __) => _buildMagnetBuff(mag),
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     // Combo multiplier
                     ValueListenableBuilder<int>(
                       valueListenable: game.comboVN,
-                      builder: (_, combo, __) => _hudPill(
-                        color: const Color(0xFF3F51B5),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.flash_on,
-                              color: Colors.lightBlueAccent,
-                              size: 16,
+                      builder:
+                          (_, combo, __) => _hudPill(
+                            color: const Color(0xFF3F51B5),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.flash_on,
+                                  color: Colors.lightBlueAccent,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'x$combo',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'x$combo',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     // Coins (persisten dari AppSettingsCubit)
                     BlocBuilder<AppSettingsCubit, AppSettingsState>(
-                      builder: (context, app) => _hudPill(
-                        color: const Color(0xFFFF8F00),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.monetization_on,
-                              color: Colors.amber,
-                              size: 16,
+                      builder:
+                          (context, app) => _hudPill(
+                            color: const Color(0xFFFF8F00),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.monetization_on,
+                                  color: Colors.amber,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '${app.coins}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 6),
-                            Text(
-                              '${app.coins}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
                     ),
                   ],
                 ),
-                
+
                 // Right side: Controls
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     BlocBuilder<AppSettingsCubit, AppSettingsState>(
-                      builder: (context, app) => Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Pause/Resume button
-                          _hudPill(
-                            color: const Color(0x88333333),
-                            padding: const EdgeInsets.all(8),
-                            child: IconButton(
-                              tooltip: app.paused ? 'Resume' : 'Pause',
-                              icon: Icon(
-                                app.paused ? Icons.play_arrow : Icons.pause,
-                                color: Colors.white,
-                                size: 24,
+                      builder:
+                          (context, app) => Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Pause/Resume button
+                              _hudPill(
+                                color: const Color(0x88333333),
+                                padding: const EdgeInsets.all(8),
+                                child: IconButton(
+                                  tooltip: app.paused ? 'Resume' : 'Pause',
+                                  icon: Icon(
+                                    app.paused ? Icons.play_arrow : Icons.pause,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                  onPressed:
+                                      () => context
+                                          .read<AppSettingsCubit>()
+                                          .setPaused(!app.paused),
+                                ),
                               ),
-                              onPressed: () => context
-                                  .read<AppSettingsCubit>()
-                                  .setPaused(!app.paused),
-                            ),
-                          ),
-                          
-                          const SizedBox(width: 8),
-                          
-                          // Audio toggle button
-                          _hudPill(
-                            color: const Color(0x88333333),
-                            padding: const EdgeInsets.all(8),
-                            child: IconButton(
-                              tooltip: app.audioOn ? 'Mute' : 'Unmute',
-                              icon: Icon(
-                                app.audioOn ? Icons.volume_up : Icons.volume_off,
-                                color: Colors.white,
-                                size: 24,
+
+                              const SizedBox(width: 8),
+
+                              // Audio toggle button
+                              _hudPill(
+                                color: const Color(0x88333333),
+                                padding: const EdgeInsets.all(8),
+                                child: IconButton(
+                                  tooltip: app.audioOn ? 'Mute' : 'Unmute',
+                                  icon: Icon(
+                                    app.audioOn
+                                        ? Icons.volume_up
+                                        : Icons.volume_off,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                  onPressed:
+                                      () =>
+                                          context
+                                              .read<AppSettingsCubit>()
+                                              .toggleAudio(),
+                                ),
                               ),
-                              onPressed: () => context
-                                  .read<AppSettingsCubit>()
-                                  .toggleAudio(),
-                            ),
+                            ],
                           ),
-                        ],
-                      ),
                     ),
-                    
+
                     // Debug info (jika enabled)
                     if (LoggingService.enabled) ...[
                       const SizedBox(height: 8),

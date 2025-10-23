@@ -484,17 +484,22 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                         // Grant reward instantly without ad
                                         cubit.markDailyRewardClaimedNow();
                                         cubit.addCoins(rewardCoins);
-                                        cubit.grantMagnetBuff(app.dailyMagnetBuffSeconds);
+                                        cubit.grantMagnetBuff(
+                                          app.dailyMagnetBuffSeconds,
+                                        );
                                         LoggingService.log(
                                           'daily_reward_claimed',
                                           fields: {
                                             'coins': rewardCoins,
-                                            'magnet_sec': app.dailyMagnetBuffSeconds,
+                                            'magnet_sec':
+                                                app.dailyMagnetBuffSeconds,
                                             'via': 'no_ad',
                                           },
                                         );
                                         if (ctx.mounted) {
-                                          ScaffoldMessenger.of(ctx).showSnackBar(
+                                          ScaffoldMessenger.of(
+                                            ctx,
+                                          ).showSnackBar(
                                             SnackBar(
                                               content: Text(
                                                 'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s!',

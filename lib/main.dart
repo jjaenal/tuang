@@ -68,17 +68,14 @@ class MyApp extends StatelessWidget {
           HapticsService.enabled = state.hapticsOn;
         },
         child: MaterialApp(
-          onGenerateTitle: (context) => AppLocalizations.of(context)?.appTitle ?? 'Tuang Game',
+          onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [
-            Locale('en'),
-            Locale('id'),
-          ],
+          supportedLocales: const [Locale('en'), Locale('id')],
           theme: ThemeData.dark(),
           debugShowCheckedModeBanner: false,
           home: Scaffold(

@@ -159,9 +159,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                     (e) => e.playerId == entry.playerId,
                                   ) +
                                   1;
-                              final initial = entry.playerId.isNotEmpty
-                                  ? entry.playerId[0].toUpperCase()
-                                  : '?';
+                              final initial =
+                                  entry.playerId.isNotEmpty
+                                      ? entry.playerId[0].toUpperCase()
+                                      : '?';
                               final isTop3 = globalRank <= 3;
                               final isCurrent =
                                   entry.playerId == currentPlayerId;
@@ -216,11 +217,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                   ),
                                   title: Text(
                                     '#$globalRank · ${entry.playerId}',
-                                     style: const TextStyle(
-                                       color: Colors.white,
-                                       fontWeight: FontWeight.bold,
-                                       fontSize: 18,
-                                     ),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
                                   ),
                                   subtitle: Text(
                                     _buildSubtitle(

@@ -176,7 +176,10 @@ class _OptionsPanelState extends State<OptionsPanel> {
                     controller: TextEditingController(text: app.playerName),
                     decoration: const InputDecoration(
                       isDense: true,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 8,
+                      ),
                       border: OutlineInputBorder(),
                     ),
                     onSubmitted: (value) {
