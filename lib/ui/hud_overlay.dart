@@ -54,34 +54,36 @@ class _HudOverlayState extends State<HudOverlay> {
   }) {
     final baseColor = color ?? const Color(0x88000000);
     
-    return Container(
-      padding: padding,
-      decoration: BoxDecoration(
-        gradient: prominent 
-          ? LinearGradient(
-              colors: [
-                baseColor.withValues(alpha: 0.9),
-                baseColor.withValues(alpha: 0.7),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            )
-          : null,
-        color: prominent ? null : baseColor,
-        borderRadius: BorderRadius.circular(radius),
-        boxShadow: prominent ? [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ] : null,
-        border: prominent ? Border.all(
-          color: Colors.white.withValues(alpha: 0.2),
-          width: 1,
-        ) : null,
+    return RepaintBoundary(
+      child: Container(
+        padding: padding,
+        decoration: BoxDecoration(
+          gradient: prominent 
+            ? LinearGradient(
+                colors: [
+                  baseColor.withValues(alpha: 0.9),
+                  baseColor.withValues(alpha: 0.7),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+          color: prominent ? null : baseColor,
+          borderRadius: BorderRadius.circular(radius),
+          boxShadow: prominent ? [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ] : null,
+          border: prominent ? Border.all(
+            color: Colors.white.withValues(alpha: 0.2),
+            width: 1,
+          ) : null,
+        ),
+        child: child,
       ),
-      child: child,
     );
   }
 

@@ -15,6 +15,7 @@ import 'leaderboard_screen.dart';
 import 'options_panel.dart';
 import 'achievements_screen.dart';
 import 'components/bokeh_background.dart';
+import 'components/neumorphic_button.dart';
 import 'theme/app_theme.dart';
 
 class _HeroButton extends StatefulWidget {
@@ -89,89 +90,6 @@ class _HeroButtonState extends State<_HeroButton> {
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.8,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SecondaryButton extends StatefulWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  const _SecondaryButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  State<_SecondaryButton> createState() => _SecondaryButtonState();
-}
-
-class _SecondaryButtonState extends State<_SecondaryButton> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    const baseSurface = Color(0xFF1A1F24);
-    const shadowDark = Color(0xFF0D1013);
-    const shadowLight = Color(0xFF2A3138);
-
-    final idleShadows = const [
-      BoxShadow(color: shadowDark, blurRadius: 20, offset: Offset(8, 8)),
-      BoxShadow(color: shadowLight, blurRadius: 20, offset: Offset(-8, -8)),
-    ];
-    final pressedShadows = const [
-      BoxShadow(color: shadowDark, blurRadius: 10, offset: Offset(3, 3)),
-      BoxShadow(color: shadowLight, blurRadius: 10, offset: Offset(-3, -3)),
-    ];
-
-    return GestureDetector(
-      onTap: widget.onTap,
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapCancel: () => setState(() => _pressed = false),
-      onTapUp: (_) => setState(() => _pressed = false),
-      child: AnimatedScale(
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOutCubic,
-        scale: _pressed ? 0.985 : 1.0,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
-          curve: Curves.easeOutCubic,
-          width: 120,
-          height: 60,
-          decoration: BoxDecoration(
-            color: baseSurface,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: _pressed ? pressedShadows : idleShadows,
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF20252B), Color(0xFF171B1F)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(widget.icon, color: Colors.white70, size: 20),
-                const SizedBox(height: 4),
-                Text(
-                  widget.label,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
                   ),
                 ),
               ],
@@ -378,265 +296,237 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    return BokehBackground(
-      backgroundColor: Colors.black,
-      bokehCount: 12,
-      intensity: 0.6,
-      child: Center(
-        child: BlocBuilder<AppSettingsCubit, AppSettingsState>(
-          builder: (context, app) {
-            _loadBannerIfNeeded(
-              context,
-              app,
-            ); // siapkan banner adaptive ketika syarat terpenuhi
-            return SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Game Title dengan shadow effect
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'ENDLESS DODGE & COLLECT',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.2,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.8),
-                            blurRadius: 4,
-                            offset: const Offset(2, 2),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Stats row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          'Best: ${widget.game.bestScore}',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.circle,
-                              color: Colors.amber,
-                              size: 14,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${app.coins}',
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                              ),
+    return Stack(
+      children: [
+        const BokehBackground(
+          backgroundColor: Colors.black,
+          bokehCount: 12,
+          intensity: 0.6,
+        ),
+        Positioned.fill(child: Container(color: AppTheme.barrierColorDark)),
+        Center(
+          child: BlocBuilder<AppSettingsCubit, AppSettingsState>(
+            builder: (context, app) {
+              _loadBannerIfNeeded(
+                context,
+                app,
+              ); // siapkan banner adaptive ketika syarat terpenuhi
+              return SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Game Title dengan shadow effect
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'ENDLESS DODGE & COLLECT',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.8),
+                              blurRadius: 4,
+                              offset: const Offset(2, 2),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  // Hero Play Button
-                  _HeroButton(
-                    icon: Icons.play_arrow,
-                    label: 'PLAY',
-                    onTap: () => widget.game.startGame(),
-                  ),
-                  const SizedBox(height: 20),
-                  // Secondary buttons grid
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      _SecondaryButton(
-                        icon: Icons.person,
-                        label: 'Skins',
-                        onTap: () => _showSkinSelectionDialog(context),
-                      ),
-                      _SecondaryButton(
-                        icon: Icons.emoji_events,
-                        label: 'Achievements',
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const AchievementsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _SecondaryButton(
-                        icon: Icons.leaderboard,
-                        label: 'Leaderboard',
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const LeaderboardScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _SecondaryButton(
-                        icon: Icons.settings,
-                        label: 'Settings',
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            barrierDismissible: true,
-                            barrierColor: AppTheme.barrierColorDark,
-                            builder:
-                                (ctx) => const Dialog(
-                                  backgroundColor: Colors.transparent,
-                                  child: OptionsPanel(),
-                                ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  // Banner di bawah grid kartu
-                  const SizedBox.shrink(),
-                  const SizedBox(height: 12),
-                  // Info untuk Settings
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
                     ),
-                    child: Column(
+                    const SizedBox(height: 8),
+                    // Stats row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
-                          Icons.info_outline,
-                          color: Colors.white60,
-                          size: 20,
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Untuk pengaturan Audio, Haptics, Ads, dan lainnya,\nbuka menu Settings di atas',
-                          style: TextStyle(
-                            color: Colors.white60,
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 12),
-                        // Quick Skin Preview (tetap ada karena berguna)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.person,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'Best: ${widget.game.bestScore}',
+                            style: const TextStyle(
                               color: Colors.white70,
-                              size: 18,
+                              fontSize: 14,
                             ),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'Active Skin:',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.circle,
+                                color: Colors.amber,
+                                size: 14,
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            _buildActiveSkinPreview(context, app.activeSkinId),
-                          ],
+                              const SizedBox(width: 4),
+                              Text(
+                                '${app.coins}',
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 24),
+                    // Hero Play Button (neumorphic, konsisten dengan gaya baru)
+                    NeumorphicButton(
+                      label: 'Play',
+                      icon: Icons.play_arrow,
+                      primary: true,
+                      onPressed: () => widget.game.startGame(),
+                    ),
 
-                  /// Tombol Daily Reward
-                  Builder(
-                    builder: (ctx) {
-                      final cubit = ctx.read<AppSettingsCubit>();
-                      final canClaim = cubit.canClaimDailyReward;
-                      final countdown = _nextClaimCountdown(cubit);
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
+                    const SizedBox.shrink(),
+
+                    // Info untuk Settings
+                    Offstage(
+                      offstage: true,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: Column(
+                          children: [
+                            const Icon(
+                              Icons.info_outline,
+                              color: Colors.white60,
+                              size: 20,
                             ),
-                            decoration: BoxDecoration(
-                              color: const Color(0x33220000),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.white24),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Untuk pengaturan Audio, Haptics, Ads, dan lainnya,\nbuka menu Settings di atas',
+                              style: TextStyle(
+                                color: Colors.white60,
+                                fontSize: 12,
+                                fontStyle: FontStyle.italic,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
+                            const SizedBox(height: 12),
+                            // Quick Skin Preview (tetap ada karena berguna)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 const Icon(
-                                  Icons.card_giftcard,
+                                  Icons.person,
                                   color: Colors.white70,
-                                  size: 16,
+                                  size: 18,
                                 ),
                                 const SizedBox(width: 8),
-                                Text(
-                                  'Reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s (~${GameConfig.magnetBuffValueCoins(app.dailyMagnetBuffSeconds)} coins)',
-                                  style: const TextStyle(color: Colors.white70),
+                                const Text(
+                                  'Active Skin:',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                _buildActiveSkinPreview(
+                                  context,
+                                  app.activeSkinId,
                                 ),
                               ],
                             ),
-                          ),
-                          const SizedBox(height: 6),
-                          ElevatedButton(
-                            onPressed:
-                                canClaim
-                                    ? () async {
-                                      const rewardCoins =
-                                          GameConfig.dailyRewardCoins;
-                                      LoggingService.log(
-                                        'daily_reward_requested',
-                                        fields: {
-                                          'ads_enabled': app.adsEnabled,
-                                          'consent': app.consentGiven,
-                                        },
-                                      );
-                                      if (app.adsEnabled &&
-                                          app.consentGiven &&
-                                          !kIsWeb) {
-                                        final ok =
-                                            await AdService.I
-                                                .showRewardedDailyReward();
-                                        if (!ctx.mounted) return;
-                                        if (ok) {
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    /// Tombol Daily Reward
+                    Builder(
+                      builder: (ctx) {
+                        final cubit = ctx.read<AppSettingsCubit>();
+                        final canClaim = cubit.canClaimDailyReward;
+                        final countdown = _nextClaimCountdown(cubit);
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            NeumorphicButton(
+                              label: 'Daily Reward',
+                              icon: Icons.card_giftcard,
+                              primary: true,
+                              onPressed:
+                                  canClaim
+                                      ? () async {
+                                        const rewardCoins =
+                                            GameConfig.dailyRewardCoins;
+                                        LoggingService.log(
+                                          'daily_reward_requested',
+                                          fields: {
+                                            'ads_enabled': app.adsEnabled,
+                                            'consent': app.consentGiven,
+                                          },
+                                        );
+                                        if (app.adsEnabled &&
+                                            app.consentGiven &&
+                                            !kIsWeb) {
+                                          final ok =
+                                              await AdService.I
+                                                  .showRewardedDailyReward();
+                                          if (!ctx.mounted) return;
+                                          if (ok) {
+                                            cubit.markDailyRewardClaimedNow();
+                                            cubit.addCoins(rewardCoins);
+                                            cubit.grantMagnetBuff(
+                                              app.dailyMagnetBuffSeconds,
+                                            );
+                                            LoggingService.log(
+                                              'daily_reward_claimed',
+                                              fields: {
+                                                'coins': rewardCoins,
+                                                'magnet_sec':
+                                                    app.dailyMagnetBuffSeconds,
+                                                'via': 'ad',
+                                              },
+                                            );
+                                            ScaffoldMessenger.of(
+                                              ctx,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s!',
+                                                ),
+                                              ),
+                                            );
+                                          } else {
+                                            LoggingService.log(
+                                              'daily_reward_ad_unavailable',
+                                            );
+                                            ScaffoldMessenger.of(
+                                              ctx,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Iklan belum tersedia',
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        } else {
                                           cubit.markDailyRewardClaimedNow();
                                           cubit.addCoins(rewardCoins);
                                           cubit.grantMagnetBuff(
@@ -648,120 +538,160 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                               'coins': rewardCoins,
                                               'magnet_sec':
                                                   app.dailyMagnetBuffSeconds,
-                                              'via': 'ad',
+                                              'via': 'no_ad',
                                             },
                                           );
+                                          if (!ctx.mounted) return;
                                           ScaffoldMessenger.of(
                                             ctx,
                                           ).showSnackBar(
                                             SnackBar(
                                               content: Text(
-                                                'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s!',
-                                              ),
-                                            ),
-                                          );
-                                        } else {
-                                          LoggingService.log(
-                                            'daily_reward_ad_unavailable',
-                                          );
-                                          ScaffoldMessenger.of(
-                                            ctx,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'Iklan belum tersedia',
+                                                'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s (tanpa iklan)',
                                               ),
                                             ),
                                           );
                                         }
-                                      } else {
-                                        cubit.markDailyRewardClaimedNow();
-                                        cubit.addCoins(rewardCoins);
-                                        cubit.grantMagnetBuff(
-                                          app.dailyMagnetBuffSeconds,
-                                        );
-                                        LoggingService.log(
-                                          'daily_reward_claimed',
-                                          fields: {
-                                            'coins': rewardCoins,
-                                            'magnet_sec':
-                                                app.dailyMagnetBuffSeconds,
-                                            'via': 'no_ad',
-                                          },
-                                        );
-                                        if (!ctx.mounted) return;
-                                        ScaffoldMessenger.of(ctx).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s (tanpa iklan)',
-                                            ),
-                                          ),
-                                        );
                                       }
-                                    }
-                                    : null,
-                            child: Text(
-                              canClaim
-                                  ? 'Daily Reward'
-                                  : 'Daily Reward (next: ${countdown ?? "00:00:00"})',
+                                      : null,
                             ),
-                          ),
-                          if (!canClaim && countdown != null) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              'Next claim: $countdown',
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
+                            const SizedBox(height: 12),
+                            if (!canClaim && countdown != null) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                'Next claim: $countdown',
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
                               ),
+                            ],
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  icon: CircleAvatar(
+                                    backgroundColor: Colors.grey.withValues(
+                                      alpha: .4,
+                                    ),
+                                    child: Icon(
+                                      Icons.brush,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  onPressed:
+                                      () => _showSkinSelectionDialog(context),
+                                ),
+                                IconButton(
+                                  icon: CircleAvatar(
+                                    backgroundColor: Colors.grey.withValues(
+                                      alpha: .4,
+                                    ),
+                                    child: Icon(
+                                      Icons.emoji_events,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  onPressed:
+                                      () => Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) =>
+                                                  const AchievementsScreen(),
+                                        ),
+                                      ),
+                                ),
+                                IconButton(
+                                  icon: CircleAvatar(
+                                    backgroundColor: Colors.grey.withValues(
+                                      alpha: .4,
+                                    ),
+                                    child: Icon(
+                                      Icons.leaderboard_outlined,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  onPressed:
+                                      () => Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) =>
+                                                  const LeaderboardScreen(),
+                                        ),
+                                      ),
+                                ),
+                                IconButton(
+                                  icon: CircleAvatar(
+                                    backgroundColor: Colors.grey.withValues(
+                                      alpha: .4,
+                                    ),
+                                    child: Icon(
+                                      Icons.tune,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      barrierDismissible: true,
+                                      barrierColor: AppTheme.barrierColorDark,
+                                      builder:
+                                          (ctx) => const Dialog(
+                                            backgroundColor: Colors.transparent,
+                                            child: OptionsPanel(),
+                                          ),
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
                           ],
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
 
-                  if (app.adsEnabled && app.consentGiven)
-                    kIsWeb
-                        ? Container(
-                          height: 50,
-                          width: 320,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: const Color(0x2233FF99),
-                            borderRadius: BorderRadius.circular(8),
+                    if (app.adsEnabled && app.consentGiven)
+                      kIsWeb
+                          ? Container(
+                            height: 50,
+                            width: 320,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color(0x2233FF99),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              'Banner Ad (placeholder)',
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          )
+                          : (_bannerAd != null && _bannerReady)
+                          ? SizedBox(
+                            height: _bannerAd!.size.height.toDouble(),
+                            width: _bannerAd!.size.width.toDouble(),
+                            child: AdWidget(ad: _bannerAd!),
+                          )
+                          : Container(
+                            height: 50,
+                            width: 320,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color(0x22FFFFFF),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              'Memuat iklan...',
+                              style: TextStyle(color: Colors.white70),
+                            ),
                           ),
-                          child: const Text(
-                            'Banner Ad (placeholder)',
-                            style: TextStyle(color: Colors.white70),
-                          ),
-                        )
-                        : (_bannerAd != null && _bannerReady)
-                        ? SizedBox(
-                          height: _bannerAd!.size.height.toDouble(),
-                          width: _bannerAd!.size.width.toDouble(),
-                          child: AdWidget(ad: _bannerAd!),
-                        )
-                        : Container(
-                          height: 50,
-                          width: 320,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: const Color(0x22FFFFFF),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'Memuat iklan...',
-                            style: TextStyle(color: Colors.white70),
-                          ),
-                        ),
-                ],
-              ),
-            );
-          },
+                  ],
+                ),
+              );
+            },
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -808,7 +738,9 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                     image:
                                         s.imagePath != null
                                             ? DecorationImage(
-                                              image: AssetImage(s.imagePath!),
+                                              image: AssetImage(
+                                                "assets/images/${s.imagePath}",
+                                              ),
                                               fit: BoxFit.cover,
                                             )
                                             : null,

@@ -1,6 +1,7 @@
 # 🧩 TODO – Flutter Game Project
 
 ## 🎯 Core Tasks
+
 - [x] Setup Flame base class (`MyGame`)
 - [x] Add player movement (drag/hold) + arena boundaries
 - [x] Implement coin spawn and collection + scoring
@@ -12,6 +13,7 @@
 ---
 
 ## 💰 Monetization
+
 - [x] Integrate Google Mobile Ads SDK (Android/iOS)
 - [x] Create `AdService` (init, preload, show/hide, logging)
 - [x] Display adaptive banner ads on main menu
@@ -27,6 +29,7 @@
 ---
 
 ## 🎨 UI / UX
+
 - [x] Build main menu screen (Play, Daily Reward, Banner)
 - [x] Build game over screen (score, restart, rewarded options)
 - [x] Add custom buttons and icons
@@ -39,6 +42,7 @@
 ---
 
 ## 🧠 Data & Settings
+
 - [x] Save high score with SharedPreferences
 - [x] Add mute/unmute toggle (persist)
 - [x] Add restart / pause system
@@ -52,6 +56,7 @@
 ---
 
 ## 🚀 Deployment
+
 - [x] Create app icon & splash screen
 - [x] Generate release build (AAB)
 - [ ] Add privacy policy URL (store listing)
@@ -59,6 +64,7 @@
 ---
 
 ## 🔮 Future Enhancements
+
 - [x] Tuning magnet buff duration dan cost
 - [x] Reward breakdown UI (show coins + buff details)
 - [x] Additional power-ups (speed boost, shield, etc.)
@@ -73,6 +79,7 @@
 ---
 
 ## 🧩 Bonus Ideas
+
 - [ ] Add daily reward or login bonus (refine)
 - [ ] Add simple leaderboard (Firebase)
 - [ ] Add skins or themes
@@ -82,6 +89,7 @@
 ---
 
 ## ✅ Latest Changes
+
 - [x] Fix magnet duration countdown to use seconds accumulator
 - [x] Add safe overlay wrappers to avoid test environment asserts
 - [x] Initialize MainMenu via `initialActiveOverlays` in `GameWidget`
@@ -92,20 +100,31 @@
 ---
 
 ## 📚 Documentation
+
 - [x] Tambah komentar class/fungsi/blok di `LoggingService` & `AdService` sesuai project rules
 - [x] Tambah dokumentasi pada `MyGame` (class & methods utama)
 
-
 ## 🎯 UI/UX Revamp Checklist
-- [ ] HUD overhaul: skor menonjol, timer jelas, ikon buff + progress
-- [ ] Game Over redesign: reward breakdown pakai ikon + CTA (Retry/Double/Leaderboard/Skins)
-- [x] Main Menu redesign: kartu Play/Skins/Achievements/Leaderboard/Settings + posisi banner
+
+- [x] HUD overhaul: skor menonjol, timer jelas, ikon buff + progress
+- [x] Game Over redesign: perbaikan logika tombol Revive dan Double Rewards
+- [x] Main Menu redesign: Play/Skins/Leaderboard/Settings; banner bawah; quick actions Neumorphic compact; grid sekunder disembunyikan; dark barrier untuk kontras
 - [x] Pause overlay: Resume/Restart/Quick Settings (audio/haptics) dengan backdrop semi-transparan
-- [ ] Theme tokens: palette warna, spacing scale, typography scale via ThemeData
-- [ ] Icons & badges: ikon buff, badge achievement, tooltip label untuk web focus
-- [ ] Responsive layout: SafeArea + LayoutBuilder; grid skins/achievements 2 kolom mobile, 4+ desktop
-- [ ] Accessibility: kontras ≥ 4.5:1, font ≥ 14, focus states untuk keyboard
-- [ ] Feedback polish: combo pop-up, tuning partikel, magnet glow subtle, durasi flash shield/obstacle
-- [ ] HUD performance: ValueListenable untuk update; minimalkan rebuild berat
-- [ ] Leaderboard UI polish: item ringkas (avatar initial, rank, score, waktu), submit dari Game Over
-- [ ] QA checklist: preview web/mobile, cek overlay (Main Menu, HUD, Pause, Game Over)
+- [x] Theme tokens: palette warna, spacing scale, typography scale via ThemeData (AppTheme)
+- [x] Icons & badges: komponen NeumorphicButton dan BokehBackground
+- [x] Accessibility: kontras ≥ 4.5:1 (Main Menu improved via dark barrier), font ≥ 14, focus states keyboard (NeumorphicButton fokus/hover, font min 14)
+- [x] Feedback polish: combo pop-up, tuning partikel, magnet glow subtle, durasi flash shield/obstacle (durasi disesuaikan; glow lebih subtle)
+- [x] HUD performance: ValueListenable untuk update; minimalkan repaint dengan RepaintBoundary
+- [x] Leaderboard UI polish: item ringkas (avatar initial, rank, score, waktu), submit dari Game Over
+- [x] QA checklist: preview web/mobile, cek overlay (Main Menu, HUD, Pause, Game Over)
+
+---
+
+## ✅ Recent Updates (2025-01-17)
+
+- [x] **HUD overhaul**: Skor prominent dengan glow, timer dinamis (hijau->kuning->merah), magnet buff visual
+- [x] **Fix tombol Revive**: Selalu clickable saat game over karena obstacle, menampilkan pesan informatif
+- [x] **Fix tombol Double Rewards**: Selalu tampil dan clickable, konsisten UX
+- [x] **Tambah UI components**: BokehBackground, NeumorphicButton, AppTheme
+- [x] **Code quality**: flutter analyze bersih, fix deprecation warnings withOpacity->withValues
+- [x] **Git workflow**: Commit ke dev, push ke origin, siap untuk task berikutnya

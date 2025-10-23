@@ -159,6 +159,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                     (e) => e.playerId == entry.playerId,
                                   ) +
                                   1;
+                              final initial = entry.playerId.isNotEmpty
+                                  ? entry.playerId[0].toUpperCase()
+                                  : '?';
                               final isTop3 = globalRank <= 3;
                               final isCurrent =
                                   entry.playerId == currentPlayerId;
@@ -205,19 +208,19 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                     backgroundColor: medalColor,
                                     foregroundColor: Colors.white,
                                     child: Text(
-                                      '$globalRank',
+                                      initial,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ),
                                   title: Text(
-                                    entry.playerId,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                    ),
+                                    '#$globalRank · ${entry.playerId}',
+                                     style: const TextStyle(
+                                       color: Colors.white,
+                                       fontWeight: FontWeight.bold,
+                                       fontSize: 18,
+                                     ),
                                   ),
                                   subtitle: Text(
                                     _buildSubtitle(

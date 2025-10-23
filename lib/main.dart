@@ -67,6 +67,7 @@ class MyApp extends StatelessWidget {
         child: MaterialApp(
           title: 'Tuang Game',
           theme: ThemeData.dark(),
+          debugShowCheckedModeBanner: false,
           home: Scaffold(
             body: GestureDetector(
               behavior: HitTestBehavior.opaque,

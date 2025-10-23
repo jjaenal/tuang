@@ -61,16 +61,16 @@ class MenuPanel extends StatelessWidget {
           const SizedBox(height: 12),
           ...children,
           const SizedBox(height: 8),
-          if (onClose != null)
-            SizedBox(
-              width: 220,
-              child: NeumorphicButton(
-                label: 'Close',
-                icon: Icons.close,
-                onPressed: onClose,
-                primary: false,
-              ),
-            ),
+          // if (onClose != null)
+          //   SizedBox(
+          //     width: 220,
+          //     child: NeumorphicButton(
+          //       label: 'Close',
+          //       icon: Icons.close,
+          //       onPressed: onClose,
+          //       primary: false,
+          //     ),
+          //   ),
         ],
       ),
     );

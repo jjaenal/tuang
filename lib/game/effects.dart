@@ -4,10 +4,12 @@ import 'player.dart';
 
 /// FlashOverlay: full-screen flash effect for collisions
 class FlashOverlay extends RectangleComponent {
-  FlashOverlay({required Vector2 size, Color color = const Color(0x55FF0000)})
-    : super(size: size, paint: Paint()..color = color, priority: 10) {
-    // Auto-remove after 0.2 seconds
-    Future.delayed(const Duration(milliseconds: 200), () {
+  FlashOverlay({
+    required Vector2 size,
+    Color color = const Color(0x55FF0000),
+    int durationMs = 200,
+  }) : super(size: size, paint: Paint()..color = color, priority: 10) {
+    Future.delayed(Duration(milliseconds: durationMs), () {
       removeFromParent();
     });
   }
@@ -18,15 +20,14 @@ class MagnetGlow extends CircleComponent {
   final Player target;
 
   MagnetGlow({required this.target})
-    : super(
-        radius: 50,
-        paint:
-            Paint()
-              ..color = const Color(0x552ECC71)
-              ..style = PaintingStyle.stroke
-              ..strokeWidth = 3.0,
-        anchor: Anchor.center,
-      );
+      : super(
+          radius: 50,
+          paint: Paint()
+            ..color = const Color(0x442ECC71)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.0,
+          anchor: Anchor.center,
+        );
 
   @override
   void update(double dt) {
@@ -40,15 +41,14 @@ class SpeedBoostGlow extends CircleComponent {
   final Player target;
 
   SpeedBoostGlow({required this.target})
-    : super(
-        radius: 30,
-        paint:
-            Paint()
-              ..color = const Color(0x55E74C3C)
-              ..style = PaintingStyle.stroke
-              ..strokeWidth = 2.0,
-        anchor: Anchor.center,
-      );
+      : super(
+          radius: 30,
+          paint: Paint()
+            ..color = const Color(0x40E74C3C)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.0,
+          anchor: Anchor.center,
+        );
 
   @override
   void update(double dt) {
@@ -62,15 +62,14 @@ class ShieldGlow extends CircleComponent {
   final Player target;
 
   ShieldGlow({required this.target})
-    : super(
-        radius: 25,
-        paint:
-            Paint()
-              ..color = const Color(0x553498DB)
-              ..style = PaintingStyle.stroke
-              ..strokeWidth = 3.0,
-        anchor: Anchor.center,
-      );
+      : super(
+          radius: 25,
+          paint: Paint()
+            ..color = const Color(0x443498DB)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.0,
+          anchor: Anchor.center,
+        );
 
   @override
   void update(double dt) {

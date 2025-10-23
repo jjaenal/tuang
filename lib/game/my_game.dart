@@ -387,10 +387,10 @@ class MyGame extends FlameGame with HasCollisionDetection {
           shieldSecondsLeft = 0;
           obs.removeFromParent();
           add(
-            FlashOverlay(size: size, color: const Color(0x553498DB)),
+            FlashOverlay(size: size, color: const Color(0x553498DB), durationMs: 220),
           ); // Blue flash untuk shield
         } else {
-          add(FlashOverlay(size: size));
+          add(FlashOverlay(size: size, durationMs: 160));
           // Set penyebab game over: collision
           lastGameOverCause = GameOverCause.collision;
           gameOver();

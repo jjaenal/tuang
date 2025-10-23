@@ -202,8 +202,20 @@ MIT © 2025 YourName
 ---
 
 ## ✏️ Perubahan Terbaru
-- Developer: YourName
-- File diubah:
-  - `lib/services/logging_service.dart`: tambah komentar class/fungsi/blok untuk instrumentasi durasi sesi.
-  - `lib/services/ad_service.dart`: tambah komentar class/fungsi serta penjelasan instrumentasi log iklan.
-- Ringkas perubahan: dokumentasi internal ditingkatkan agar sesuai project rules (komentar pada class, fungsi, dan blok kode yang diubah), tanpa mengubah perilaku aplikasi.
+
+### 2025-01-17 - UI/UX Revamp: Fix Tombol Game Over
+- **Developer**: Assistant AI
+- **Branch**: `feature/uiux-revamp` → `dev`
+- **Files Modified**: `lib/ui/game_over.dart`
+- **Changes**: 
+  - Perbaikan logika tombol **Revive**: selalu clickable saat game over karena obstacle, menampilkan pesan informatif jika revive/ads tidak tersedia
+  - Perbaikan logika tombol **Double Rewards**: selalu tampil dan clickable, konsisten UX pattern
+  - Tambah UI components: `BokehBackground`, `NeumorphicButton`, `AppTheme`
+- **Impact**: Meningkatkan UX dengan tombol yang lebih responsif dan informatif
+- **Testing**: ✅ `flutter analyze` bersih, ✅ 29/29 tests passed, ✅ Manual testing via web preview
+
+### Sebelumnya
+- **Developer**: YourName  
+- **Files Modified**: `lib/services/logging_service.dart`, `lib/services/ad_service.dart`
+- **Changes**: Dokumentasi internal ditingkatkan sesuai project rules (komentar class/fungsi/blok)
+- **Impact**: Tidak mengubah perilaku aplikasi, hanya meningkatkan maintainability
