@@ -133,3 +133,12 @@
 - [x] **Tambah UI components**: BokehBackground, NeumorphicButton, AppTheme
 - [x] **Code quality**: flutter analyze bersih, fix deprecation warnings withOpacity->withValues
 - [x] **Git workflow**: Commit ke dev, push ke origin, siap untuk task berikutnya
+
+## 📝 Backlog
+
+- [ ] **Multi-language support**: id/en
+- [ ] **Add documentation to main class and methods in all files following #project_rules.md**
+- [ ] **Skins & themes improvement**
+  - [ ] **Draw skins from scratch using CustomPaint**
+  - [ ] **Draw themes from scratch using CustomPaint**
+- [ ] **Test ads in release mode** (test IDs → prod IDs)

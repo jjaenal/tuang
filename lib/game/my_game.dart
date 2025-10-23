@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'dart:math';
-import 'dart:async';
+
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'player.dart';
 import 'coin.dart';
@@ -42,6 +44,7 @@ class MyGame extends FlameGame with HasCollisionDetection {
   // Input
   Vector2 inputDir = Vector2.zero();
   double playerSpeedMultiplier = 1.0;
+  JoystickComponent? joystick;
 
   // Game state flags
   bool isPlaying = false;
@@ -117,6 +120,33 @@ class MyGame extends FlameGame with HasCollisionDetection {
     final activeSkin = await _getActiveSkin();
     player = Player(skin: activeSkin);
     await add(player);
+
+    // Tambahkan UI joystick untuk mobile (iOS/Android) saja
+    final isMobilePlatform =
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.iOS ||
+            defaultTargetPlatform == TargetPlatform.android);
+    if (isMobilePlatform && joystick == null) {
+      final knob = CircleComponent(
+        radius: 24,
+        paint: Paint()..color = Colors.white.withValues(alpha: 0.85),
+        anchor: Anchor.topLeft,
+      );
+      final bg = CircleComponent(
+        radius: 44,
+        paint: Paint()..color = Colors.black.withValues(alpha: 0.30),
+        anchor: Anchor.topLeft,
+      );
+      final js = JoystickComponent(
+        knob: knob,
+        background: bg,
+      );
+      js.anchor = Anchor.bottomCenter;
+      js.position = Vector2(size.x / 2, size.y - 64);
+      js.priority = 1000; // tampil di atas entity game
+      joystick = js;
+      await add(js);
+    }
   }
 
   // Mendapatkan skin aktif dari AppSettingsCubit
@@ -245,6 +275,18 @@ class MyGame extends FlameGame with HasCollisionDetection {
   void update(double dt) {
     super.update(dt);
     if (!isPlaying) return;
+
+    // Update input direction from joystick on mobile platforms
+    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid) && joystick != null) {
+      final d = joystick!.delta;
+      // Apply small deadzone to avoid jitter and accidental release
+      const double deadzone = 0.12; // ~12% tilt threshold
+      if (d.length >= deadzone) {
+        inputDir = d.normalized();
+      } else {
+        inputDir = Vector2.zero();
+      }
+    }
 
     // Elapsed time accumulation
     elapsed += dt;
@@ -427,14 +469,22 @@ class MyGame extends FlameGame with HasCollisionDetection {
           shieldSecondsLeft = 0;
           obs.removeFromParent();
           add(
-            FlashOverlay(size: size, color: const Color(0x553498DB), durationMs: 220),
+            FlashOverlay(
+              size: size,
+              color: const Color(0x553498DB),
+              durationMs: 220,
+            ),
           ); // Blue flash untuk shield
         } else {
           // Game over via collision: gunakan gameOver() agar skor & Best ter-update
           lastGameOverCause = GameOverCause.collision;
           gameOver();
           add(
-            FlashOverlay(size: size, color: const Color(0x55DC3545), durationMs: 240),
+            FlashOverlay(
+              size: size,
+              color: const Color(0x55DC3545),
+              durationMs: 240,
+            ),
           ); // Red flash untuk collision
         }
       }
@@ -556,10 +606,12 @@ class MyGame extends FlameGame with HasCollisionDetection {
     final pos = _randomPos();
     final speedX =
         (GameConfig.obstacleMinSpeed +
-        _rng.nextDouble() * GameConfig.obstacleMaxSpeedBonus) * _obstacleSpeedMul;
+            _rng.nextDouble() * GameConfig.obstacleMaxSpeedBonus) *
+        _obstacleSpeedMul;
     final speedY =
         (GameConfig.obstacleMinSpeed +
-        _rng.nextDouble() * GameConfig.obstacleMaxSpeedBonus) * _obstacleSpeedMul;
+            _rng.nextDouble() * GameConfig.obstacleMaxSpeedBonus) *
+        _obstacleSpeedMul;
     final vx = _rng.nextBool() ? speedX : -speedX;
     final vy = _rng.nextBool() ? speedY : -speedY;
     add(Obstacle(position: pos, velocity: Vector2(vx, vy)));
