@@ -4,6 +4,8 @@ import '../game/my_game.dart';
 import '../state/app_settings_cubit.dart';
 import '../services/logging_service.dart';
 import '../services/leaderboard_service.dart';
+import '../services/audio_service.dart';
+import '../services/haptics_service.dart';
 import 'components/neumorphic_button.dart';
 import 'components/menu_components.dart';
 import 'components/bokeh_background.dart';
@@ -190,6 +192,9 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
                             if (!game.rewardDeposited) {
                               cubit.addCoins(total);
                               game.markRewardDeposited();
+                              // SFX + haptik saat reward diterapkan
+                              AudioService.I.playCoin();
+                              HapticsService.coinPickup();
                               final leaderboard = LeaderboardService();
                               await leaderboard.submitScoreAsync(
                                 playerId: cubit.state.playerName,
@@ -223,6 +228,9 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
                             if (!game.rewardDeposited) {
                               cubit.addCoins(total);
                               game.markRewardDeposited();
+                              // SFX + haptik saat reward diterapkan
+                              AudioService.I.playCoin();
+                              HapticsService.coinPickup();
                               final leaderboard = LeaderboardService();
                               await leaderboard.submitScoreAsync(
                                 playerId: cubit.state.playerName,
