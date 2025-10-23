@@ -68,7 +68,7 @@ class MyApp extends StatelessWidget {
           HapticsService.enabled = state.hapticsOn;
         },
         child: MaterialApp(
-          title: AppLocalizations.of(context)?.appTitle ?? 'Tuang Game',
+          onGenerateTitle: (context) => AppLocalizations.of(context)?.appTitle ?? 'Tuang Game',
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
