@@ -156,7 +156,10 @@ class GameOverOverlay extends StatelessWidget {
                           if (!deposited)
                             const Text(
                               'Reward akan ditambahkan saat Restart atau Back to Menu',
-                              style: TextStyle(color: Colors.white54, fontSize: 12),
+                              style: TextStyle(
+                                color: Colors.white54,
+                                fontSize: 12,
+                              ),
                             ),
                         ],
                       ),
@@ -168,7 +171,7 @@ class GameOverOverlay extends StatelessWidget {
               NeumorphicButton(
                 label: 'Restart',
                 primary: false,
-                onPressed: () {
+                onPressed: () async {
                   final cubit = context.read<AppSettingsCubit>();
                   if (!game.rewardDeposited) {
                     cubit.addCoins(game.lastScore);
@@ -176,7 +179,7 @@ class GameOverOverlay extends StatelessWidget {
 
                     // Submit score ke leaderboard
                     final leaderboard = LeaderboardService();
-                    leaderboard.submitScore(
+                    await leaderboard.submitScoreAsync(
                       playerId: cubit.state.playerName,
                       score: game.lastScore,
                     );
@@ -311,14 +314,14 @@ class GameOverOverlay extends StatelessWidget {
               NeumorphicButton(
                 label: 'Back to Menu',
                 primary: false,
-                onPressed: () {
+                onPressed: () async {
                   final cubit = context.read<AppSettingsCubit>();
                   if (!game.rewardDeposited) {
                     cubit.addCoins(game.lastScore);
                     game.markRewardDeposited();
 
                     final leaderboard = LeaderboardService();
-                    leaderboard.submitScore(
+                    await leaderboard.submitScoreAsync(
                       playerId: cubit.state.playerName,
                       score: game.lastScore,
                     );

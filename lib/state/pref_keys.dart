@@ -21,4 +21,7 @@ class PrefKeys {
   // Character skin-related keys
   static const String activeSkinId = 'pref_activeSkinId';
   static const String unlockedSkinIds = 'pref_unlockedSkinIds';
+
+  // Difficulty-related key
+  static const String difficulty = 'pref_difficulty';
 }

@@ -91,6 +91,15 @@ class MyGame extends FlameGame with HasCollisionDetection {
   SpeedBoostGlow? _speedBoostGlow;
   ShieldGlow? _shieldGlow;
 
+  // === Difficulty-effective parameters ===
+  double _coinIntervalEff = GameConfig.coinSpawnIntervalSec;
+  double _obstacleIntervalEff = GameConfig.obstacleSpawnIntervalSec;
+  double _magnetIntervalEff = GameConfig.magnetSpawnIntervalSec;
+  double _speedBoostIntervalEff = GameConfig.speedBoostSpawnIntervalSec;
+  double _shieldIntervalEff = GameConfig.shieldSpawnIntervalSec;
+  double _obstacleSpeedMul = 1.0;
+  double _baseSpeedMul = 1.0;
+
   @override
   Future<void> onLoad() async {
     // Add background color untuk debugging
@@ -174,6 +183,42 @@ class MyGame extends FlameGame with HasCollisionDetection {
     overlays.remove(overlayMainMenu);
     _safeAddOverlay(overlayHud);
 
+    // Setup difficulty-effective params from preferences
+    Future(() async {
+      final prefs = await SharedPreferences.getInstance();
+      final key = prefs.getString(PrefKeys.difficulty) ?? 'normal';
+      switch (key) {
+        case 'easy':
+          _coinIntervalEff = GameConfig.coinSpawnIntervalSec * 1.25;
+          _obstacleIntervalEff = GameConfig.obstacleSpawnIntervalSec * 1.25;
+          _magnetIntervalEff = GameConfig.magnetSpawnIntervalSec * 1.1;
+          _speedBoostIntervalEff = GameConfig.speedBoostSpawnIntervalSec * 1.1;
+          _shieldIntervalEff = GameConfig.shieldSpawnIntervalSec * 1.1;
+          _obstacleSpeedMul = 0.85;
+          _baseSpeedMul = 1.10;
+          break;
+        case 'hard':
+          _coinIntervalEff = GameConfig.coinSpawnIntervalSec * 0.85;
+          _obstacleIntervalEff = GameConfig.obstacleSpawnIntervalSec * 0.8;
+          _magnetIntervalEff = GameConfig.magnetSpawnIntervalSec * 0.9;
+          _speedBoostIntervalEff = GameConfig.speedBoostSpawnIntervalSec * 0.9;
+          _shieldIntervalEff = GameConfig.shieldSpawnIntervalSec * 0.9;
+          _obstacleSpeedMul = 1.20;
+          _baseSpeedMul = 0.95;
+          break;
+        default:
+          _coinIntervalEff = GameConfig.coinSpawnIntervalSec;
+          _obstacleIntervalEff = GameConfig.obstacleSpawnIntervalSec;
+          _magnetIntervalEff = GameConfig.magnetSpawnIntervalSec;
+          _speedBoostIntervalEff = GameConfig.speedBoostSpawnIntervalSec;
+          _shieldIntervalEff = GameConfig.shieldSpawnIntervalSec;
+          _obstacleSpeedMul = 1.0;
+          _baseSpeedMul = 1.0;
+      }
+      // Set current player speed baseline
+      playerSpeedMultiplier = _baseSpeedMul;
+    });
+
     // Achievement: game start counters
     _achievementService.incrementProgress(AchievementType.firstGame);
     _achievementService.incrementProgress(AchievementType.play10Games);
@@ -182,7 +227,7 @@ class MyGame extends FlameGame with HasCollisionDetection {
     // Consume pending magnet buff asynchronously (for tests)
     Future(() async {
       final prefs = await SharedPreferences.getInstance();
-      final pending = prefs.getInt('pref_pendingMagnetBuffSec') ?? 0;
+      final pending = prefs.getInt(PrefKeys.pendingMagnetBuffSec) ?? 0;
       if (pending > 0) {
         magnetSecondsLeft = pending;
         _magnetTotalSeconds = pending;
@@ -190,18 +235,13 @@ class MyGame extends FlameGame with HasCollisionDetection {
         magnetUsedThisRun = true;
         magnetsPicked += 1;
         magnetVN.value = 1.0;
-        await prefs.setInt('pref_pendingMagnetBuffSec', 0);
+        await prefs.setInt(PrefKeys.pendingMagnetBuffSec, 0);
         _achievementService.updateProgress(AchievementType.useMagnet, 1);
       }
     });
   }
 
   @override
-  /// Updates core mechanics each frame with [dt] seconds.
-  ///
-  /// Handles session timer, magnet countdown via 1-second accumulator,
-  /// speed boost decay, spawns, coin attraction under magnet, pickups,
-  /// combo window, collisions, and session end.
   void update(double dt) {
     super.update(dt);
     if (!isPlaying) return;
@@ -247,7 +287,7 @@ class MyGame extends FlameGame with HasCollisionDetection {
         playerSpeedMultiplier =
             speedBoostSecondsLeft > 0
                 ? GameConfig.speedBoostPowerUpMultiplier
-                : 1.0;
+                : _baseSpeedMul;
         if (_speedBoostGlow != null && speedBoostSecondsLeft <= 0) {
           _speedBoostGlow?.removeFromParent();
           _speedBoostGlow = null;
@@ -281,23 +321,23 @@ class MyGame extends FlameGame with HasCollisionDetection {
     _magnetTimer += dt;
     _speedBoostTimer += dt;
     _shieldTimer += dt;
-    if (_coinTimer >= GameConfig.coinSpawnIntervalSec) {
+    if (_coinTimer >= _coinIntervalEff) {
       _coinTimer = 0.0;
       _spawnCoin();
     }
-    if (_obstacleTimer >= GameConfig.obstacleSpawnIntervalSec) {
+    if (_obstacleTimer >= _obstacleIntervalEff) {
       _obstacleTimer = 0.0;
       _spawnObstacle();
     }
-    if (_magnetTimer >= GameConfig.magnetSpawnIntervalSec) {
+    if (_magnetTimer >= _magnetIntervalEff) {
       _magnetTimer = 0.0;
       _spawnMagnet();
     }
-    if (_speedBoostTimer >= GameConfig.speedBoostSpawnIntervalSec) {
+    if (_speedBoostTimer >= _speedBoostIntervalEff) {
       _speedBoostTimer = 0.0;
       _spawnSpeedBoost();
     }
-    if (_shieldTimer >= GameConfig.shieldSpawnIntervalSec) {
+    if (_shieldTimer >= _shieldIntervalEff) {
       _shieldTimer = 0.0;
       _spawnShield();
     }
@@ -318,7 +358,7 @@ class MyGame extends FlameGame with HasCollisionDetection {
         coin.removeFromParent();
         onCoinPicked();
         _speedBoostLeft = GameConfig.speedBoostDurationSec;
-        playerSpeedMultiplier = 1.0 + GameConfig.speedBoostMultiplier;
+        playerSpeedMultiplier = _baseSpeedMul + GameConfig.speedBoostMultiplier;
 
         // Combo logic
         if (_comboWindowLeft <= 0) {
@@ -390,11 +430,12 @@ class MyGame extends FlameGame with HasCollisionDetection {
             FlashOverlay(size: size, color: const Color(0x553498DB), durationMs: 220),
           ); // Blue flash untuk shield
         } else {
-          add(FlashOverlay(size: size, durationMs: 160));
-          // Set penyebab game over: collision
+          // Game over via collision: gunakan gameOver() agar skor & Best ter-update
           lastGameOverCause = GameOverCause.collision;
           gameOver();
-          break;
+          add(
+            FlashOverlay(size: size, color: const Color(0x55DC3545), durationMs: 240),
+          ); // Red flash untuk collision
         }
       }
     }
@@ -514,11 +555,11 @@ class MyGame extends FlameGame with HasCollisionDetection {
     if (!isPlaying) return;
     final pos = _randomPos();
     final speedX =
-        GameConfig.obstacleMinSpeed +
-        _rng.nextDouble() * GameConfig.obstacleMaxSpeedBonus;
+        (GameConfig.obstacleMinSpeed +
+        _rng.nextDouble() * GameConfig.obstacleMaxSpeedBonus) * _obstacleSpeedMul;
     final speedY =
-        GameConfig.obstacleMinSpeed +
-        _rng.nextDouble() * GameConfig.obstacleMaxSpeedBonus;
+        (GameConfig.obstacleMinSpeed +
+        _rng.nextDouble() * GameConfig.obstacleMaxSpeedBonus) * _obstacleSpeedMul;
     final vx = _rng.nextBool() ? speedX : -speedX;
     final vy = _rng.nextBool() ? speedY : -speedY;
     add(Obstacle(position: pos, velocity: Vector2(vx, vy)));

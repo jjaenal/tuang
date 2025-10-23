@@ -389,7 +389,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
                     // Hero Play Button (neumorphic, konsisten dengan gaya baru)
                     NeumorphicButton(
                       label: 'Play',
@@ -555,7 +555,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                       }
                                       : null,
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 6),
                             if (!canClaim && countdown != null) ...[
                               const SizedBox(height: 4),
                               Text(

@@ -80,11 +80,16 @@
 
 ## 🧩 Bonus Ideas
 
-- [ ] Add daily reward or login bonus (refine)
-- [ ] Add simple leaderboard (Firebase)
-- [ ] Add skins or themes
+- [x] Add daily reward or login bonus (refine)
+- [x] Add simple leaderboard (Supabase)
+
+  - SUPABASE_URL = "https://rcobifucszhgibuclane.supabase.co"
+  - SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjb2JpZnVjc3poZ2lidWNsYW5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNjA3ODUsImV4cCI6MjA3NjczNjc4NX0.PC0jNhnWIEJa3wUDN25x1sWneCNB3tEyOEDaiQMH2Uw"
+
+- [x] Add skins or themes
 - [x] Add vibration feedback
-- [ ] Add difficulty modes (easy/normal/hard)
+- [x] Add difficulty modes (easy/normal/hard)
+- [ ] Add joystick controls
 
 ---
 

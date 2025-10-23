@@ -7,6 +7,7 @@ import '../game/game_config.dart';
 import 'components/menu_components.dart';
 import 'components/neumorphic_button.dart';
 import 'theme/app_theme.dart';
+import '../models/difficulty.dart';
 
 class OptionsPanel extends StatefulWidget {
   const OptionsPanel({super.key});
@@ -31,16 +32,12 @@ class _OptionsPanelState extends State<OptionsPanel> {
                 onPressed: () => Navigator.of(ctx).pop(false),
                 primary: false,
                 size: ButtonSize.compact,
-                // width: 120,
-                // height: 44,
               ),
               NeumorphicButton(
                 label: 'Setuju',
                 onPressed: () => Navigator.of(ctx).pop(true),
                 primary: true,
                 size: ButtonSize.compact,
-                // width: 120,
-                // height: 44,
               ),
             ],
           ),
@@ -126,6 +123,28 @@ class _OptionsPanelState extends State<OptionsPanel> {
                 ),
               ),
               const SizedBox(height: 8),
+              // Difficulty selector
+              OptionRow(
+                icon: Icons.speed,
+                label: 'Difficulty',
+                trailing: SizedBox(
+                  width: 180,
+                  child: Slider(
+                    value: app.difficulty.index.toDouble(),
+                    min: 0,
+                    max: 2,
+                    divisions: 2,
+                    label: app.difficulty.key.toUpperCase(),
+                    onChanged: (val) {
+                      final difficulty = Difficulty.values[val.round()];
+                      context.read<AppSettingsCubit>().setDifficulty(
+                        difficulty,
+                      );
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
               // Daily Magnet slider pakai OptionRow dengan spacer
               OptionRow(
                 icon: Icons.bolt,
@@ -142,13 +161,31 @@ class _OptionsPanelState extends State<OptionsPanel> {
                       context
                           .read<AppSettingsCubit>()
                           .setDailyMagnetBuffSeconds(val.round());
-                      // final seconds = val.round();
-                      // final estimate = GameConfig.magnetBuffValueCoins(seconds);
-                      // ScaffoldMessenger.of(context).showSnackBar(
-                      //   SnackBar(
-                      //     content: Text('Daily Magnet: ${seconds}s (~$estimate coins)'),
-                      //   ),
-                      // );
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Player Name input
+              OptionRow(
+                icon: Icons.person,
+                label: 'Player Name',
+                trailing: SizedBox(
+                  width: 180,
+                  child: TextField(
+                    controller: TextEditingController(text: app.playerName),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      border: OutlineInputBorder(),
+                    ),
+                    onSubmitted: (value) {
+                      if (value.isNotEmpty) {
+                        context.read<AppSettingsCubit>().setPlayerName(value);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Player name updated')),
+                        );
+                      }
                     },
                   ),
                 ),

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../state/pref_keys.dart';
+import 'supabase_service.dart';
 
 /// [LeaderboardService] manages score submissions and fetches top scores.
 ///
@@ -28,30 +29,53 @@ class LeaderboardService {
   Future<void> ensureLoaded() async {
     if (_loaded) return;
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(PrefKeys.leaderboard);
-      if (raw != null && raw.isNotEmpty) {
-        final List<dynamic> list = jsonDecode(raw) as List<dynamic>;
+      await SupabaseService.I.ensureInit();
+      final client = SupabaseService.I.client;
+      if (client != null) {
+        final data = await client
+            .from('scores')
+            .select('player_id, player_name, score, updated_at')
+            .order('score', ascending: false)
+            .limit(50);
         _entries
           ..clear()
           ..addAll(
-            list.map((e) {
-              final m = e as Map<String, dynamic>;
-              return _Entry(
-                playerId: m['id'] as String? ?? '',
-                score: m['score'] as int? ?? 0,
-                timestampMs:
-                    m['ts'] as int? ?? DateTime.now().millisecondsSinceEpoch,
-              );
-            }),
+            (data as List).map(
+              (m) => _Entry(
+                playerId:
+                    (m['player_name'] as String?) ??
+                    (m['player_id'] as String?) ??
+                    '',
+                score: (m['score'] as int?) ?? 0,
+                timestampMs: _parseUpdatedAt(m['updated_at']),
+              ),
+            ),
           );
         _sort();
+      } else {
+        final prefs = await SharedPreferences.getInstance();
+        final raw = prefs.getString(PrefKeys.leaderboard);
+        if (raw != null && raw.isNotEmpty) {
+          final List<dynamic> list = jsonDecode(raw) as List<dynamic>;
+          _entries
+            ..clear()
+            ..addAll(
+              list.map((e) {
+                final m = e as Map<String, dynamic>;
+                return _Entry(
+                  playerId: m['id'] as String? ?? '',
+                  score: m['score'] as int? ?? 0,
+                  timestampMs:
+                      m['ts'] as int? ?? DateTime.now().millisecondsSinceEpoch,
+                );
+              }),
+            );
+          _sort();
+        }
       }
     } catch (_) {
-      // Ignore malformed data; start with empty list.
       _entries.clear();
     }
-    // Enforce cap after loading to avoid growing indefinitely across sessions.
     _enforceCap();
     _loaded = true;
   }
@@ -59,7 +83,13 @@ class LeaderboardService {
   /// Submits a [score] for a given [playerId].
   /// Returns `true` if the score was added or upgraded.
   /// Throws [ArgumentError] if inputs are invalid.
-  bool submitScore({required String playerId, required int score}) {
+  void _enforceCap({int cap = 50}) {
+    if (_entries.length > cap) {
+      _entries.removeRange(cap, _entries.length);
+    }
+  }
+  
+  Future<bool> submitScoreAsync({required String playerId, required int score}) async {
     if (playerId.isEmpty) {
       throw ArgumentError('playerId cannot be empty');
     }
@@ -69,6 +99,23 @@ class LeaderboardService {
     final now = DateTime.now().millisecondsSinceEpoch;
     _lastSubmittedPlayerId = playerId;
     _lastSubmittedTimestampMs = now;
+
+    final client = SupabaseService.I.client;
+    if (client != null) {
+      try {
+        await client
+            .from('scores')
+            .upsert({
+              'player_id': playerId,
+              'player_name': playerId,
+              'score': score,
+              'updated_at': DateTime.now().toIso8601String(),
+            }, onConflict: 'player_id');
+        debugPrint('Score submitted to Supabase: $playerId - $score');
+      } catch (e) {
+        debugPrint('Error submitting score to Supabase: $e');
+      }
+    }
 
     final idx = _entries.indexWhere((e) => e.playerId == playerId);
     if (idx >= 0) {
@@ -84,8 +131,6 @@ class LeaderboardService {
         _saveToPrefs();
         return true;
       }
-      // Do not update for lower or equal scores to keep highest and
-      // preserve earlier timestamp as tie-breaker.
       return false;
     }
 
@@ -142,12 +187,6 @@ class LeaderboardService {
     });
   }
 
-  void _enforceCap({int cap = 50}) {
-    if (_entries.length > cap) {
-      _entries.removeRange(cap, _entries.length);
-    }
-  }
-
   void _saveToPrefs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -196,4 +235,13 @@ class _Entry {
     required this.score,
     required this.timestampMs,
   });
+}
+
+int _parseUpdatedAt(dynamic value) {
+  if (value is String) {
+    return DateTime.tryParse(value)?.millisecondsSinceEpoch ??
+        DateTime.now().millisecondsSinceEpoch;
+  }
+  if (value is int) return value;
+  return DateTime.now().millisecondsSinceEpoch;
 }

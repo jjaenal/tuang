@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/character_skin.dart';
 import '../game/game_config.dart';
 import 'pref_keys.dart';
+import '../models/difficulty.dart';
 
 class AppSettingsState extends Equatable {
   final bool audioOn;
@@ -21,6 +22,7 @@ class AppSettingsState extends Equatable {
   final String playerName;
   final String activeSkinId;
   final List<String> unlockedSkinIds;
+  final Difficulty difficulty;
 
   const AppSettingsState({
     this.audioOn = true,
@@ -36,6 +38,7 @@ class AppSettingsState extends Equatable {
     this.playerName = 'Player',
     this.activeSkinId = 'default',
     this.unlockedSkinIds = const ['default'],
+    this.difficulty = Difficulty.normal,
   });
 
   AppSettingsState copyWith({
@@ -52,6 +55,7 @@ class AppSettingsState extends Equatable {
     String? playerName,
     String? activeSkinId,
     List<String>? unlockedSkinIds,
+    Difficulty? difficulty,
   }) {
     return AppSettingsState(
       audioOn: audioOn ?? this.audioOn,
@@ -70,6 +74,7 @@ class AppSettingsState extends Equatable {
       playerName: playerName ?? this.playerName,
       activeSkinId: activeSkinId ?? this.activeSkinId,
       unlockedSkinIds: unlockedSkinIds ?? this.unlockedSkinIds,
+      difficulty: difficulty ?? this.difficulty,
     );
   }
 
@@ -88,6 +93,7 @@ class AppSettingsState extends Equatable {
     playerName,
     activeSkinId,
     unlockedSkinIds,
+    difficulty,
   ];
 
   bool get canClaimDailyReward {
@@ -117,17 +123,14 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     final coins = prefs.getInt(PrefKeys.coins) ?? state.coins;
     final npaEnabled = prefs.getBool(PrefKeys.npaEnabled) ?? state.npaEnabled;
     final dailyMagnetBuffSec =
-        prefs.getInt(PrefKeys.dailyMagnetBuffSec) ??
-        state.dailyMagnetBuffSeconds;
+        prefs.getInt(PrefKeys.dailyMagnetBuffSec) ?? state.dailyMagnetBuffSeconds;
     final pendingMagnetBuffSec =
-        prefs.getInt(PrefKeys.pendingMagnetBuffSec) ??
-        state.pendingMagnetBuffSeconds;
+        prefs.getInt(PrefKeys.pendingMagnetBuffSec) ?? state.pendingMagnetBuffSeconds;
     final lastRewardStr = prefs.getString(PrefKeys.lastDailyRewardDate);
     final playerName = prefs.getString(PrefKeys.playerName) ?? state.playerName;
-    final activeSkinId =
-        prefs.getString(PrefKeys.activeSkinId) ?? state.activeSkinId;
-    final unlockedSkinIds =
-        prefs.getStringList(PrefKeys.unlockedSkinIds) ?? state.unlockedSkinIds;
+    final activeSkinId = prefs.getString(PrefKeys.activeSkinId) ?? state.activeSkinId;
+    final unlockedSkinIds = prefs.getStringList(PrefKeys.unlockedSkinIds) ?? state.unlockedSkinIds;
+    final difficultyKey = prefs.getString(PrefKeys.difficulty);
 
     emit(
       state.copyWith(
@@ -145,6 +148,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
         playerName: playerName,
         activeSkinId: activeSkinId,
         unlockedSkinIds: unlockedSkinIds,
+        difficulty: DifficultyX.fromKey(difficultyKey),
       ),
     );
   }
@@ -169,6 +173,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     await prefs.setString(PrefKeys.playerName, state.playerName);
     await prefs.setString(PrefKeys.activeSkinId, state.activeSkinId);
     await prefs.setStringList(PrefKeys.unlockedSkinIds, state.unlockedSkinIds);
+    await prefs.setString(PrefKeys.difficulty, state.difficulty.key);
 
     if (state.lastDailyRewardClaimedAt != null) {
       await prefs.setString(
@@ -191,6 +196,13 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
   void setConsent(bool value) {
     emit(state.copyWith(consentGiven: value));
     _savePrefs();
+  }
+  
+  void setPlayerName(String name) {
+    if (name.isNotEmpty) {
+      emit(state.copyWith(playerName: name));
+      _savePrefs();
+    }
   }
 
   void toggleAds() {
@@ -248,6 +260,11 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     return true;
   }
 
+  void setDifficulty(Difficulty value) {
+    emit(state.copyWith(difficulty: value));
+    _savePrefs();
+  }
+
   // === Skins API ===
   List<CharacterSkin> getAllSkins() {
     final unlocked = state.unlockedSkinIds.toSet();
@@ -282,13 +299,12 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     if (isSkinUnlocked(id)) return true;
     final skin = CharacterSkin.defaultSkins.firstWhere(
       (s) => s.id == id,
-      orElse:
-          () => CharacterSkin(
-            id: 'invalid',
-            name: 'Invalid',
-            color: Colors.grey,
-            price: 0,
-          ),
+      orElse: () => CharacterSkin(
+        id: 'invalid',
+        name: 'Invalid',
+        color: Colors.grey,
+        price: 0,
+      ),
     );
     if (skin.id == 'invalid') return false;
     if (!spendCoins(skin.price)) return false;
