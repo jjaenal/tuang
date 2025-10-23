@@ -11,6 +11,7 @@ import 'state/app_settings_cubit.dart';
 import 'services/ad_service.dart';
 import 'services/audio_service.dart';
 import 'services/haptics_service.dart';
+import 'ui/reward_confirm_overlay.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -116,6 +117,8 @@ class MyApp extends StatelessWidget {
                         (context, g) => PauseOverlay(game: g as MyGame),
                     MyGame.overlayGameOver:
                         (context, g) => GameOverOverlay(game: g as MyGame),
+                    MyGame.overlayRewardConfirm:
+                        (context, g) => RewardConfirmOverlay(game: g as MyGame),
                   },
                   initialActiveOverlays:
                       showMainMenuOnBoot

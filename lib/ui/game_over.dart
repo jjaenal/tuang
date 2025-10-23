@@ -239,19 +239,20 @@ class GameOverOverlay extends StatelessWidget {
                         }
                         // Jalankan alur iklan
                         final ok = await AdService.I.showRewardedRevive();
-                        if (!context.mounted) return;
                         if (ok) {
                           LoggingService.log('revive_via_ad_ok');
                           game.revive();
                         } else {
                           LoggingService.log('revive_via_ad_fail');
-                          messenger.showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Revive hanya via iklan. Iklan tidak tersedia.',
+                          if (context.mounted) {
+                            messenger.showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Revive hanya via iklan. Iklan tidak tersedia.',
+                                ),
                               ),
-                            ),
-                          );
+                            );
+                          }
                         }
                       },
                     );
@@ -280,19 +281,24 @@ class GameOverOverlay extends StatelessWidget {
                                 },
                               );
                               final ok = await AdService.I.showRewardedRevive();
-                              if (!context.mounted) return;
                               if (ok) {
                                 LoggingService.log('double_via_ad_ok');
                                 await game.applyDoubleCoinsReward();
+                                // Tampilkan overlay konfirmasi reward dan tutup Game Over
+                                game.overlays.remove(MyGame.overlayGameOver);
+                                game.overlays.add(MyGame.overlayRewardConfirm);
+                                LoggingService.log('double_overlay_shown');
                               } else {
                                 LoggingService.log('double_via_ad_fail');
-                                messenger.showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Double Coins hanya via iklan. Iklan tidak tersedia.',
+                                if (context.mounted) {
+                                  messenger.showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Double Coins hanya via iklan. Iklan tidak tersedia.',
+                                      ),
                                     ),
-                                  ),
-                                );
+                                  );
+                                }
                               }
                             }
                             : () async {

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'dart:async';
 import 'logging_service.dart';
 
 // Ad Unit IDs via dart-define overrides with test defaults
@@ -194,12 +195,18 @@ class AdService {
     bool rewarded = false;
     _log('show rewarded revive');
     LoggingService.log('ad_rewarded_revive_show');
+
+    // Gunakan Completer agar menunggu sampai iklan ditutup, memastikan status "rewarded" final
+    final completer = Completer<bool>();
+
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         _log('rewarded revive dismissed');
         LoggingService.log('ad_rewarded_revive_dismissed');
         ad.dispose();
         _rewarded = null;
+        // Kembalikan status final setelah iklan ditutup
+        if (!completer.isCompleted) completer.complete(rewarded);
         preloadRewardedRevive();
       },
       onAdFailedToShowFullScreenContent: (ad, err) {
@@ -211,9 +218,11 @@ class AdService {
         ad.dispose();
         _rewarded = null;
         rewarded = false;
+        if (!completer.isCompleted) completer.complete(false);
         preloadRewardedRevive();
       },
     );
+
     await ad.show(
       onUserEarnedReward: (ad, reward) {
         _log('rewarded revive earned: ${reward.amount} ${reward.type}');
@@ -224,7 +233,9 @@ class AdService {
         rewarded = true;
       },
     );
-    return rewarded;
+
+    // Pastikan menunggu hingga iklan ditutup untuk mendapatkan hasil final
+    return await completer.future;
   }
 
   /// Preload rewarded ad untuk Daily Reward dengan slot terpisah.
@@ -262,12 +273,16 @@ class AdService {
     bool rewarded = false;
     _log('show rewarded daily');
     LoggingService.log('ad_rewarded_daily_show');
+
+    final completer = Completer<bool>();
+
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         _log('rewarded daily dismissed');
         LoggingService.log('ad_rewarded_daily_dismissed');
         ad.dispose();
         _rewardedDaily = null;
+        if (!completer.isCompleted) completer.complete(rewarded);
         preloadRewardedDailyReward();
       },
       onAdFailedToShowFullScreenContent: (ad, err) {
@@ -279,9 +294,11 @@ class AdService {
         ad.dispose();
         _rewardedDaily = null;
         rewarded = false;
+        if (!completer.isCompleted) completer.complete(false);
         preloadRewardedDailyReward();
       },
     );
+
     await ad.show(
       onUserEarnedReward: (ad, reward) {
         _log('rewarded daily earned: ${reward.amount} ${reward.type}');
@@ -292,7 +309,8 @@ class AdService {
         rewarded = true;
       },
     );
-    return rewarded;
+
+    return await completer.future;
   }
 
   /// Mendapatkan unit ID interstitial untuk platform saat ini (test IDs).

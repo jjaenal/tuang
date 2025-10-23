@@ -34,6 +34,7 @@ class MyGame extends FlameGame with HasCollisionDetection {
   static const String overlayHud = 'Hud';
   static const String overlayGameOver = 'GameOver';
   static const String overlayPause = 'Pause';
+  static const String overlayRewardConfirm = 'RewardConfirm';
 
   // UI state
   final ValueNotifier<int> scoreVN = ValueNotifier<int>(0);
@@ -529,6 +530,19 @@ class MyGame extends FlameGame with HasCollisionDetection {
     overlays.remove(overlayGameOver);
     _safeAddOverlay(overlayHud);
 
+    // Posisikan pemain ke tengah agar aman dari obstacle yang masih tersisa
+    try {
+      player.position = size / 2;
+    } catch (_) {}
+
+    // Bersihkan obstacle agar tidak langsung menabrak lagi setelah revive
+    for (final o in children.whereType<Obstacle>().toList()) {
+      o.removeFromParent();
+    }
+
+    // Beri shield singkat agar tidak langsung game over lagi saat spawn awal
+    shieldSecondsLeft = 2.0; // proteksi 2 detik
+
     _achievementService.updateProgress(AchievementType.reviveOnce, 1);
   }
 
@@ -550,10 +564,18 @@ class MyGame extends FlameGame with HasCollisionDetection {
     );
   }
 
-  int get lastScore => baseScoreAtGameOver;
+  int get lastScore => doubleCoinsUsed ? baseScoreAtGameOver * 2 : baseScoreAtGameOver;
 
   Future<void> applyDoubleCoinsReward() async {
+    if (doubleCoinsUsed) return;
     doubleCoinsUsed = true;
+    LoggingService.log(
+      'double_applied',
+      fields: {
+        'base': baseScoreAtGameOver,
+        'total': lastScore,
+      },
+    );
   }
 
   void markRewardDeposited() {
