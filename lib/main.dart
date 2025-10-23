@@ -12,6 +12,8 @@ import 'services/ad_service.dart';
 import 'services/audio_service.dart';
 import 'services/haptics_service.dart';
 import 'ui/reward_confirm_overlay.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -66,7 +68,17 @@ class MyApp extends StatelessWidget {
           HapticsService.enabled = state.hapticsOn;
         },
         child: MaterialApp(
-          title: 'Tuang Game',
+          title: AppLocalizations.of(context)?.appTitle ?? 'Tuang Game',
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('id'),
+          ],
           theme: ThemeData.dark(),
           debugShowCheckedModeBanner: false,
           home: Scaffold(

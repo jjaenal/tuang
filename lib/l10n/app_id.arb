@@ -1,0 +1,25 @@
+{
+  "appTitle": "Tuang Game",
+  "doubleRewardTitle": "Double Reward",
+  "doubleCoinsApplied": "Double Coins diterapkan!",
+  "baseCoinsLabel": "Base: +{score}",
+  "bonusDoubleLabel": "Bonus Double: +{score}",
+  "totalCoinsLabel": "Total: +{score} coins",
+  "continuePlay": "Lanjut main",
+  "backHome": "Kembali ke Home",
+  "@baseCoinsLabel": {
+    "placeholders": {
+      "score": {"type": "int"}
+    }
+  },
+  "@bonusDoubleLabel": {
+    "placeholders": {
+      "score": {"type": "int"}
+    }
+  },
+  "@totalCoinsLabel": {
+    "placeholders": {
+      "score": {"type": "int"}
+    }
+  }
+}
