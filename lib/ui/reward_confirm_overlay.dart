@@ -15,7 +15,8 @@ class RewardConfirmOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final reward = game.lastScore;
+    final base = game.baseScoreAtGameOver;
+    final total = game.lastScore;
     return Stack(
       children: [
         const BokehBackground(
@@ -27,83 +28,142 @@ class RewardConfirmOverlay extends StatelessWidget {
         SafeArea(
           child: Align(
             alignment: Alignment.center,
-            child: MenuPanel(
-              title: 'Double Reward',
-              dark: true,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Text(
-                    'Double Coins diterapkan!\nReward: +$reward coins',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 240),
+              curve: Curves.easeOutCubic,
+              builder: (context, t, child) => Opacity(
+                opacity: t,
+                child: Transform.scale(
+                  scale: 0.95 + 0.05 * t,
+                  child: child,
+                ),
+              ),
+              child: MenuPanel(
+                title: 'Double Reward',
+                dark: true,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Double Coins diterapkan!',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        // Breakdown base + bonus = total
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.savings, color: Colors.amber, size: 18),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Base: +$base',
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.auto_awesome, color: Colors.lightBlueAccent, size: 18),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Bonus Double: +$base',
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.check_circle, color: Colors.greenAccent, size: 18),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Total: +$total coins',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                NeumorphicButton(
-                  label: 'Lanjut main',
-                  primary: false,
-                  onPressed: () async {
-                    final cubit = context.read<AppSettingsCubit>();
-                    if (!game.rewardDeposited) {
-                      cubit.addCoins(game.lastScore);
-                      game.markRewardDeposited();
-                      final leaderboard = LeaderboardService();
-                      await leaderboard.submitScoreAsync(
-                        playerId: cubit.state.playerName,
-                        score: game.lastScore,
-                      );
-                      LoggingService.log(
-                        'reward_deposited',
-                        fields: {'amount': game.lastScore, 'action': 'restart_from_double'},
-                      );
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Reward: +${game.lastScore} coins')),
+                  const SizedBox(height: 12),
+                  NeumorphicButton(
+                    label: 'Lanjut main',
+                    primary: false,
+                    onPressed: () async {
+                      LoggingService.log('double_confirm_continue');
+                      final cubit = context.read<AppSettingsCubit>();
+                      if (!game.rewardDeposited) {
+                        cubit.addCoins(total);
+                        game.markRewardDeposited();
+                        final leaderboard = LeaderboardService();
+                        await leaderboard.submitScoreAsync(
+                          playerId: cubit.state.playerName,
+                          score: total,
                         );
-                      }
-                    }
-                    // Tutup overlay dan mulai game baru
-                    game.overlays.remove(MyGame.overlayRewardConfirm);
-                    game.overlays.remove(MyGame.overlayGameOver);
-                    game.startGame();
-                  },
-                ),
-                const SizedBox(height: 8),
-                NeumorphicButton(
-                  label: 'Back to Menu',
-                  primary: false,
-                  onPressed: () async {
-                    final cubit = context.read<AppSettingsCubit>();
-                    if (!game.rewardDeposited) {
-                      cubit.addCoins(game.lastScore);
-                      game.markRewardDeposited();
-                      final leaderboard = LeaderboardService();
-                      await leaderboard.submitScoreAsync(
-                        playerId: cubit.state.playerName,
-                        score: game.lastScore,
-                      );
-                      LoggingService.log(
-                        'reward_deposited',
-                        fields: {'amount': game.lastScore, 'action': 'back_to_menu_from_double'},
-                      );
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Reward: +${game.lastScore} coins')),
+                        LoggingService.log(
+                          'reward_deposited',
+                          fields: {'amount': total, 'action': 'restart_from_double'},
                         );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Reward: +$total coins')),
+                          );
+                        }
                       }
-                    }
-                    game.overlays.remove(MyGame.overlayRewardConfirm);
-                    game.overlays.remove(MyGame.overlayGameOver);
-                    game.overlays.add(MyGame.overlayMainMenu);
-                  },
-                ),
-
-              ],
+                      // Tutup overlay dan mulai game baru
+                      game.overlays.remove(MyGame.overlayRewardConfirm);
+                      game.overlays.remove(MyGame.overlayGameOver);
+                      game.startGame();
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  NeumorphicButton(
+                    label: 'Kembali ke Home',
+                    icon: Icons.home,
+                    primary: false,
+                    onPressed: () async {
+                      LoggingService.log('double_confirm_home');
+                      final cubit = context.read<AppSettingsCubit>();
+                      if (!game.rewardDeposited) {
+                        cubit.addCoins(total);
+                        game.markRewardDeposited();
+                        final leaderboard = LeaderboardService();
+                        await leaderboard.submitScoreAsync(
+                          playerId: cubit.state.playerName,
+                          score: total,
+                        );
+                        LoggingService.log(
+                          'reward_deposited',
+                          fields: {'amount': total, 'action': 'back_to_menu_from_double'},
+                        );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Reward: +$total coins')),
+                          );
+                        }
+                      }
+                      game.overlays.remove(MyGame.overlayRewardConfirm);
+                      game.overlays.remove(MyGame.overlayGameOver);
+                      game.overlays.add(MyGame.overlayMainMenu);
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),

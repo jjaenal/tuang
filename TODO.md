@@ -136,9 +136,9 @@
 
 ## 📝 Backlog
 
-- [ ] **Multi-language support**: id/en
+- [ ] **Multi-language support**: id/en (Current language in whole app inconsistent)
 - [ ] **Add documentation to main class and methods in all files following #project_rules.md**
 - [ ] **Skins & themes improvement**
   - [ ] **Draw skins from scratch using CustomPaint**
   - [ ] **Draw themes from scratch using CustomPaint**
-- [ ] **Test ads in release mode** (test IDs → prod IDs)
+- [ ] **Test ads rewards**

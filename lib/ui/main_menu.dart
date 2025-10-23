@@ -481,73 +481,23 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                             'consent': app.consentGiven,
                                           },
                                         );
-                                        if (app.adsEnabled &&
-                                            app.consentGiven &&
-                                            !kIsWeb) {
-                                          final ok =
-                                              await AdService.I
-                                                  .showRewardedDailyReward();
-                                          if (!ctx.mounted) return;
-                                          if (ok) {
-                                            cubit.markDailyRewardClaimedNow();
-                                            cubit.addCoins(rewardCoins);
-                                            cubit.grantMagnetBuff(
-                                              app.dailyMagnetBuffSeconds,
-                                            );
-                                            LoggingService.log(
-                                              'daily_reward_claimed',
-                                              fields: {
-                                                'coins': rewardCoins,
-                                                'magnet_sec':
-                                                    app.dailyMagnetBuffSeconds,
-                                                'via': 'ad',
-                                              },
-                                            );
-                                            ScaffoldMessenger.of(
-                                              ctx,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s!',
-                                                ),
-                                              ),
-                                            );
-                                          } else {
-                                            LoggingService.log(
-                                              'daily_reward_ad_unavailable',
-                                            );
-                                            ScaffoldMessenger.of(
-                                              ctx,
-                                            ).showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  'Iklan belum tersedia',
-                                                ),
-                                              ),
-                                            );
-                                          }
-                                        } else {
-                                          cubit.markDailyRewardClaimedNow();
-                                          cubit.addCoins(rewardCoins);
-                                          cubit.grantMagnetBuff(
-                                            app.dailyMagnetBuffSeconds,
-                                          );
-                                          LoggingService.log(
-                                            'daily_reward_claimed',
-                                            fields: {
-                                              'coins': rewardCoins,
-                                              'magnet_sec':
-                                                  app.dailyMagnetBuffSeconds,
-                                              'via': 'no_ad',
-                                            },
-                                          );
-                                          if (!ctx.mounted) return;
-                                          ScaffoldMessenger.of(
-                                            ctx,
-                                          ).showSnackBar(
+                                        // Grant reward instantly without ad
+                                        cubit.markDailyRewardClaimedNow();
+                                        cubit.addCoins(rewardCoins);
+                                        cubit.grantMagnetBuff(app.dailyMagnetBuffSeconds);
+                                        LoggingService.log(
+                                          'daily_reward_claimed',
+                                          fields: {
+                                            'coins': rewardCoins,
+                                            'magnet_sec': app.dailyMagnetBuffSeconds,
+                                            'via': 'no_ad',
+                                          },
+                                        );
+                                        if (ctx.mounted) {
+                                          ScaffoldMessenger.of(ctx).showSnackBar(
                                             SnackBar(
                                               content: Text(
-                                                'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s (tanpa iklan)',
+                                                'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s!',
                                               ),
                                             ),
                                           );
