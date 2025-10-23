@@ -104,7 +104,15 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
   Widget build(BuildContext context) {
     final base = game.baseScoreAtGameOver;
     final total = game.lastScore;
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
+    final tTitle = l10n?.doubleRewardTitle ?? 'Double Reward';
+    final tApplied = l10n?.doubleCoinsApplied ?? 'Double Coins diterapkan!';
+    String tBase(int v) => l10n?.baseCoinsLabel(v) ?? 'Base: +$v';
+    String tBonus(int v) => l10n?.bonusDoubleLabel(v) ?? 'Bonus Double: +$v';
+    String tTotal(int v) => l10n?.totalCoinsLabel(v) ?? 'Total: +$v coins';
+    final tContinue = l10n?.continuePlay ?? 'Lanjut main';
+    final tBackHome = l10n?.backHome ?? 'Kembali ke Home';
+
     return Stack(
       children: [
         const BokehBackground(
@@ -124,7 +132,7 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
                   child: ScaleTransition(
                     scale: _scale,
                     child: MenuPanel(
-                      title: l10n.doubleRewardTitle,
+                      title: tTitle,
                       dark: true,
                       children: [
                         Padding(
@@ -133,7 +141,7 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                l10n.doubleCoinsApplied,
+                                tApplied,
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(
                                   color: Colors.white,
@@ -149,7 +157,7 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
                                   const Icon(Icons.savings, color: Colors.amber, size: 18),
                                   const SizedBox(width: 6),
                                   Text(
-                                    l10n.baseCoinsLabel(base),
+                                    tBase(base),
                                     style: const TextStyle(color: Colors.white70),
                                   ),
                                 ],
@@ -161,7 +169,7 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
                                   const Icon(Icons.auto_awesome, color: Colors.lightBlueAccent, size: 18),
                                   const SizedBox(width: 6),
                                   Text(
-                                    l10n.bonusDoubleLabel(base),
+                                    tBonus(base),
                                     style: const TextStyle(color: Colors.white70),
                                   ),
                                 ],
@@ -173,7 +181,7 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
                                   const Icon(Icons.check_circle, color: Colors.greenAccent, size: 18),
                                   const SizedBox(width: 6),
                                   Text(
-                                    l10n.totalCoinsLabel(total),
+                                    tTotal(total),
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w600,
@@ -186,7 +194,7 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
                         ),
                         const SizedBox(height: 12),
                         NeumorphicButton(
-                          label: l10n.continuePlay,
+                          label: tContinue,
                           primary: false,
                           onPressed: () async {
                             LoggingService.log('double_confirm_continue');
@@ -208,7 +216,7 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
                               );
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(l10n.totalCoinsLabel(total))),
+                                  SnackBar(content: Text(tTotal(total))),
                                 );
                               }
                             }
@@ -221,7 +229,7 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
                         ),
                         const SizedBox(height: 8),
                         NeumorphicButton(
-                          label: l10n.backHome,
+                          label: tBackHome,
                           icon: Icons.home,
                           primary: false,
                           onPressed: () async {
@@ -244,7 +252,7 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
                               );
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(l10n.totalCoinsLabel(total))),
+                                  SnackBar(content: Text(tTotal(total))),
                                 );
                               }
                             }
