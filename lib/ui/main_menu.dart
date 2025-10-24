@@ -7,10 +7,13 @@ import '../state/app_settings_cubit.dart';
 import '../services/ad_service.dart';
 import '../services/audio_service.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:async';
+import 'dart:async' as dart_async;
 import '../services/logging_service.dart';
 import '../models/character_skin.dart';
+import '../models/skin_type.dart';
 import '../game/game_config.dart';
+import 'package:flame/components.dart';
+import '../game/skin_renderer.dart';
 import 'leaderboard_screen.dart';
 import 'options_panel.dart';
 import 'achievements_screen.dart';
@@ -18,6 +21,39 @@ import 'components/bokeh_background.dart';
 import 'components/neumorphic_button.dart';
 import 'theme/app_theme.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+/// Painter untuk preview skin berbasis canvas
+class SkinPreviewPainter extends CustomPainter {
+  final SkinType type;
+  final Color color;
+  final bool isBoost;
+
+  late final SkinRenderer _renderer;
+
+  SkinPreviewPainter({
+    required this.type,
+    required this.color,
+    this.isBoost = false,
+  }) {
+    _renderer = SkinRenderer.create(type, color);
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    _renderer.render(
+      canvas,
+      Vector2(size.width, size.height),
+      isBoost: isBoost,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant SkinPreviewPainter oldDelegate) {
+    return oldDelegate.type != type ||
+        oldDelegate.color != color ||
+        oldDelegate.isBoost != isBoost;
+  }
+}
 
 class _HeroButton extends StatefulWidget {
   final IconData icon;
@@ -117,7 +153,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
   );
   BannerAd? _bannerAd;
   bool _bannerReady = false;
-  Timer? _ticker;
+  dart_async.Timer? _ticker;
   DateTime _now = DateTime.now();
 
   bool _consentPrompted = false;
@@ -177,7 +213,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
   @override
   void initState() {
     super.initState();
-    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+    _ticker = dart_async.Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() => _now = DateTime.now());
     });
@@ -204,6 +240,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
   void dispose() {
     _bannerAd?.dispose();
     _ticker?.cancel();
+    _ticker = null;
     super.dispose();
   }
 
@@ -277,16 +314,67 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
       width: 24,
       height: 24,
       decoration: BoxDecoration(
-        color: skin.imagePath == null ? skin.color : null,
         border: Border.all(color: Colors.white30),
         borderRadius: BorderRadius.circular(4),
-        image:
-            skin.imagePath != null
-                ? DecorationImage(
-                  image: AssetImage('assets/images/${skin.imagePath}'),
-                  fit: BoxFit.cover,
-                )
-                : null,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: SizedBox(
+          width: 24,
+          height: 24,
+          child: CustomPaint(
+            painter: SkinPreviewPainter(type: skin.skinType, color: skin.color),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Membuat badge untuk menampilkan tipe skin dengan teks
+  Widget _buildSkinTypeBadge(SkinType skinType) {
+    Color badgeColor;
+    String badgeText;
+
+    switch (skinType) {
+      case SkinType.basic:
+        badgeColor = Colors.grey.shade700;
+        badgeText = 'BASIC';
+        break;
+      case SkinType.advanced:
+        badgeColor = Colors.blue.shade700;
+        badgeText = 'ADVANCED';
+        break;
+      case SkinType.premium:
+        badgeColor = Colors.purple.shade700;
+        badgeText = 'PREMIUM';
+        break;
+      case SkinType.legendary:
+        badgeColor = Colors.orange.shade700;
+        badgeText = 'LEGENDARY';
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: badgeColor,
+        borderRadius: BorderRadius.circular(4),
+        boxShadow: [
+          BoxShadow(
+            color: badgeColor.withOpacity(0.5),
+            blurRadius: 4,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Text(
+        badgeText,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
+        ),
       ),
     );
   }
@@ -690,22 +778,54 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                             ),
                             child: Row(
                               children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    color: s.color,
-                                    borderRadius: BorderRadius.circular(6),
-                                    image:
-                                        s.imagePath != null
-                                            ? DecorationImage(
-                                              image: AssetImage(
-                                                "assets/images/${s.imagePath}",
-                                              ),
-                                              fit: BoxFit.cover,
-                                            )
-                                            : null,
-                                  ),
+                                Stack(
+                                  children: [
+                                    Container(
+                                      width: 48,
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(6),
+                                        boxShadow:
+                                            s.skinType == SkinType.legendary
+                                                ? [
+                                                  BoxShadow(
+                                                    color: Colors.orange
+                                                        .withOpacity(0.6),
+                                                    blurRadius: 8,
+                                                    spreadRadius: 2,
+                                                  ),
+                                                ]
+                                                : null,
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: SizedBox(
+                                          width: 48,
+                                          height: 48,
+                                          child: CustomPaint(
+                                            painter: SkinPreviewPainter(
+                                              type: s.skinType,
+                                              color: s.color,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    if (s.skinType == SkinType.premium ||
+                                        s.skinType == SkinType.legendary)
+                                      Positioned(
+                                        right: 0,
+                                        bottom: 0,
+                                        child: Icon(
+                                          Icons.star,
+                                          color:
+                                              s.skinType == SkinType.legendary
+                                                  ? Colors.amber
+                                                  : Colors.white70,
+                                          size: 16,
+                                        ),
+                                      ),
+                                  ],
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
@@ -713,13 +833,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        s.name,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                                      _buildSkinTypeBadge(s.skinType),
                                       const SizedBox(height: 2),
                                       Text(
                                         s.isUnlocked
@@ -755,18 +869,17 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                             content: Text(
                                               l10n.unlockedSnack(displayName),
                                             ),
-                                            backgroundColor: Colors.green,
                                           ),
                                         );
                                       } else {
                                         ScaffoldMessenger.of(ctx).showSnackBar(
                                           SnackBar(
                                             content: Text(l10n.notEnoughCoins),
-                                            backgroundColor: Colors.red,
                                           ),
                                         );
                                       }
                                     },
+                                    // child: Text(l10n.buyButton(s.price)),
                                     child: Text(l10n.buyButton(s.price)),
                                   )
                                 else
