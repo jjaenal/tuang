@@ -142,7 +142,7 @@
 
 ## 📝 Backlog
 
-- [ ] **Multi-language support**: id/en (Current language in whole app inconsistent)
+- [x] **Multi-language support**: id/en (Core screens integrated; audit remaining strings)
 - [ ] **Add documentation to main class and methods in all files following #project_rules.md**
 - [ ] **Skins & themes improvement**
   - [ ] **Draw skins from scratch using CustomPaint**
