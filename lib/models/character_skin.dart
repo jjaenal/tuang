@@ -56,7 +56,8 @@ class CharacterSkin {
   }
 
   // Menentukan tipe skin berdasarkan harga
-  SkinType get skinType => SkinType.fromPrice(price);
+  // Hapus getter duplikat karena sudah ada field final dan inisialisasi di konstruktor
+  // SkinType get skinType => SkinType.fromPrice(price);
 
   /// Daftar skin default yang tersedia dalam game
   static List<CharacterSkin> defaultSkins = [
