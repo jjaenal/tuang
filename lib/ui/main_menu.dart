@@ -17,6 +17,7 @@ import 'achievements_screen.dart';
 import 'components/bokeh_background.dart';
 import 'components/neumorphic_button.dart';
 import 'theme/app_theme.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class _HeroButton extends StatefulWidget {
   final IconData icon;
@@ -125,48 +126,44 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
     final accepted = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder:
-          (ctx) => AlertDialog(
-            title: const Text('Ads Consent'),
-            content: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Text(
-                    'Game ini menampilkan iklan untuk mendukung pengembangan.',
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Dengan menekan Setuju, Anda memberikan izin untuk menampilkan iklan.',
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Anda bisa mengubah pengaturan kapan saja di Main Menu.',
-                  ),
-                ],
-              ),
+      builder: (ctx) {
+        final l10n = AppLocalizations.of(ctx);
+        return AlertDialog(
+          title: Text(l10n.consentDialogTitle),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(l10n.consentDialogContent1),
+                const SizedBox(height: 8),
+                Text(l10n.consentDialogContent2),
+                const SizedBox(height: 8),
+                Text(l10n.consentDialogContent3),
+              ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Tidak Setuju'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  final uri = Uri.parse(_privacyUrl);
-                  try {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  } catch (_) {}
-                },
-                child: const Text('Kebijakan Privasi'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('Setuju'),
-              ),
-            ],
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(l10n.consentDisagree),
+            ),
+            TextButton(
+              onPressed: () async {
+                final uri = Uri.parse(_privacyUrl);
+                try {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } catch (_) {}
+              },
+              child: Text(l10n.privacyPolicy),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text(l10n.consentAgree),
+            ),
+          ],
+        );
+      },
     );
     return accepted == true;
   }
@@ -296,6 +293,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Stack(
       children: [
         const BokehBackground(
@@ -392,7 +390,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                     const SizedBox(height: 12),
                     // Hero Play Button (neumorphic, konsisten dengan gaya baru)
                     NeumorphicButton(
-                      label: 'Play',
+                      label: l10n.playButton,
                       icon: Icons.play_arrow,
                       primary: true,
                       onPressed: () => widget.game.startGame(),
@@ -416,9 +414,9 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                               size: 20,
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              'Untuk pengaturan Audio, Haptics, Ads, dan lainnya,\nbuka menu Settings di atas',
-                              style: TextStyle(
+                            Text(
+                              l10n.settingsHint,
+                              style: const TextStyle(
                                 color: Colors.white60,
                                 fontSize: 12,
                                 fontStyle: FontStyle.italic,
@@ -436,11 +434,12 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                   size: 18,
                                 ),
                                 const SizedBox(width: 8),
-                                const Text(
-                                  'Active Skin:',
-                                  style: TextStyle(
+                                Text(
+                                  l10n.activeSkin,
+                                  style: const TextStyle(
                                     color: Colors.white70,
-                                    fontSize: 12,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -502,7 +501,10 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                           ).showSnackBar(
                                             SnackBar(
                                               content: Text(
-                                                'Daily reward: +${GameConfig.dailyRewardCoins} coins + magnet ${app.dailyMagnetBuffSeconds}s!',
+                                                l10n.dailyRewardSnack(
+                                                  GameConfig.dailyRewardCoins,
+                                                  app.dailyMagnetBuffSeconds,
+                                                ),
                                               ),
                                             ),
                                           );
@@ -514,7 +516,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                             if (!canClaim && countdown != null) ...[
                               const SizedBox(height: 4),
                               Text(
-                                'Next claim: $countdown',
+                                l10n.nextClaim(countdown),
                                 style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 12,
@@ -613,12 +615,12 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                             width: 320,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: const Color(0x2233FF99),
+                              color: const Color(0x22FFFFFF),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Text(
-                              'Banner Ad (placeholder)',
-                              style: TextStyle(color: Colors.white70),
+                            child: Text(
+                              l10n.loadingAds,
+                              style: const TextStyle(color: Colors.white70),
                             ),
                           )
                           : (_bannerAd != null && _bannerReady)
@@ -658,10 +660,11 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setSt) {
+            final l10n = AppLocalizations.of(ctx);
             final skins = cubit.getAllSkins();
             final activeId = cubit.state.activeSkinId;
             return AlertDialog(
-              title: const Text('Pilih Skin Karakter'),
+              title: Text(l10n.skinSelectTitle),
               content: SizedBox(
                 width: 360,
                 child: SingleChildScrollView(
@@ -670,10 +673,13 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                     children:
                         skins.map((s) {
                           final isActive = s.id == activeId;
+                          final displayName = l10n.skinName(s.id);
                           final status =
                               s.isUnlocked
-                                  ? (isActive ? 'Selected' : 'Unlocked')
-                                  : 'Locked';
+                                  ? (isActive
+                                      ? l10n.selectedStatus
+                                      : l10n.unlockedStatus)
+                                  : l10n.lockedStatus;
                           return Container(
                             margin: const EdgeInsets.symmetric(vertical: 6),
                             padding: const EdgeInsets.all(8),
@@ -718,7 +724,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                       Text(
                                         s.isUnlocked
                                             ? status
-                                            : 'Price: ${s.price} coins',
+                                            : l10n.priceCoins(s.price),
                                         style: const TextStyle(
                                           color: Colors.white70,
                                         ),
@@ -733,15 +739,12 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                       final ok = cubit.purchaseSkin(s.id);
                                       if (ok) {
                                         setSt(() {});
-                                        // Add sound effect when purchasing skin
                                         if (cubit.state.audioOn) {
                                           try {
                                             final audioService =
                                                 context.read<AudioService>();
-                                            audioService
-                                                .playCoin(); // Gunakan sound coin untuk purchase
+                                            audioService.playCoin();
                                           } catch (e) {
-                                            // Abaikan jika AudioService tidak tersedia
                                             LoggingService.log(
                                               'Audio error: $e',
                                             );
@@ -750,21 +753,21 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                         ScaffoldMessenger.of(ctx).showSnackBar(
                                           SnackBar(
                                             content: Text(
-                                              'Unlocked: ${s.name}',
+                                              l10n.unlockedSnack(displayName),
                                             ),
                                             backgroundColor: Colors.green,
                                           ),
                                         );
                                       } else {
                                         ScaffoldMessenger.of(ctx).showSnackBar(
-                                          const SnackBar(
-                                            content: Text('Coins tidak cukup'),
+                                          SnackBar(
+                                            content: Text(l10n.notEnoughCoins),
                                             backgroundColor: Colors.red,
                                           ),
                                         );
                                       }
                                     },
-                                    child: Text('Buy (${s.price})'),
+                                    child: Text(l10n.buyButton(s.price)),
                                   )
                                 else
                                   ElevatedButton(
@@ -774,16 +777,13 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                             : () {
                                               cubit.setActiveSkin(s.id);
                                               setSt(() {});
-                                              // Add sound effect when selecting skin
                                               if (cubit.state.audioOn) {
                                                 try {
                                                   final audioService =
                                                       context
                                                           .read<AudioService>();
-                                                  audioService
-                                                      .playCoin(); // Gunakan sound coin untuk select
+                                                  audioService.playCoin();
                                                 } catch (e) {
-                                                  // Abaikan jika AudioService tidak tersedia
                                                   LoggingService.log(
                                                     'Audio error: $e',
                                                   );
@@ -794,13 +794,15 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                               ).showSnackBar(
                                                 SnackBar(
                                                   content: Text(
-                                                    'Selected: ${s.name}',
+                                                    l10n.selectedSnack(
+                                                      displayName,
+                                                    ),
                                                   ),
                                                   backgroundColor: Colors.green,
                                                 ),
                                               );
                                             },
-                                    child: const Text('Select'),
+                                    child: Text(l10n.selectButton),
                                   ),
                               ],
                             ),
@@ -812,7 +814,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: const Text('Close'),
+                  child: Text(l10n.closeButton),
                 ),
               ],
             );

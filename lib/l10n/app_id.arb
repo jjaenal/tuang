@@ -1,25 +1,130 @@
 {
   "appTitle": "Tuang Game",
-  "doubleRewardTitle": "Double Reward",
-  "doubleCoinsApplied": "Double Coins diterapkan!",
-  "baseCoinsLabel": "Base: +{score}",
-  "bonusDoubleLabel": "Bonus Double: +{score}",
-  "totalCoinsLabel": "Total: +{score} coins",
-  "continuePlay": "Lanjut main",
-  "backHome": "Kembali ke Home",
-  "@baseCoinsLabel": {
-    "placeholders": {
-      "score": {"type": "int"}
-    }
-  },
-  "@bonusDoubleLabel": {
-    "placeholders": {
-      "score": {"type": "int"}
-    }
-  },
-  "@totalCoinsLabel": {
-    "placeholders": {
-      "score": {"type": "int"}
-    }
-  }
+  "doubleRewardTitle": "Hadiah Ganda",
+  "doubleCoinsApplied": "Koin ganda diterapkan!",
+  "baseCoinsLabel": "Dasar: +{score}",
+  "bonusDoubleLabel": "Bonus Ganda: +{score}",
+  "totalCoinsLabel": "Total: +{score} koin",
+  "continuePlay": "Lanjut",
+  "backHome": "Kembali",
+
+  "mainTitle": "ENDLESS DODGE & COLLECT",
+  "bestLabel": "Terbaik: {score}",
+  "playButton": "Main",
+  "dailyReward": "Hadiah Harian",
+  "nextClaim": "Klaim berikutnya: {time}",
+  "bannerPlaceholder": "Iklan Banner (placeholder)",
+  "loadingAds": "Memuat iklan...",
+  "settingsHint": "Untuk Audio, Haptik, Iklan, dan lainnya, buka Pengaturan di atas",
+  "activeSkin": "Skin Aktif:",
+
+  "skinSelectTitle": "Pilih Skin Karakter",
+  "selectedStatus": "Dipilih",
+  "unlockedStatus": "Terbuka",
+  "lockedStatus": "Terkunci",
+  "priceCoins": "Harga: {price} koin",
+  "buyButton": "Beli ({price})",
+  "unlockedSnack": "Terbuka: {name}",
+  "notEnoughCoins": "Koin tidak cukup",
+  "selectButton": "Pilih",
+  "selectedSnack": "Dipilih: {name}",
+  "closeButton": "Tutup",
+
+  "optionsTitle": "Pengaturan",
+  "audioLabel": "Audio",
+  "hapticsLabel": "Haptik",
+  "adsLabel": "Iklan",
+  "npaLabel": "Iklan Non-Personalisasi",
+  "npaOn": "NPA ON",
+  "npaOff": "NPA OFF",
+  "difficultyLabel": "Kesulitan",
+  "dailyMagnetLabel": "Magnet Harian",
+  "playerNameLabel": "Nama Pemain",
+  "playerNameUpdated": "Nama pemain diperbarui",
+  "debugLoggingLabel": "Logging Debug",
+  "debugLoggingOn": "Logging debug ON",
+  "debugLoggingOff": "Logging debug OFF",
+
+  "languageLabel": "Bahasa",
+  "languageEnglish": "Inggris",
+  "languageIndonesian": "Indonesia",
+
+  "consentDialogTitle": "Persetujuan Iklan",
+  "consentDialogContent1": "Game ini menampilkan iklan untuk mendukung pengembangan.",
+  "consentDialogContent2": "Dengan menekan Setuju, Anda mengizinkan penayangan iklan.",
+  "consentDialogContent3": "Anda dapat mengubah setelan kapan saja di Menu Utama.",
+  "consentDisagree": "Tidak Setuju",
+  "privacyPolicy": "Kebijakan Privasi",
+  "consentAgree": "Setuju",
+
+  "dailyRewardSnack": "Hadiah harian: +{coins} koin + magnet {magnetSec}dtk!",
+
+  "achievementsTitle": "Pencapaian",
+  "achievementsProgress": "Pencapaian: {unlocked}/{total}",
+  "achievementsCompletedPercent": "{percent}% Selesai",
+
+  "leaderboardTitle": "Papan Skor",
+  "leaderboardToggleTop10": "Top 10",
+  "leaderboardToggleTop50": "Top 50",
+  "leaderboardEmpty": "Belum ada skor yang tercatat",
+  "leaderboardSearchHint": "Cari pemain...",
+  "leaderboardYourPosition": "Posisimu: #{rank} (di luar top 10)",
+  "leaderboardSubtitleYouLastUpdated": "Kamu • terakhir diperbarui {date}",
+  "leaderboardSubtitleLastSubmitted": "Terakhir dikirim • {date}",
+  "leaderboardSubtitleLastUpdated": "Terakhir diperbarui {date}",
+
+  "secondsShort": "dtk",
+  "magnetOffLabel": "OFF",
+  "pauseTooltip": "Jeda",
+  "resumeTooltip": "Lanjut",
+  "muteTooltip": "Bisukan",
+  "unmuteTooltip": "Suara",
+
+  "pauseTitle": "Dijeda",
+  "optionsButton": "Pengaturan…",
+  "rewardDetailsTitle": "Rincian Reward",
+  "sessionDurationSeconds": "Durasi sesi: {seconds}s",
+  "magnetUsedYesLabel": "Magnet dipakai: Ya",
+  "magnetUsedNoLabel": "Magnet dipakai: Tidak",
+  "magnetsPickedLabel": "Magnet diambil: {count}",
+  "coinsPickedLabel": "Koin diambil: {count}",
+  "rewardDepositHint": "Reward akan ditambahkan saat Restart atau Back to Menu",
+  "restartButton": "Restart",
+  "reviveButton": "Revive",
+  "backToMenuButton": "Kembali ke Menu",
+  "reviveUnavailable": "Revive tidak tersedia.",
+  "reviveAdsUnavailable": "Revive hanya via iklan. Iklan tidak tersedia.",
+  "doubleCoinsAdsUnavailable": "Double Coins hanya via iklan. Iklan tidak tersedia.",
+  "rewardSnack": "Reward: +{amount} koin",
+  "achievementUnlockedBanner": "Pencapaian Terbuka!",
+  "debugHudInfo": "C:{coins} M:{magnets} R:{revives}",
+  "achievementTitle": "{key, select, score100{Pemburu Skor I} score500{Pemburu Skor II} score1000{Pemburu Skor III} collect10Coins{Pengumpul Koin I} collect50Coins{Pengumpul Koin II} collect100Coins{Pengumpul Koin III} firstGame{Pemula} play10Games{Antusias} play50Games{Kecanduan} useMagnet{Magnetik} reviveOnce{Kesempatan Kedua} other{Pencapaian}}",
+  "achievementDesc": "{key, select, score100{Dapatkan skor 100} score500{Dapatkan skor 500} score1000{Dapatkan skor 1000} collect10Coins{Kumpulkan 10 koin} collect50Coins{Kumpulkan 50 koin} collect100Coins{Kumpulkan 100 koin} firstGame{Mainkan game pertama kali} play10Games{Mainkan 10 game} play50Games{Mainkan 50 game} useMagnet{Gunakan magnet pertama kali} reviveOnce{Gunakan fitur revive} other{}}",
+  "skinName": "{id, select, default{Default} red{Merah} green{Hijau} purple{Ungu} orange{Oranye} other{Tidak dikenal}}",
+  "@debugHudInfo": {"placeholders": {"coins": {"type": "int"}, "magnets": {"type": "int"}, "revives": {"type": "int"}}},
+  "@achievementTitle": {"placeholders": {"key": {"type": "String"}}},
+  "@achievementDesc": {"placeholders": {"key": {"type": "String"}}},
+  "@skinName": {"placeholders": {"id": {"type": "String"}}},
+
+  "@bonusDoubleLabel": {"placeholders": {"score": {"type": "int"}}},
+  "@totalCoinsLabel": {"placeholders": {"score": {"type": "int"}}},
+  "@bestLabel": {"placeholders": {"score": {"type": "int"}}},
+  "@nextClaim": {"placeholders": {"time": {"type": "String"}}},
+  "@priceCoins": {"placeholders": {"price": {"type": "int"}}},
+  "@buyButton": {"placeholders": {"price": {"type": "int"}}},
+  "@unlockedSnack": {"placeholders": {"name": {"type": "String"}}},
+  "@selectedSnack": {"placeholders": {"name": {"type": "String"}}},
+  "@dailyRewardSnack": {"placeholders": {"coins": {"type": "int"}, "magnetSec": {"type": "int"}}},
+
+  "@achievementsProgress": {"placeholders": {"unlocked": {"type": "int"}, "total": {"type": "int"}}},
+  "@achievementsCompletedPercent": {"placeholders": {"percent": {"type": "int"}}},
+  "@leaderboardYourPosition": {"placeholders": {"rank": {"type": "int"}}},
+  "@leaderboardSubtitleYouLastUpdated": {"placeholders": {"date": {"type": "String"}}},
+  "@leaderboardSubtitleLastSubmitted": {"placeholders": {"date": {"type": "String"}}},
+  "@leaderboardSubtitleLastUpdated": {"placeholders": {"date": {"type": "String"}}},
+
+  "@sessionDurationSeconds": {"placeholders": {"seconds": {"type": "String"}}},
+  "@magnetsPickedLabel": {"placeholders": {"count": {"type": "int"}}},
+  "@coinsPickedLabel": {"placeholders": {"count": {"type": "int"}}},
+  "@rewardSnack": {"placeholders": {"amount": {"type": "int"}}}
 }

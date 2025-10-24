@@ -44,16 +44,16 @@ void main() {
     test('dedup per pemain mempertahankan skor tertinggi', () async {
       final lb = LeaderboardService();
       await lb.ensureLoaded();
-      lb.submitScoreAsync(playerId: 'alice', score: 100);
+      await lb.submitScoreAsync(playerId: 'alice', score: 100);
       // Skor lebih rendah tidak mengubah entri
-      final changedLower = lb.submitScoreAsync(playerId: 'alice', score: 90);
+      final changedLower = await lb.submitScoreAsync(playerId: 'alice', score: 90);
       expect(changedLower, false);
       var top = lb.topScores(limit: 10);
       expect(top.length, 1);
       expect(top[0].playerId, 'alice');
       expect(top[0].score, 100);
       // Skor lebih tinggi melakukan upgrade
-      final changedHigher = lb.submitScoreAsync(playerId: 'alice', score: 150);
+      final changedHigher = await lb.submitScoreAsync(playerId: 'alice', score: 150);
       expect(changedHigher, true);
       top = lb.topScores(limit: 10);
       expect(top.length, 1);

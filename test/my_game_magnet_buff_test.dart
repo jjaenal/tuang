@@ -15,8 +15,9 @@ void main() {
       // Seed pending magnet buff: 9 seconds
       SharedPreferences.setMockInitialValues({'pref_pendingMagnetBuffSec': 9});
       final game = MyGame();
-      await game.onLoad();
+      // Penting: set size dulu sebelum onLoad untuk menghindari error hasLayout
       game.onGameResize(Vector2(800, 600));
+      await game.onLoad();
 
       // Start game to consume buff
       game.startGame();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/achievement.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// Widget untuk menampilkan notifikasi achievement yang baru terbuka
 class AchievementNotification extends StatefulWidget {
@@ -59,6 +60,7 @@ class _AchievementNotificationState extends State<AchievementNotification>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ScaleTransition(
       scale: _animation,
       child: Align(
@@ -101,9 +103,9 @@ class _AchievementNotificationState extends State<AchievementNotification>
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Achievement Terbuka!',
-                          style: TextStyle(
+                        Text(
+                          l10n.achievementUnlockedBanner,
+                          style: const TextStyle(
                             color: Colors.amber,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -111,7 +113,7 @@ class _AchievementNotificationState extends State<AchievementNotification>
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          widget.achievement.type.title,
+                          l10n.achievementTitle(widget.achievement.type.name),
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -119,7 +121,7 @@ class _AchievementNotificationState extends State<AchievementNotification>
                           ),
                         ),
                         Text(
-                          widget.achievement.type.description,
+                          l10n.achievementDesc(widget.achievement.type.name),
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.8),
                             fontSize: 12,

@@ -7,19 +7,231 @@
   "totalCoinsLabel": "Total: +{score} coins",
   "continuePlay": "Continue",
   "backHome": "Back to Home",
-  "@baseCoinsLabel": {
-    "placeholders": {
-      "score": {"type": "int"}
-    }
-  },
+  "mainTitle": "ENDLESS DODGE & COLLECT",
+  "bestLabel": "Best: {score}",
+  "playButton": "Play",
+  "dailyReward": "Daily Reward",
+  "nextClaim": "Next claim: {time}",
+  "bannerPlaceholder": "Banner Ad (placeholder)",
+  "loadingAds": "Loading ads...",
+  "settingsHint": "For Audio, Haptics, Ads, and more, open Settings above",
+  "activeSkin": "Active Skin:",
+  "skinSelectTitle": "Choose Character Skin",
+  "selectedStatus": "Selected",
+  "unlockedStatus": "Unlocked",
+  "lockedStatus": "Locked",
+  "priceCoins": "Price: {price} coins",
+  "buyButton": "Buy ({price})",
+  "unlockedSnack": "Unlocked: {name}",
+  "notEnoughCoins": "Not enough coins",
+  "selectButton": "Select",
+  "selectedSnack": "Selected: {name}",
+  "closeButton": "Close",
+  "optionsTitle": "Options",
+  "audioLabel": "Audio",
+  "hapticsLabel": "Haptics",
+  "adsLabel": "Ads",
+  "npaLabel": "Non-Personalized Ads",
+  "npaOn": "NPA ON",
+  "npaOff": "NPA OFF",
+  "difficultyLabel": "Difficulty",
+  "dailyMagnetLabel": "Daily Magnet",
+  "playerNameLabel": "Player Name",
+  "playerNameUpdated": "Player name updated",
+  "debugLoggingLabel": "Debug Logging",
+  "debugLoggingOn": "Debug logging ON",
+  "debugLoggingOff": "Debug logging OFF",
+  "languageLabel": "Language",
+  "languageEnglish": "English",
+  "languageIndonesian": "Indonesian",
+  "consentDialogTitle": "Ads Consent",
+  "consentDialogContent1": "This game shows ads to support development.",
+  "consentDialogContent2": "By pressing Agree, you allow showing ads.",
+  "consentDialogContent3": "You can change settings anytime in Main Menu.",
+  "consentDisagree": "Disagree",
+  "privacyPolicy": "Privacy Policy",
+  "consentAgree": "Agree",
+  "dailyRewardSnack": "Daily reward: +{coins} coins + magnet {magnetSec}s!",
+  "achievementsTitle": "Achievements",
+  "achievementsProgress": "Achievements: {unlocked}/{total}",
+  "achievementsCompletedPercent": "{percent}% Completed",
+  "leaderboardTitle": "Leaderboard",
+  "leaderboardToggleTop10": "Top 10",
+  "leaderboardToggleTop50": "Top 50",
+  "leaderboardEmpty": "No scores recorded yet",
+  "leaderboardSearchHint": "Search players...",
+  "leaderboardYourPosition": "Your position: #{rank} (outside top 10)",
+  "leaderboardSubtitleYouLastUpdated": "You • last updated {date}",
+  "leaderboardSubtitleLastSubmitted": "Last submitted • {date}",
+  "leaderboardSubtitleLastUpdated": "Last updated {date}",
+  "secondsShort": "s",
+  "magnetOffLabel": "OFF",
+  "pauseTooltip": "Pause",
+  "resumeTooltip": "Resume",
+  "muteTooltip": "Mute",
+  "unmuteTooltip": "Unmute",
+  "pauseTitle": "Paused",
+  "optionsButton": "Options…",
+  "rewardDetailsTitle": "Reward Details",
+  "sessionDurationSeconds": "Session duration: {seconds}s",
+  "magnetUsedYesLabel": "Magnet used: Yes",
+  "magnetUsedNoLabel": "Magnet used: No",
+  "magnetsPickedLabel": "Magnets picked: {count}",
+  "coinsPickedLabel": "Coins picked: {count}",
+  "rewardDepositHint": "Reward will be added on Restart or Back to Menu",
+  "restartButton": "Restart",
+  "reviveButton": "Revive",
+  "backToMenuButton": "Back to Menu",
+  "reviveUnavailable": "Revive not available.",
+  "reviveAdsUnavailable": "Revive only via ads. Ads not available.",
+  "doubleCoinsAdsUnavailable": "Double Coins via ads only. Ads not available.",
+  "rewardSnack": "Reward: +{amount} coins",
+  "achievementUnlockedBanner": "Achievement unlocked!",
+  "debugHudInfo": "C:{coins} M:{magnets} R:{revives}",
+  "achievementTitle": "{key, select, score100{Score Hunter I} score500{Score Hunter II} score1000{Score Hunter III} collect10Coins{Coin Collector I} collect50Coins{Coin Collector II} collect100Coins{Coin Collector III} firstGame{Beginner} play10Games{Enthusiast} play50Games{Addict} useMagnet{Magnetic} reviveOnce{Second Chance} other{Achievement}}",
+  "achievementDesc": "{key, select, score100{Get score 100} score500{Get score 500} score1000{Get score 1000} collect10Coins{Collect 10 coins} collect50Coins{Collect 50 coins} collect100Coins{Collect 100 coins} firstGame{Play the first game} play10Games{Play 10 games} play50Games{Play 50 games} useMagnet{Use the magnet for the first time} reviveOnce{Use revive feature} other{}}",
+  "skinName": "{id, select, default{Default} red{Red} green{Green} purple{Purple} orange{Orange} other{Unknown}}",
+  "@debugHudInfo": {"placeholders": {"coins": {"type": "int"}, "magnets": {"type": "int"}, "revives": {"type": "int"}}},
+  "@achievementTitle": {"placeholders": {"key": {"type": "String"}}},
+  "@achievementDesc": {"placeholders": {"key": {"type": "String"}}},
+  "@skinName": {"placeholders": {"id": {"type": "String"}}},
   "@bonusDoubleLabel": {
     "placeholders": {
-      "score": {"type": "int"}
+      "score": {
+        "type": "int"
+      }
     }
   },
   "@totalCoinsLabel": {
     "placeholders": {
-      "score": {"type": "int"}
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "@bestLabel": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "@nextClaim": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@priceCoins": {
+    "placeholders": {
+      "price": {
+        "type": "int"
+      }
+    }
+  },
+  "@buyButton": {
+    "placeholders": {
+      "price": {
+        "type": "int"
+      }
+    }
+  },
+  "@unlockedSnack": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@selectedSnack": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@dailyRewardSnack": {
+    "placeholders": {
+      "coins": {
+        "type": "int"
+      },
+      "magnetSec": {
+        "type": "int"
+      }
+    }
+  },
+  "@achievementsProgress": {
+    "placeholders": {
+      "unlocked": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@achievementsCompletedPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "@leaderboardYourPosition": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
+  "@leaderboardSubtitleYouLastUpdated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@leaderboardSubtitleLastSubmitted": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@leaderboardSubtitleLastUpdated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@sessionDurationSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "@magnetsPickedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@coinsPickedLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@rewardSnack": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
     }
   }
 }

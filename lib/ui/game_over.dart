@@ -10,6 +10,7 @@ import 'components/neumorphic_button.dart';
 import 'components/menu_components.dart';
 import 'components/bokeh_background.dart';
 import 'theme/app_theme.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class GameOverOverlay extends StatelessWidget {
   final MyGame game;
@@ -96,11 +97,12 @@ class GameOverOverlay extends StatelessWidget {
                 offstage: true,
                 child: ValueListenableBuilder<int>(
                   valueListenable: game.scoreVN,
-                  builder: (_, score, __) {
+                  builder: (context, score, __) {
                     final base = game.baseScoreAtGameOver;
                     final doubledApplied = game.doubleCoinsUsed;
                     final magnetUsed = game.magnetUsedThisRun;
                     final deposited = game.rewardDeposited;
+                    final l10n = AppLocalizations.of(context);
                     return Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -114,9 +116,9 @@ class GameOverOverlay extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Rincian Reward',
-                            style: TextStyle(
+                          Text(
+                            l10n.rewardDetailsTitle,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                             ),
@@ -124,39 +126,44 @@ class GameOverOverlay extends StatelessWidget {
                           const SizedBox(height: 6),
                           // Durasi sesi
                           Text(
-                            'Durasi sesi: ${game.elapsed.toStringAsFixed(1)}s',
+                            l10n.sessionDurationSeconds(
+                              game.elapsed.toStringAsFixed(1),
+                            ),
                             style: const TextStyle(color: Colors.white70),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Coins dasar: $base',
+                            l10n.baseCoinsLabel(base),
                             style: const TextStyle(color: Colors.white70),
                           ),
+                          // Keep double coins status as-is (offstage)
                           Text(
                             'Double Coins: ${doubledApplied ? 'Diterapkan' : 'Tersedia'}',
                             style: const TextStyle(color: Colors.white70),
                           ),
                           Text(
-                            'Magnet dipakai: ${magnetUsed ? 'Ya' : 'Tidak'}',
+                            magnetUsed
+                                ? l10n.magnetUsedYesLabel
+                                : l10n.magnetUsedNoLabel,
                             style: const TextStyle(color: Colors.white70),
                           ),
                           Text(
-                            'Magnet diambil: ${game.magnetsPicked}',
+                            l10n.magnetsPickedLabel(game.magnetsPicked),
                             style: const TextStyle(color: Colors.white70),
                           ),
                           Text(
-                            'Koin diambil: ${game.coinsPicked}',
+                            l10n.coinsPickedLabel(game.coinsPicked),
                             style: const TextStyle(color: Colors.white70),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Total: +$score coins',
+                            l10n.totalCoinsLabel(score),
                             style: const TextStyle(color: Colors.white),
                           ),
                           if (!deposited)
-                            const Text(
-                              'Reward akan ditambahkan saat Restart atau Back to Menu',
-                              style: TextStyle(
+                            Text(
+                              l10n.rewardDepositHint,
+                              style: const TextStyle(
                                 color: Colors.white54,
                                 fontSize: 12,
                               ),
@@ -169,7 +176,7 @@ class GameOverOverlay extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               NeumorphicButton(
-                label: 'Restart',
+                label: AppLocalizations.of(context).restartButton,
                 primary: false,
                 onPressed: () async {
                   final cubit = context.read<AppSettingsCubit>();
@@ -181,6 +188,7 @@ class GameOverOverlay extends StatelessWidget {
                     final leaderboard = LeaderboardService();
                     // Capture messenger before async await to avoid context after async gap
                     final messenger = ScaffoldMessenger.of(context);
+                    final l10n = AppLocalizations.of(context);
                     await leaderboard.submitScoreAsync(
                       playerId: cubit.state.playerName,
                       score: game.lastScore,
@@ -191,9 +199,7 @@ class GameOverOverlay extends StatelessWidget {
                       fields: {'amount': game.lastScore, 'action': 'restart'},
                     );
                     messenger.showSnackBar(
-                      SnackBar(
-                        content: Text('Reward: +${game.lastScore} coins'),
-                      ),
+                      SnackBar(content: Text(l10n.rewardSnack(game.lastScore))),
                     );
                   }
                   LoggingService.log('restart');
@@ -209,7 +215,7 @@ class GameOverOverlay extends StatelessWidget {
                     final adsAllowed =
                         settings.consentGiven && settings.adsEnabled;
                     return NeumorphicButton(
-                      label: 'Revive',
+                      label: AppLocalizations.of(context).reviveButton,
                       primary: false,
                       onPressed: () async {
                         final messenger = ScaffoldMessenger.of(context);
@@ -221,8 +227,10 @@ class GameOverOverlay extends StatelessWidget {
                         if (!game.reviveAvailable) {
                           LoggingService.log('revive_unavailable_no_charge');
                           messenger.showSnackBar(
-                            const SnackBar(
-                              content: Text('Revive tidak tersedia.'),
+                            SnackBar(
+                              content: Text(
+                                AppLocalizations.of(context).reviveUnavailable,
+                              ),
                             ),
                           );
                           return;
@@ -231,9 +239,11 @@ class GameOverOverlay extends StatelessWidget {
                         if (!adsAllowed || kIsWeb) {
                           LoggingService.log('revive_unavailable_ads');
                           messenger.showSnackBar(
-                            const SnackBar(
+                            SnackBar(
                               content: Text(
-                                'Revive hanya via iklan. Iklan tidak tersedia.',
+                                AppLocalizations.of(
+                                  context,
+                                ).reviveAdsUnavailable,
                               ),
                             ),
                           );
@@ -248,9 +258,11 @@ class GameOverOverlay extends StatelessWidget {
                           LoggingService.log('revive_via_ad_fail');
                           if (context.mounted) {
                             messenger.showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                 content: Text(
-                                  'Revive hanya via iklan. Iklan tidak tersedia.',
+                                  AppLocalizations.of(
+                                    context,
+                                  ).reviveAdsUnavailable,
                                 ),
                               ),
                             );
@@ -261,66 +273,8 @@ class GameOverOverlay extends StatelessWidget {
                   },
                 ),
               const SizedBox(height: 8),
-              // Tombol Double Rewards: selalu tampilkan tanpa kecuali
-              BlocBuilder<AppSettingsCubit, AppSettingsState>(
-                builder: (context, settings) {
-                  final adsAllowed =
-                      settings.consentGiven && settings.adsEnabled;
-                  final canDouble =
-                      game.doubleCoinsAvailable && adsAllowed && !kIsWeb;
-                  return NeumorphicButton(
-                    label: 'Double Coins',
-                    primary: false,
-                    onPressed:
-                        canDouble
-                            ? () async {
-                              final messenger = ScaffoldMessenger.of(context);
-                              LoggingService.log(
-                                'double_requested',
-                                fields: {
-                                  'ads_allowed': adsAllowed,
-                                  'base': game.lastScore,
-                                },
-                              );
-                              final ok = await AdService.I.showRewardedRevive();
-                              if (ok) {
-                                LoggingService.log('double_via_ad_ok');
-                                await game.applyDoubleCoinsReward();
-                                // Tampilkan overlay konfirmasi reward dan tutup Game Over
-                                game.overlays.remove(MyGame.overlayGameOver);
-                                game.overlays.add(MyGame.overlayRewardConfirm);
-                                LoggingService.log('double_overlay_shown');
-                              } else {
-                                LoggingService.log('double_via_ad_fail');
-                                if (context.mounted) {
-                                  messenger.showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Double Coins hanya via iklan. Iklan tidak tersedia.',
-                                      ),
-                                    ),
-                                  );
-                                }
-                              }
-                            }
-                            : () async {
-                              // Tombol selalu tampil, tapi jika tidak bisa double (ads tidak tersedia), tampilkan pesan
-                              final messenger = ScaffoldMessenger.of(context);
-                              LoggingService.log('double_unavailable');
-                              messenger.showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Double Coins hanya via iklan. Iklan tidak tersedia.',
-                                  ),
-                                ),
-                              );
-                            },
-                  );
-                },
-              ),
-              const SizedBox(height: 8),
               NeumorphicButton(
-                label: 'Back to Menu',
+                label: AppLocalizations.of(context).backToMenuButton,
                 primary: false,
                 onPressed: () async {
                   final cubit = context.read<AppSettingsCubit>();
@@ -331,6 +285,7 @@ class GameOverOverlay extends StatelessWidget {
                     final leaderboard = LeaderboardService();
                     // Capture messenger before async await to avoid context after async gap
                     final messenger2 = ScaffoldMessenger.of(context);
+                    final l10n = AppLocalizations.of(context);
                     await leaderboard.submitScoreAsync(
                       playerId: cubit.state.playerName,
                       score: game.lastScore,
@@ -344,9 +299,7 @@ class GameOverOverlay extends StatelessWidget {
                       },
                     );
                     messenger2.showSnackBar(
-                      SnackBar(
-                        content: Text('Reward: +${game.lastScore} coins'),
-                      ),
+                      SnackBar(content: Text(l10n.rewardSnack(game.lastScore))),
                     );
                   }
                   LoggingService.log('back_to_menu');
