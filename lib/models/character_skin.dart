@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'skin_type.dart';
 
 /// Model untuk skin karakter yang tersedia dalam game
 class CharacterSkin {
@@ -47,6 +48,9 @@ class CharacterSkin {
       isUnlocked: isUnlocked ?? this.isUnlocked,
     );
   }
+
+  // Menentukan tipe skin berdasarkan harga
+  SkinType get skinType => SkinType.fromPrice(price);
 
   /// Daftar skin default yang tersedia dalam game
   static List<CharacterSkin> defaultSkins = [

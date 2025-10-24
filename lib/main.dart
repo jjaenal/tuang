@@ -99,7 +99,7 @@ class _MyAppState extends State<MyApp> {
         child: BlocBuilder<AppSettingsCubit, AppSettingsState>(
           builder: (context, app) {
             return MaterialApp(
-              locale: Locale(app.languageCode),
+              locale: null,
               onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
               localizationsDelegates: const [
                 AppLocalizations.delegate,
