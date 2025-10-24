@@ -147,4 +147,4 @@
 - [ ] **Skins & themes improvement**
   - [ ] **Draw skins from scratch using CustomPaint**
   - [ ] **Draw themes from scratch using CustomPaint**
-- [ ] **Test ads rewards**
+- [x] **Test ads rewards**: Unit tests added for cooldown/NPA; logic-only revive/daily return values verified. Manual device testing still pending.

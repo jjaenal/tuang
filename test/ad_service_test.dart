@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tuang/services/ad_service.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 void main() {
   group('AdService cooldownAllows', () {
@@ -27,6 +28,27 @@ void main() {
         AdService.cooldownAllows(last, now, const Duration(seconds: 120)),
         isTrue,
       );
+    });
+  });
+
+  group('AdService rewarded flows (logic-only)', () {
+    test('showRewardedRevive returns false when not initialized', () async {
+      final ad = AdService.I;
+      // Pastikan state bersih
+      await Future.value();
+      final result = await ad.showRewardedRevive();
+      expect(result, isFalse);
+    });
+
+    test('showRewardedDailyReward returns false when not initialized', () async {
+      final ad = AdService.I;
+      final result = await ad.showRewardedDailyReward();
+      expect(result, isFalse);
+    });
+
+    test('setNonPersonalizedAds does not throw before init', () {
+      final ad = AdService.I;
+      expect(() => ad.setNonPersonalizedAds(true), returnsNormally);
     });
   });
 }
