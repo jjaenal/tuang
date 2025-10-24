@@ -6,13 +6,17 @@ import '../services/logging_service.dart';
 import '../ui/achievement_notification.dart';
 import '../ui/achievements_screen.dart';
 
-/// Service untuk mengelola achievement dalam game
+/// AchievementService menangani pengelolaan achievement pemain.
+///
+/// - Menyimpan dan memuat state achievement dari `SharedPreferences`.
+/// - Mengupdate progress dan memicu notifikasi saat achievement terbuka.
+/// - Menyediakan akses daftar achievement via getter.
 class AchievementService {
   static const String _prefsKey = 'achievements';
   final Map<AchievementType, Achievement> _achievements = {};
   final List<Achievement> _recentlyUnlocked = [];
 
-  /// Stream controller untuk notifikasi achievement yang baru terbuka
+  /// Notifier untuk achievement yang baru terbuka (untuk overlay notifikasi)
   final ValueNotifier<Achievement?> onAchievementUnlocked = ValueNotifier(null);
 
   /// Singleton instance
@@ -48,7 +52,7 @@ class AchievementService {
     loadAchievements();
   }
 
-  /// Mendaftarkan achievement baru
+  /// Mendaftarkan achievement baru dengan target bawaan
   void _registerAchievement(AchievementType type, int targetValue) {
     _achievements[type] = Achievement.create(type, targetValue: targetValue);
   }
@@ -78,7 +82,7 @@ class AchievementService {
     return List.from(_recentlyUnlocked);
   }
 
-  /// Mengupdate progress achievement
+  /// Mengupdate progress achievement dan memicu notifikasi jika terbuka
   void updateProgress(AchievementType type, int progress) {
     final achievement = _achievements[type];
     if (achievement == null) return;
@@ -109,7 +113,7 @@ class AchievementService {
     updateProgress(type, achievement.progress + increment);
   }
 
-  /// Menyimpan achievement ke SharedPreferences
+  /// Menyimpan achievement ke `SharedPreferences` (JSON-encoded list)
   Future<void> saveAchievements() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -124,7 +128,7 @@ class AchievementService {
     }
   }
 
-  /// Memuat achievement dari SharedPreferences
+  /// Memuat achievement dari `SharedPreferences`
   Future<void> loadAchievements() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -188,6 +192,6 @@ class AchievementService {
     ).push(MaterialPageRoute(builder: (context) => const AchievementsScreen()));
   }
 
-  /// Singleton instance accessor
+  /// Singleton accessor
   static AchievementService get I => _instance;
 }

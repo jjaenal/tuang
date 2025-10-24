@@ -1,6 +1,13 @@
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/foundation.dart';
 
+/// AudioService mengelola BGM dan SFX untuk game.
+///
+/// Fitur:
+/// - `init()`: inisialisasi BGM channel (skip saat `testMode`).
+/// - `startBgm()`/`stopBgm()`: kontrol musik latar dengan guard untuk web/test.
+/// - `setMuted()`: mematikan audio (auto stop BGM) atau mengaktifkan.
+/// - `playCoin()`/`playMagnet()`/`playHit()`: helper SFX.
 class AudioService {
   static final AudioService I = AudioService._();
   AudioService._();
@@ -15,7 +22,7 @@ class AudioService {
 
   bool _bgmStarted = false;
 
-  // Inisialisasi channel BGM; di-mode test di-skip untuk menghindari pembuatan AudioPlayer
+  /// Inisialisasi channel BGM; di-mode test di-skip untuk menghindari pembuatan AudioPlayer
   Future<void> init() async {
     if (testMode) return;
     try {
@@ -23,7 +30,7 @@ class AudioService {
     } catch (_) {}
   }
 
-  // Memulai musik latar; aman dipanggil berulang, di-skip pada web/testMode
+  /// Memulai musik latar; aman dipanggil berulang, di-skip pada web/testMode
   Future<void> startBgm({double volume = 0.6}) async {
     if (testMode) return;
     if (kIsWeb) return;
@@ -39,7 +46,7 @@ class AudioService {
     }
   }
 
-  // Hentikan musik latar
+  /// Hentikan musik latar
   void stopBgm() {
     if (testMode) return;
     if (kIsWeb) return;
@@ -49,7 +56,7 @@ class AudioService {
     _bgmStarted = false;
   }
 
-  // Menyetel status mute; ketika mute, coba hentikan BGM (kecuali saat testMode)
+  /// Menyetel status mute; ketika mute, coba hentikan BGM (kecuali saat testMode)
   void setMuted(bool muted) {
     _muted = muted;
     if (muted) {
@@ -61,12 +68,12 @@ class AudioService {
     }
   }
 
-  // Helper sfx: memicu pemutaran suara koin/magnet/hit
+  /// Helper sfx: memicu pemutaran suara koin/magnet/hit
   void playCoin() => _play('coin.wav');
   void playMagnet() => _play('magnet.wav');
   void playHit() => _play('hit.wav');
 
-  // Memutar sfx dengan aman: catat aset, hormati mute, dan hindari pemanggilan plugin saat test/web
+  /// Memutar sfx dengan aman: catat aset, hormati mute, dan hindari pemanggilan plugin saat test/web
   void _play(String asset) {
     lastSfxPlayed = asset;
     if (_muted) return;

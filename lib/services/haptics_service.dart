@@ -7,6 +7,8 @@ class HapticsService {
   static bool enabled = true;
   static bool testMode = false;
 
+  /// Memeriksa apakah haptics dapat digunakan pada platform/kondisi saat ini.
+  /// Mengembalikan `false` jika dimatikan, `kIsWeb`, `testMode`, atau binding belum siap.
   static bool _canUse() {
     if (!enabled || testMode) return false;
     if (kIsWeb) return false;
@@ -20,6 +22,7 @@ class HapticsService {
     return true;
   }
 
+  /// Memberikan haptik ringan saat koin diambil.
   static void coinPickup() {
     if (!_canUse()) return;
     try {
@@ -27,6 +30,7 @@ class HapticsService {
     } catch (_) {}
   }
 
+  /// Memberikan haptik ringan saat magnet diambil.
   static void magnetPickup() {
     if (!_canUse()) return;
     try {
@@ -34,6 +38,7 @@ class HapticsService {
     } catch (_) {}
   }
 
+  /// Memberikan haptik berat saat pemain revive.
   static void revive() {
     if (!_canUse()) return;
     try {

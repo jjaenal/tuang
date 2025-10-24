@@ -14,6 +14,8 @@ enum SkinType {
   legendary;
 
   /// Mendapatkan SkinType berdasarkan harga
+  ///
+  /// Mapping sederhana: `>=500 → legendary`, `>=300 → premium`, `>=100 → advanced`, sisanya `basic`.
   static SkinType fromPrice(int price) {
     if (price >= 500) {
       return SkinType.legendary;

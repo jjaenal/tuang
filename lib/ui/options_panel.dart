@@ -10,6 +10,11 @@ import 'theme/app_theme.dart';
 import '../models/difficulty.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+/// OptionsPanel menampilkan pengaturan permainan (audio, haptics, iklan, bahasa,
+/// tingkat kesulitan, buff harian, nama pemain, dan debug logging).
+///
+/// Widget ini menggunakan Bloc untuk membaca dan mengubah `AppSettingsCubit`,
+/// serta memanfaatkan l10n (`AppLocalizations`) untuk semua label dan teks.
 class OptionsPanel extends StatefulWidget {
   const OptionsPanel({super.key});
 
@@ -18,6 +23,8 @@ class OptionsPanel extends StatefulWidget {
 }
 
 class _OptionsPanelState extends State<OptionsPanel> {
+  /// Menampilkan dialog consent (GDPR/CCPA) dan mengembalikan `true` jika user
+  /// menyetujui. Dialog tidak bisa ditutup dengan tap di luar (barrierDismissible=false).
   Future<bool> _showConsentDialog(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
     final accepted = await showDialog<bool>(
@@ -47,10 +54,15 @@ class _OptionsPanelState extends State<OptionsPanel> {
     return accepted == true;
   }
 
+  /// Menentukan apakah region saat ini membutuhkan consent sebelum mengaktifkan iklan.
   bool _regionRequiresConsent() {
     return GameConfig.alwaysRequireConsent;
   }
 
+  /// Memastikan consent tersedia sebelum mengaktifkan iklan:
+  /// - Jika consent sudah diberikan, langsung toggle iklan
+  /// - Jika region tidak membutuhkan consent, langsung toggle iklan
+  /// - Jika membutuhkan, tampilkan dialog dan set consent jika disetujui
   Future<void> _ensureConsentThenEnableAds(BuildContext context) async {
     final cubit = context.read<AppSettingsCubit>();
     final state = cubit.state;

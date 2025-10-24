@@ -1,15 +1,25 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+/// SupabaseService: inisialisasi klien Supabase dan health check sederhana.
+///
+/// - Membaca `SUPABASE_URL` dan `SUPABASE_ANON_KEY` via `dart-define`.
+/// - Beroperasi dalam mode lokal jika tidak dikonfigurasi.
+/// - Menyediakan `getHealth()` untuk memeriksa kemampuan read/write.
 class SupabaseService {
   SupabaseClient? _client;
   bool _initAttempted = false;
 
+  /// Singleton instance.
   static final SupabaseService I = SupabaseService._();
   SupabaseService._();
 
+  /// Klien Supabase aktif (null jika belum terinisialisasi).
   SupabaseClient? get client => _client;
+  /// Status apakah klien sudah terinisialisasi.
   bool get isInitialized => _client != null;
 
+  /// Memastikan Supabase terinisialisasi sekali dengan konfigurasi yang tersedia.
+  /// Jika `url` atau `anonKey` kosong, tetap dalam mode lokal (tanpa klien).
   Future<void> ensureInit() async {
     if (_initAttempted) return;
     _initAttempted = true;
@@ -29,6 +39,8 @@ class SupabaseService {
     _client = Supabase.instance.client;
   }
 
+  /// Mengembalikan status kesehatan koneksi Supabase: inisialisasi, read, dan write.
+  /// Melakukan operasi read `select` dan write `upsert`/`delete` pada tabel `scores`.
   Future<SupabaseHealthStatus> getHealth() async {
     await ensureInit();
     if (_client == null) {
@@ -63,9 +75,13 @@ class SupabaseService {
   }
 }
 
+/// Status kesehatan Supabase untuk diagnosa sederhana.
 class SupabaseHealthStatus {
+  /// Apakah klien Supabase telah terinisialisasi.
   final bool initialized;
+  /// Apakah operasi read berhasil.
   final bool canRead;
+  /// Apakah operasi write berhasil.
   final bool canWrite;
   const SupabaseHealthStatus({
     required this.initialized,

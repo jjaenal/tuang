@@ -24,7 +24,7 @@ class LeaderboardService {
   String? _lastSubmittedPlayerId;
   int? _lastSubmittedTimestampMs;
 
-  /// Ensure entries are loaded from SharedPreferences.
+  /// Ensure entries are loaded from SharedPreferences or Supabase.
   /// Safe to call multiple times; subsequent calls are fast.
   Future<void> ensureLoaded() async {
     if (_loaded) return;
@@ -83,12 +83,6 @@ class LeaderboardService {
   /// Submits a [score] for a given [playerId].
   /// Returns `true` if the score was added or upgraded.
   /// Throws [ArgumentError] if inputs are invalid.
-  void _enforceCap({int cap = 50}) {
-    if (_entries.length > cap) {
-      _entries.removeRange(cap, _entries.length);
-    }
-  }
-
   Future<bool> submitScoreAsync({
     required String playerId,
     required int score,
@@ -142,6 +136,13 @@ class LeaderboardService {
     return true;
   }
 
+  /// Enforces a maximum capacity for stored entries, removing overflow.
+  void _enforceCap({int cap = 50}) {
+    if (_entries.length > cap) {
+      _entries.removeRange(cap, _entries.length);
+    }
+  }
+
   /// Returns top-N scores, default [limit] is 10.
   /// If fewer entries exist, returns all.
   List<LeaderboardEntry> topScores({int limit = 10}) {
@@ -179,6 +180,7 @@ class LeaderboardService {
     _saveToPrefs();
   }
 
+  /// Sorts internal entries by score desc, then timestamp asc for tie-breakers.
   void _sort() {
     _entries.sort((a, b) {
       // Sort by score desc, then timestamp asc (earlier first for tie-breaker)
@@ -188,6 +190,7 @@ class LeaderboardService {
     });
   }
 
+  /// Persists entries to `SharedPreferences` for offline/local leaderboard.
   void _saveToPrefs() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -238,6 +241,7 @@ class _Entry {
   });
 }
 
+/// Parses various `updated_at` formats into milliseconds since epoch.
 int _parseUpdatedAt(dynamic value) {
   if (value is String) {
     return DateTime.tryParse(value)?.millisecondsSinceEpoch ??

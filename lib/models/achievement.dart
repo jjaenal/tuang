@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 /// Jenis achievement yang dapat diperoleh pemain
+///
+/// Setiap item menyimpan `title`, `description`, dan `icon` untuk ditampilkan
+/// pada UI. Digunakan oleh `AchievementService` untuk tracking progress.
 enum AchievementType {
   // Score-based achievements
   score100('Score Hunter I', 'Dapatkan skor 100', Icons.emoji_events),
@@ -41,6 +44,9 @@ enum AchievementType {
 }
 
 /// Model untuk menyimpan data achievement
+///
+/// Menyimpan `type`, waktu unlock (`unlockedAt`), `progress`, dan `targetValue`.
+/// Menyediakan utilitas `copyWith`, `updateProgress`, serta konversi JSON.
 class Achievement {
   final AchievementType type;
   final DateTime? unlockedAt;
@@ -76,8 +82,7 @@ class Achievement {
     );
   }
 
-  /// Membuat achievement baru dengan progress yang diperbarui
-  /// dan mengecek apakah achievement sudah terbuka
+  /// Mengupdate progress achievement, otomatis set `unlockedAt` jika mencapai target
   Achievement updateProgress(int newProgress) {
     final updatedProgress = newProgress;
 
@@ -115,7 +120,7 @@ class Achievement {
     );
   }
 
-  /// Membuat achievement baru dengan nilai default
+  /// Factory untuk membuat achievement baru dengan nilai default
   factory Achievement.create(AchievementType type, {int targetValue = 1}) {
     return Achievement(type: type, progress: 0, targetValue: targetValue);
   }

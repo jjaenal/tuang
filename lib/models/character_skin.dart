@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'skin_type.dart';
 
 /// Model untuk skin karakter yang tersedia dalam game
+///
+/// Menyimpan identitas, nama tampil, warna, harga (dalam koin), path gambar
+/// opsional, status kepemilikan, serta `skinType` untuk menentukan renderer.
 class CharacterSkin {
   /// ID unik untuk skin
   final String id;
@@ -24,6 +27,10 @@ class CharacterSkin {
   /// Tipe skin yang menentukan kompleksitas render
   final SkinType skinType;
 
+  /// Membuat instance `CharacterSkin`.
+  ///
+  /// Jika `skinType` tidak diberikan, akan dihitung dari `price` via
+  /// `SkinType.fromPrice`.
   CharacterSkin({
     required this.id,
     required this.name,
