@@ -23,6 +23,7 @@ class AppSettingsState extends Equatable {
   final String activeSkinId;
   final List<String> unlockedSkinIds;
   final Difficulty difficulty;
+  final String languageCode;
 
   const AppSettingsState({
     this.audioOn = true,
@@ -39,6 +40,7 @@ class AppSettingsState extends Equatable {
     this.activeSkinId = 'default',
     this.unlockedSkinIds = const ['default'],
     this.difficulty = Difficulty.normal,
+    this.languageCode = 'id',
   });
 
   AppSettingsState copyWith({
@@ -56,6 +58,7 @@ class AppSettingsState extends Equatable {
     String? activeSkinId,
     List<String>? unlockedSkinIds,
     Difficulty? difficulty,
+    String? languageCode,
   }) {
     return AppSettingsState(
       audioOn: audioOn ?? this.audioOn,
@@ -75,6 +78,7 @@ class AppSettingsState extends Equatable {
       activeSkinId: activeSkinId ?? this.activeSkinId,
       unlockedSkinIds: unlockedSkinIds ?? this.unlockedSkinIds,
       difficulty: difficulty ?? this.difficulty,
+      languageCode: languageCode ?? this.languageCode,
     );
   }
 
@@ -94,6 +98,7 @@ class AppSettingsState extends Equatable {
     activeSkinId,
     unlockedSkinIds,
     difficulty,
+    languageCode,
   ];
 
   bool get canClaimDailyReward {
@@ -135,6 +140,8 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     final unlockedSkinIds =
         prefs.getStringList(PrefKeys.unlockedSkinIds) ?? state.unlockedSkinIds;
     final difficultyKey = prefs.getString(PrefKeys.difficulty);
+    final languageCode =
+        prefs.getString(PrefKeys.languageCode) ?? state.languageCode;
 
     emit(
       state.copyWith(
@@ -153,6 +160,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
         activeSkinId: activeSkinId,
         unlockedSkinIds: unlockedSkinIds,
         difficulty: DifficultyX.fromKey(difficultyKey),
+        languageCode: languageCode,
       ),
     );
   }
@@ -178,6 +186,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     await prefs.setString(PrefKeys.activeSkinId, state.activeSkinId);
     await prefs.setStringList(PrefKeys.unlockedSkinIds, state.unlockedSkinIds);
     await prefs.setString(PrefKeys.difficulty, state.difficulty.key);
+    await prefs.setString(PrefKeys.languageCode, state.languageCode);
 
     if (state.lastDailyRewardClaimedAt != null) {
       await prefs.setString(
@@ -266,6 +275,12 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
 
   void setDifficulty(Difficulty value) {
     emit(state.copyWith(difficulty: value));
+    _savePrefs();
+  }
+
+  void setLanguageCode(String code) {
+    if (code.isEmpty) return;
+    emit(state.copyWith(languageCode: code));
     _savePrefs();
   }
 

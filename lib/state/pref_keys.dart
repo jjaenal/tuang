@@ -24,4 +24,7 @@ class PrefKeys {
 
   // Difficulty-related key
   static const String difficulty = 'pref_difficulty';
+
+  // Language-related key
+  static const String languageCode = 'pref_languageCode';
 }

@@ -21,14 +21,18 @@ class CharacterSkin {
   /// Apakah skin ini sudah terbuka/dimiliki oleh player
   final bool isUnlocked;
 
-  const CharacterSkin({
+  /// Tipe skin yang menentukan kompleksitas render
+  final SkinType skinType;
+
+  CharacterSkin({
     required this.id,
     required this.name,
     required this.color,
     required this.price,
     this.imagePath,
     this.isUnlocked = false,
-  });
+    SkinType? skinType,
+  }) : skinType = skinType ?? SkinType.fromPrice(price);
 
   /// Membuat copy dari skin dengan beberapa properti yang diubah
   CharacterSkin copyWith({
@@ -38,6 +42,7 @@ class CharacterSkin {
     int? price,
     String? imagePath,
     bool? isUnlocked,
+    SkinType? skinType,
   }) {
     return CharacterSkin(
       id: id ?? this.id,
@@ -46,6 +51,7 @@ class CharacterSkin {
       price: price ?? this.price,
       imagePath: imagePath ?? this.imagePath,
       isUnlocked: isUnlocked ?? this.isUnlocked,
+      skinType: skinType ?? this.skinType,
     );
   }
 
@@ -54,7 +60,7 @@ class CharacterSkin {
 
   /// Daftar skin default yang tersedia dalam game
   static List<CharacterSkin> defaultSkins = [
-    const CharacterSkin(
+    CharacterSkin(
       id: 'default',
       name: 'Default',
       color: Colors.blue,
@@ -62,32 +68,32 @@ class CharacterSkin {
       imagePath: 'bird.png',
       isUnlocked: true,
     ),
-    const CharacterSkin(
+    CharacterSkin(
       id: 'red',
       name: 'Merah',
       color: Colors.red,
       price: 100,
       imagePath: 'bird_red.png',
     ),
-    const CharacterSkin(
+    CharacterSkin(
       id: 'green',
       name: 'Hijau',
       color: Colors.green,
       price: 200,
       imagePath: 'bird_green.png',
     ),
-    const CharacterSkin(
+    CharacterSkin(
       id: 'purple',
       name: 'Ungu',
       color: Colors.purple,
       price: 300,
       imagePath: 'bird_purple.png',
     ),
-    const CharacterSkin(
+    CharacterSkin(
       id: 'orange',
       name: 'Oranye',
       color: Colors.orange,
-      price: 400,
+      price: 500,
       imagePath: 'bird_orange.png',
     ),
   ];

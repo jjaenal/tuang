@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/achievement.dart';
 import '../services/achievement_service.dart';
 import 'theme/app_theme.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// Screen untuk menampilkan daftar achievements
 class AchievementsScreen extends StatefulWidget {
@@ -18,10 +19,11 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   Widget build(BuildContext context) {
     final allAchievements = _achievementService.getAllAchievements();
     final unlockedCount = _achievementService.getUnlockedAchievements().length;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Achievements'),
+        title: Text(l10n.achievementsTitle),
         centerTitle: true,
         backgroundColor: AppTheme.darkBase,
       ),
@@ -29,7 +31,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
         decoration: BoxDecoration(gradient: AppTheme.darkGradient),
         child: Column(
           children: [
-            _buildProgressHeader(unlockedCount, allAchievements.length),
+            _buildProgressHeader(unlockedCount, allAchievements.length, l10n),
             Expanded(child: _buildAchievementsList(allAchievements)),
           ],
         ),
@@ -38,7 +40,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   }
 
   /// Widget untuk menampilkan header dengan progress achievement
-  Widget _buildProgressHeader(int unlocked, int total) {
+  Widget _buildProgressHeader(int unlocked, int total, AppLocalizations l10n) {
     final progressPercent = total > 0 ? (unlocked / total * 100).toInt() : 0;
 
     return Container(
@@ -47,7 +49,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
       child: Column(
         children: [
           Text(
-            'Achievements: $unlocked/$total',
+            l10n.achievementsProgress(unlocked, total),
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -56,13 +58,13 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
           ),
           const SizedBox(height: 8),
           LinearProgressIndicator(
-            value: unlocked / total,
+            value: total > 0 ? unlocked / total : 0,
             backgroundColor: AppTheme.darkBase.withAlpha(100),
             valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
           ),
           const SizedBox(height: 4),
           Text(
-            '$progressPercent% Completed',
+            l10n.achievementsCompletedPercent(progressPercent),
             style: const TextStyle(fontSize: 14, color: Colors.white),
           ),
         ],
@@ -85,7 +87,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   /// Widget untuk menampilkan card achievement
   Widget _buildAchievementCard(Achievement achievement) {
     final bool isUnlocked = achievement.isUnlocked;
-
+    final l10n = AppLocalizations.of(context);
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       elevation: 3,
@@ -106,7 +108,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
           ),
         ),
         title: Text(
-          achievement.type.title,
+          l10n.achievementTitle(achievement.type.name),
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: isUnlocked ? Colors.white : Colors.grey.shade400,
@@ -116,14 +118,17 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              achievement.type.description,
+              l10n.achievementDesc(achievement.type.name),
               style: TextStyle(
                 color: isUnlocked ? Colors.grey.shade300 : Colors.grey.shade500,
               ),
             ),
             const SizedBox(height: 4),
             LinearProgressIndicator(
-              value: achievement.progress / achievement.targetValue,
+              value:
+                  achievement.targetValue > 0
+                      ? achievement.progress / achievement.targetValue
+                      : 0,
               backgroundColor: AppTheme.darkBase.withAlpha(100),
               valueColor: AlwaysStoppedAnimation<Color>(
                 isUnlocked ? Colors.green : Colors.amber,

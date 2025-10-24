@@ -8,6 +8,7 @@ import 'components/menu_components.dart';
 import 'components/neumorphic_button.dart';
 import 'theme/app_theme.dart';
 import '../models/difficulty.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class OptionsPanel extends StatefulWidget {
   const OptionsPanel({super.key});
@@ -18,23 +19,24 @@ class OptionsPanel extends StatefulWidget {
 
 class _OptionsPanelState extends State<OptionsPanel> {
   Future<bool> _showConsentDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final accepted = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       barrierColor: AppTheme.barrierColorDark,
       builder:
           (ctx) => AlertDialog(
-            title: const Text('Consent Iklan'),
-            content: const Text('Izinkan iklan dengan personalisasi?'),
+            title: Text(l10n.consentDialogTitle),
+            content: Text(l10n.consentDialogContent2),
             actions: [
               NeumorphicButton(
-                label: 'Tidak',
+                label: l10n.consentDisagree,
                 onPressed: () => Navigator.of(ctx).pop(false),
                 primary: false,
                 size: ButtonSize.compact,
               ),
               NeumorphicButton(
-                label: 'Setuju',
+                label: l10n.consentAgree,
                 onPressed: () => Navigator.of(ctx).pop(true),
                 primary: true,
                 size: ButtonSize.compact,
@@ -71,15 +73,16 @@ class _OptionsPanelState extends State<OptionsPanel> {
   Widget build(BuildContext context) {
     return BlocBuilder<AppSettingsCubit, AppSettingsState>(
       builder: (context, app) {
+        final l10n = AppLocalizations.of(context);
         return Center(
           child: MenuPanel(
-            title: 'Options',
+            title: l10n.optionsTitle,
             onClose: () => Navigator.of(context).pop(),
             dark: true,
             children: [
               OptionRow(
                 icon: Icons.volume_up,
-                label: 'Audio',
+                label: l10n.audioLabel,
                 trailing: Switch(
                   value: app.audioOn,
                   onChanged:
@@ -89,7 +92,7 @@ class _OptionsPanelState extends State<OptionsPanel> {
               const SizedBox(height: 8),
               OptionRow(
                 icon: Icons.vibration,
-                label: 'Haptics',
+                label: l10n.hapticsLabel,
                 trailing: Switch(
                   value: app.hapticsOn,
                   onChanged:
@@ -99,7 +102,7 @@ class _OptionsPanelState extends State<OptionsPanel> {
               const SizedBox(height: 8),
               OptionRow(
                 icon: Icons.ad_units,
-                label: 'Ads',
+                label: l10n.adsLabel,
                 trailing: Switch(
                   value: app.adsEnabled && app.consentGiven,
                   onChanged: (_) => _ensureConsentThenEnableAds(context),
@@ -108,7 +111,7 @@ class _OptionsPanelState extends State<OptionsPanel> {
               const SizedBox(height: 8),
               OptionRow(
                 icon: Icons.privacy_tip,
-                label: 'Non-Personalized Ads',
+                label: l10n.npaLabel,
                 trailing: Switch(
                   value: app.npaEnabled,
                   onChanged: (val) {
@@ -117,16 +120,44 @@ class _OptionsPanelState extends State<OptionsPanel> {
                     AdService.I.setNonPersonalizedAds(val);
                     final messenger = ScaffoldMessenger.of(context);
                     messenger.showSnackBar(
-                      SnackBar(content: Text(val ? 'NPA ON' : 'NPA OFF')),
+                      SnackBar(content: Text(val ? l10n.npaOn : l10n.npaOff)),
                     );
                   },
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Language selector
+              OptionRow(
+                icon: Icons.language,
+                label: l10n.languageLabel,
+                trailing: SizedBox(
+                  width: 180,
+                  child: DropdownButton<String>(
+                    value: app.languageCode,
+                    isExpanded: true,
+                    items: [
+                      DropdownMenuItem(
+                        value: 'id',
+                        child: Text(l10n.languageIndonesian),
+                      ),
+                      DropdownMenuItem(
+                        value: 'en',
+                        child: Text(l10n.languageEnglish),
+                      ),
+                    ],
+                    onChanged: (code) {
+                      if (code != null) {
+                        context.read<AppSettingsCubit>().setLanguageCode(code);
+                      }
+                    },
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
               // Difficulty selector
               OptionRow(
                 icon: Icons.speed,
-                label: 'Difficulty',
+                label: l10n.difficultyLabel,
                 trailing: SizedBox(
                   width: 180,
                   child: Slider(
@@ -148,7 +179,7 @@ class _OptionsPanelState extends State<OptionsPanel> {
               // Daily Magnet slider pakai OptionRow dengan spacer
               OptionRow(
                 icon: Icons.bolt,
-                label: 'Daily Magnet',
+                label: l10n.dailyMagnetLabel,
                 trailing: SizedBox(
                   width: 180,
                   child: Slider(
@@ -156,7 +187,7 @@ class _OptionsPanelState extends State<OptionsPanel> {
                     min: 0,
                     max: GameConfig.maxDailyMagnetBuffSec.toDouble(),
                     divisions: GameConfig.maxDailyMagnetBuffSec,
-                    label: '${app.dailyMagnetBuffSeconds}s',
+                    label: '${app.dailyMagnetBuffSeconds}${l10n.secondsShort}',
                     onChanged: (val) {
                       context
                           .read<AppSettingsCubit>()
@@ -169,7 +200,7 @@ class _OptionsPanelState extends State<OptionsPanel> {
               // Player Name input
               OptionRow(
                 icon: Icons.person,
-                label: 'Player Name',
+                label: l10n.playerNameLabel,
                 trailing: SizedBox(
                   width: 180,
                   child: TextField(
@@ -186,7 +217,7 @@ class _OptionsPanelState extends State<OptionsPanel> {
                       if (value.isNotEmpty) {
                         context.read<AppSettingsCubit>().setPlayerName(value);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Player name updated')),
+                          SnackBar(content: Text(l10n.playerNameUpdated)),
                         );
                       }
                     },
@@ -197,7 +228,7 @@ class _OptionsPanelState extends State<OptionsPanel> {
               // Debug logging toggle
               OptionRow(
                 icon: Icons.bug_report,
-                label: 'Debug Logging',
+                label: l10n.debugLoggingLabel,
                 trailing: Switch(
                   value: LoggingService.enabled,
                   onChanged: (val) {
@@ -205,7 +236,7 @@ class _OptionsPanelState extends State<OptionsPanel> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          val ? 'Debug logging ON' : 'Debug logging OFF',
+                          val ? l10n.debugLoggingOn : l10n.debugLoggingOff,
                         ),
                       ),
                     );

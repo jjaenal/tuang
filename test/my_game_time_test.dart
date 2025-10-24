@@ -41,8 +41,9 @@ void main() {
     test('elapsed getter returns accumulated time', () async {
       SharedPreferences.setMockInitialValues({});
       final game = MyGame();
-      await game.onLoad();
+      // Penting: set size dulu sebelum onLoad untuk menghindari error hasLayout
       game.onGameResize(Vector2(800, 600));
+      await game.onLoad();
       game.startGame();
       game.update(3.5);
       expect(game.elapsed, closeTo(3.5, 1e-6));

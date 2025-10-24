@@ -125,9 +125,7 @@ class MyGame extends FlameGame with HasCollisionDetection {
 
     // Tambahkan UI joystick untuk mobile (iOS/Android) saja
     final isMobilePlatform =
-        !kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.iOS ||
-            defaultTargetPlatform == TargetPlatform.android);
+        !kIsWeb && (Platform.isIOS || Platform.isAndroid);
     if (isMobilePlatform && joystick == null) {
       final knob = CircleComponent(
         radius: 24,
@@ -188,6 +186,18 @@ class MyGame extends FlameGame with HasCollisionDetection {
     _coinsSinceLastCombo = 0;
     _magnetSecAccumulator = 0.0;
     _magnetGlow = null;
+
+    // Refresh player skin from preferences before starting
+    Future(() async {
+      try {
+        final activeSkin = await _getActiveSkin();
+        player.setSkin(activeSkin);
+        player.position = size / 2; // center at start
+      } catch (_) {
+        // In tests, startGame may be called before onLoad initializes `player`.
+        // Swallow late-initialization here to keep startGame idempotent.
+      }
+    });
 
     // Cleanup residual entities
     for (final c in children.whereType<Coin>().toList()) {

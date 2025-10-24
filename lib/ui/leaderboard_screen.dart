@@ -4,6 +4,7 @@ import '../services/leaderboard_service.dart';
 import '../state/app_settings_cubit.dart';
 import 'components/neumorphic_button.dart';
 import 'theme/app_theme.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// Screen untuk menampilkan leaderboard dengan top scores
 class LeaderboardScreen extends StatefulWidget {
@@ -28,6 +29,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   Widget build(BuildContext context) {
     final leaderboard = LeaderboardService();
     final currentPlayerId = context.read<AppSettingsCubit>().state.playerName;
+    final l10n = AppLocalizations.of(context);
 
     return FutureBuilder<void>(
       future: leaderboard.ensureLoaded(),
@@ -54,7 +56,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Leaderboard'),
+            title: Text(l10n.leaderboardTitle),
             backgroundColor: AppTheme.darkBase,
             actions: [
               Padding(
@@ -62,7 +64,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 child: SizedBox(
                   width: 120,
                   child: NeumorphicButton(
-                    label: _showAll ? 'Top 50' : 'Top 10',
+                    label:
+                        _showAll
+                            ? l10n.leaderboardToggleTop50
+                            : l10n.leaderboardToggleTop10,
                     icon: _showAll ? Icons.list_alt : Icons.filter_1,
                     onPressed:
                         loaded
@@ -100,7 +105,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                             onChanged: (v) => setState(() => _query = v.trim()),
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              hintText: 'Cari pemain...',
+                              hintText: l10n.leaderboardSearchHint,
                               hintStyle: TextStyle(
                                 color: Colors.white.withAlpha(153),
                               ),
@@ -225,6 +230,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                   ),
                                   subtitle: Text(
                                     _buildSubtitle(
+                                      l10n: l10n,
                                       isCurrent: isCurrent,
                                       isLastSubmitted: isLastSubmitted,
                                       lastUpdatedMs: entry.lastUpdatedMs,
@@ -274,7 +280,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                   ),
                                 ),
                                 subtitle: Text(
-                                  'Posisimu: #$currentRank (di luar top 10)',
+                                  l10n.leaderboardYourPosition(currentRank),
                                   style: const TextStyle(color: Colors.white70),
                                 ),
                               ),
@@ -289,21 +295,22 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   }
 
   String _buildSubtitle({
+    required AppLocalizations l10n,
     required bool isCurrent,
     required bool isLastSubmitted,
     required int lastUpdatedMs,
   }) {
     final updated = _formatDate(lastUpdatedMs);
     if (isCurrent && isLastSubmitted) {
-      return 'Kamu • terakhir diperbarui $updated';
+      return l10n.leaderboardSubtitleYouLastUpdated(updated);
     }
     if (isCurrent) {
-      return 'Kamu • terakhir diperbarui $updated';
+      return l10n.leaderboardSubtitleYouLastUpdated(updated);
     }
     if (isLastSubmitted) {
-      return 'Terakhir di-submit • $updated';
+      return l10n.leaderboardSubtitleLastSubmitted(updated);
     }
-    return 'Terakhir diperbarui $updated';
+    return l10n.leaderboardSubtitleLastUpdated(updated);
   }
 
   String _formatDate(int ms) {

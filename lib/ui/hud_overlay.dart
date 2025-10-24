@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../state/app_settings_cubit.dart';
 import '../services/logging_service.dart';
 import '../services/achievement_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../game/my_game.dart';
 
 class HudOverlay extends StatefulWidget {
   final dynamic game;
@@ -151,7 +153,7 @@ class _HudOverlayState extends State<HudOverlay> {
           Icon(Icons.timer, color: timerColor, size: 22),
           const SizedBox(width: 8),
           Text(
-            '${time}s',
+            '$time${AppLocalizations.of(context).secondsShort}',
             style: TextStyle(
               color: Colors.white,
               fontSize: 20,
@@ -353,19 +355,46 @@ class _HudOverlayState extends State<HudOverlay> {
                                 color: const Color(0x88333333),
                                 padding: const EdgeInsets.all(8),
                                 child: IconButton(
-                                  tooltip: app.paused ? 'Resume' : 'Pause',
+                                  tooltip:
+                                      app.paused
+                                          ? AppLocalizations.of(
+                                            context,
+                                          ).resumeTooltip
+                                          : AppLocalizations.of(
+                                            context,
+                                          ).pauseTooltip,
                                   icon: Icon(
                                     app.paused ? Icons.play_arrow : Icons.pause,
                                     color: Colors.white,
                                     size: 24,
                                   ),
-                                  onPressed:
-                                      () => context
-                                          .read<AppSettingsCubit>()
-                                          .setPaused(!app.paused),
+                                  onPressed: () {
+                                    final cubit =
+                                        context.read<AppSettingsCubit>();
+                                    final wasPaused = cubit.state.paused;
+                                    
+                                    try {
+                                      final MyGame g = widget.game as MyGame;
+                                      // Saat pause diaktifkan, pastikan Main Menu tidak tampil dan tampilkan Pause overlay
+                                      if (!wasPaused) {
+                                        // Hapus main menu jika ada
+                                        g.overlays.remove(MyGame.overlayMainMenu);
+                                        // Tambahkan pause overlay
+                                        g.overlays.add(MyGame.overlayPause);
+                                        g.pauseEngine();
+                                        // Update state setelah overlay diatur
+                                        cubit.setPaused(true);
+                                      } else {
+                                        // Saat resume, pastikan Pause overlay hilang dan engine lanjut
+                                        g.overlays.remove(MyGame.overlayPause);
+                                        g.resumeEngine();
+                                        // Update state setelah overlay diatur
+                                        cubit.setPaused(false);
+                                      }
+                                    } catch (_) {}
+                                  },
                                 ),
                               ),
-
                               const SizedBox(width: 8),
 
                               // Audio toggle button
@@ -373,7 +402,14 @@ class _HudOverlayState extends State<HudOverlay> {
                                 color: const Color(0x88333333),
                                 padding: const EdgeInsets.all(8),
                                 child: IconButton(
-                                  tooltip: app.audioOn ? 'Mute' : 'Unmute',
+                                  tooltip:
+                                      app.audioOn
+                                          ? AppLocalizations.of(
+                                            context,
+                                          ).muteTooltip
+                                          : AppLocalizations.of(
+                                            context,
+                                          ).unmuteTooltip,
                                   icon: Icon(
                                     app.audioOn
                                         ? Icons.volume_up
@@ -407,7 +443,11 @@ class _HudOverlayState extends State<HudOverlay> {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              'C:${game.coinsPicked} M:${game.magnetsPicked} R:${game.reviveCount}',
+                              AppLocalizations.of(context).debugHudInfo(
+                                game.coinsPicked,
+                                game.magnetsPicked,
+                                game.reviveCount,
+                              ),
                               style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 10,

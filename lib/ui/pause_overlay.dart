@@ -5,6 +5,7 @@ import '../state/app_settings_cubit.dart';
 import 'components/menu_components.dart';
 import 'options_panel.dart';
 import 'theme/app_theme.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PauseOverlay extends StatelessWidget {
   final MyGame game;
@@ -12,6 +13,7 @@ class PauseOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Stack(
       children: [
         // Backdrop semi-transparan
@@ -20,7 +22,7 @@ class PauseOverlay extends StatelessWidget {
           child: BlocBuilder<AppSettingsCubit, AppSettingsState>(
             builder: (context, settings) {
               return MenuPanel(
-                title: 'Paused',
+                title: l10n.optionsTitle, // or l10n.pauseTitle if desired
                 dark: true,
                 onClose:
                     () => context.read<AppSettingsCubit>().setPaused(false),
@@ -28,7 +30,7 @@ class PauseOverlay extends StatelessWidget {
                   const SizedBox(height: 8),
                   OptionRow(
                     icon: Icons.volume_up,
-                    label: 'Audio',
+                    label: l10n.audioLabel,
                     trailing: Switch(
                       value: settings.audioOn,
                       onChanged:
@@ -37,7 +39,7 @@ class PauseOverlay extends StatelessWidget {
                   ),
                   OptionRow(
                     icon: Icons.vibration,
-                    label: 'Haptics',
+                    label: l10n.hapticsLabel,
                     trailing: Switch(
                       value: settings.hapticsOn,
                       onChanged:
@@ -48,7 +50,7 @@ class PauseOverlay extends StatelessWidget {
                   const SizedBox(height: 12),
                   // Opsional: tombol ke Options Panel
                   MenuButton(
-                    label: 'Options…',
+                    label: l10n.optionsButton,
                     icon: Icons.settings,
                     onPressed: () {
                       showDialog(
