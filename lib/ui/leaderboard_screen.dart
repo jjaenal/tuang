@@ -294,6 +294,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     );
   }
 
+  /// Membangun subtitle untuk setiap entri leaderboard.
+  /// Menentukan teks berdasarkan apakah entri adalah milik pemain saat ini
+  /// dan apakah entri tersebut merupakan skor terakhir yang disubmit.
   String _buildSubtitle({
     required AppLocalizations l10n,
     required bool isCurrent,
@@ -313,6 +316,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     return l10n.leaderboardSubtitleLastUpdated(updated);
   }
 
+  /// Memformat timestamp (millisecondsSinceEpoch) ke string lokal YYYY-MM-DD HH:MM.
+  /// Digunakan untuk menampilkan waktu update/pengiriman skor di subtitle.
   String _formatDate(int ms) {
     final dt = DateTime.fromMillisecondsSinceEpoch(ms).toLocal();
     final y = dt.year.toString().padLeft(4, '0');

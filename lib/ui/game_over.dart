@@ -14,10 +14,14 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../game/game_config.dart';
 import 'package:provider/provider.dart';
 
+/// GameOverOverlay: layar overlay ketika permainan berakhir.
+/// Menampilkan skor akhir, opsi revive via rewarded ad, dan tombol restart/menu.
 class GameOverOverlay extends StatelessWidget {
   final MyGame game;
   const GameOverOverlay({super.key, required this.game});
 
+  /// Membangun UI layar Game Over.
+  /// Berisi skor akhir, tombol revive (jika tersedia), dan aksi lanjut.
   @override
   Widget build(BuildContext context) {
     return Stack(

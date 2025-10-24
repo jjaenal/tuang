@@ -6,6 +6,9 @@ import '../services/achievement_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../game/my_game.dart';
 
+/// HudOverlay: overlay HUD in-game.
+/// Menampilkan skor, timer dinamis, status magnet buff, dan
+/// mendengarkan notifikasi pencapaian untuk memunculkan UI toast.
 class HudOverlay extends StatefulWidget {
   final dynamic game;
   const HudOverlay({super.key, required this.game});
@@ -43,7 +46,8 @@ class _HudOverlayState extends State<HudOverlay> {
     super.dispose();
   }
 
-  /// Widget untuk membuat pill container dengan shadow dan gradient
+  /// Membuat pill HUD dengan opsi gradient, shadow, dan border.
+  /// Digunakan sebagai container UI untuk elemen HUD (skor, timer, buff).
   Widget _hudPill({
     required Widget child,
     Color? color,
@@ -96,7 +100,8 @@ class _HudOverlayState extends State<HudOverlay> {
     );
   }
 
-  /// Widget untuk skor yang menonjol dengan animasi glow
+  /// Skor menonjol dengan ikon dan efek glow.
+  /// Menampilkan nilai skor saat ini dari game dengan gaya visual mencolok.
   Widget _buildProminentScore(int score) {
     return _hudPill(
       prominent: true,
@@ -129,7 +134,8 @@ class _HudOverlayState extends State<HudOverlay> {
     );
   }
 
-  /// Widget untuk timer dengan warna dinamis berdasarkan waktu
+  /// Timer dinamis dengan warna dan background yang berubah sesuai sisa waktu.
+  /// Warna berubah hijau → oranye → merah untuk memberikan urgensi visual.
   Widget _buildDynamicTimer(int time) {
     // Warna berubah berdasarkan waktu: hijau -> kuning -> merah
     Color timerColor = Colors.green;
@@ -166,7 +172,8 @@ class _HudOverlayState extends State<HudOverlay> {
     );
   }
 
-  /// Widget untuk magnet buff dengan progress visual yang lebih menarik
+  /// Status magnet buff dengan indikator progress dan countdown.
+  /// Menyala hijau saat aktif dan menampilkan sisa detik; abu-abu saat non-aktif.
   Widget _buildMagnetBuff(double magnetProgress) {
     final isActive = magnetProgress > 0;
 
@@ -238,6 +245,8 @@ class _HudOverlayState extends State<HudOverlay> {
     );
   }
 
+  /// Membuat struktur HUD yang aman (SafeArea) dan responsif.
+  /// Bagian atas: skor menonjol + timer; bawah: magnet buff dan tombol.
   @override
   Widget build(BuildContext context) {
     final game = widget.game;
