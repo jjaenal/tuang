@@ -11,6 +11,8 @@ import 'components/menu_components.dart';
 import 'components/bokeh_background.dart';
 import 'theme/app_theme.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../game/game_config.dart';
+import 'package:provider/provider.dart';
 
 class GameOverOverlay extends StatelessWidget {
   final MyGame game;
@@ -175,35 +177,43 @@ class GameOverOverlay extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
+
               NeumorphicButton(
                 label: AppLocalizations.of(context).restartButton,
-                primary: false,
+                primary: true,
                 onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final l10n = AppLocalizations.of(context);
                   final cubit = context.read<AppSettingsCubit>();
+                  // Jika reward belum disetor, setorkan dulu ke wallet
                   if (!game.rewardDeposited) {
-                    cubit.addCoins(game.lastScore);
-                    game.markRewardDeposited();
+                    try {
+                      // Gunakan Provider.of dengan listen: false untuk menghindari rebuild
+                      final leaderboard = Provider.of<LeaderboardService>(context, listen: false);
+                      await leaderboard.submitScoreAsync(
+                        playerId: cubit.state.playerName,
+                        score: game.lastScore,
+                      );
 
-                    // Submit score ke leaderboard
-                    final leaderboard = LeaderboardService();
-                    // Capture messenger before async await to avoid context after async gap
-                    final messenger = ScaffoldMessenger.of(context);
-                    final l10n = AppLocalizations.of(context);
-                    await leaderboard.submitScoreAsync(
-                      playerId: cubit.state.playerName,
-                      score: game.lastScore,
-                    );
-
-                    LoggingService.log(
-                      'reward_deposited',
-                      fields: {'amount': game.lastScore, 'action': 'restart'},
-                    );
-                    messenger.showSnackBar(
-                      SnackBar(content: Text(l10n.rewardSnack(game.lastScore))),
-                    );
+                      LoggingService.log(
+                        'reward_deposited',
+                        fields: {'amount': game.lastScore, 'action': 'restart'},
+                      );
+                      messenger.showSnackBar(
+                        SnackBar(content: Text(l10n.rewardSnack(game.lastScore))),
+                      );
+                    } catch (e) {
+                      LoggingService.log('leaderboard_error', fields: {'error': e.toString()});
+                      // Lanjutkan restart meskipun ada error leaderboard
+                    }
                   }
-                  LoggingService.log('restart');
+                  // Pastikan overlay lain non-aktif dan unpause sebelum start
+                  game.overlays.remove(MyGame.overlayRewardConfirm);
                   game.overlays.remove(MyGame.overlayGameOver);
+                  game.overlays.remove(MyGame.overlayMainMenu);
+                  cubit.setPaused(false);
+                  game.resumeEngine();
+                  LoggingService.log('restart');
                   game.startGame();
                 },
               ),
@@ -267,6 +277,76 @@ class GameOverOverlay extends StatelessWidget {
                               ),
                             );
                           }
+                        }
+                      },
+                    );
+                  },
+                ),
+              const SizedBox(height: 8),
+              // Tombol Double Reward (ditampilkan hanya jika tersedia dan belum disetor)
+              if (game.doubleCoinsAvailable)
+                BlocBuilder<AppSettingsCubit, AppSettingsState>(
+                  builder: (context, settings) {
+                    final adsAllowed =
+                        settings.consentGiven && settings.adsEnabled;
+                    return NeumorphicButton(
+                      label: AppLocalizations.of(context).doubleRewardTitle,
+                      primary: true,
+                      onPressed: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final cubit = context.read<AppSettingsCubit>();
+                        LoggingService.log(
+                          'double_requested',
+                          fields: {'ads_allowed': adsAllowed},
+                        );
+                        // Jika iklan tidak diizinkan/tersedia atau di web, gunakan fallback koin
+                        if (!adsAllowed || kIsWeb) {
+                          final cost = GameConfig.doubleCoinsCoins;
+                          final okSpend = cubit.spendCoins(cost);
+                          if (!okSpend) {
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  AppLocalizations.of(context).notEnoughCoins,
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+                          LoggingService.log('double_via_coins_ok',
+                              fields: {'cost': cost});
+                          game.applyDoubleCoinsReward();
+                          game.overlays.remove(MyGame.overlayGameOver);
+                          game.overlays.add(MyGame.overlayRewardConfirm);
+                          return;
+                        }
+                        // Jalankan alur iklan (reuse rewarded revive slot untuk double)
+                        final ok = await AdService.I.showRewardedRevive();
+                        if (ok) {
+                          LoggingService.log('double_via_ad_ok');
+                          game.applyDoubleCoinsReward();
+                          // Buka overlay konfirmasi total reward; tutup Game Over
+                          game.overlays.remove(MyGame.overlayGameOver);
+                          game.overlays.add(MyGame.overlayRewardConfirm);
+                        } else {
+                          // Fallback: coba bayar dengan koin jika iklan gagal
+                          final cost = GameConfig.doubleCoinsCoins;
+                          final okSpend = cubit.spendCoins(cost);
+                          if (!okSpend) {
+                            messenger.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  AppLocalizations.of(context).doubleCoinsAdsUnavailable,
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+                          LoggingService.log('double_via_coins_ok',
+                              fields: {'cost': cost});
+                          game.applyDoubleCoinsReward();
+                          game.overlays.remove(MyGame.overlayGameOver);
+                          game.overlays.add(MyGame.overlayRewardConfirm);
                         }
                       },
                     );

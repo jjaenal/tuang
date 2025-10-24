@@ -23,10 +23,40 @@ void main() async {
   runApp(MyApp(game: game));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final MyGame game;
   final bool showMainMenuOnBoot;
   const MyApp({super.key, required this.game, this.showMainMenuOnBoot = true});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late final GameWidget _gameWidget;
+
+  @override
+  void initState() {
+    super.initState();
+    _gameWidget = GameWidget(
+      game: widget.game,
+      overlayBuilderMap: {
+        MyGame.overlayMainMenu:
+            (context, g) => MainMenuOverlay(game: g as MyGame),
+        MyGame.overlayHud:
+            (context, g) => HudOverlay(game: g as MyGame),
+        MyGame.overlayPause:
+            (context, g) => PauseOverlay(game: g as MyGame),
+        MyGame.overlayGameOver:
+            (context, g) => GameOverOverlay(game: g as MyGame),
+        MyGame.overlayRewardConfirm:
+            (context, g) => RewardConfirmOverlay(game: g as MyGame),
+      },
+      initialActiveOverlays: widget.showMainMenuOnBoot
+          ? const [MyGame.overlayMainMenu]
+          : const [],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,21 +67,20 @@ class MyApp extends StatelessWidget {
         ), // load state tersimpan dari SharedPreferences
       ],
       child: BlocListener<AppSettingsCubit, AppSettingsState>(
-        listenWhen:
-            (prev, curr) =>
-                prev.paused != curr.paused ||
-                prev.adsEnabled != curr.adsEnabled ||
-                prev.consentGiven != curr.consentGiven ||
-                prev.audioOn != curr.audioOn ||
-                prev.npaEnabled != curr.npaEnabled ||
-                prev.hapticsOn != curr.hapticsOn,
+        listenWhen: (prev, curr) =>
+            prev.paused != curr.paused ||
+            prev.adsEnabled != curr.adsEnabled ||
+            prev.consentGiven != curr.consentGiven ||
+            prev.audioOn != curr.audioOn ||
+            prev.npaEnabled != curr.npaEnabled ||
+            prev.hapticsOn != curr.hapticsOn,
         listener: (context, state) {
           if (state.paused) {
-            game.pauseEngine();
-            game.overlays.add(MyGame.overlayPause);
+            widget.game.pauseEngine();
+            widget.game.overlays.add(MyGame.overlayPause);
           } else {
-            game.resumeEngine();
-            game.overlays.remove(MyGame.overlayPause);
+            widget.game.resumeEngine();
+            widget.game.overlays.remove(MyGame.overlayPause);
           }
           // Inisialisasi iklan hanya saat pengguna memberi consent dan Ads diaktifkan
           if (state.consentGiven && state.adsEnabled) {
@@ -67,76 +96,63 @@ class MyApp extends StatelessWidget {
           // Sinkronkan toggle haptics
           HapticsService.enabled = state.hapticsOn;
         },
-        child: MaterialApp(
-          onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [Locale('en'), Locale('id')],
-          theme: ThemeData.dark(),
-          debugShowCheckedModeBanner: false,
-          home: Scaffold(
-            body: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onPanUpdate: (details) {
-                final delta = details.delta;
-                final dir = Vector2(delta.dx, delta.dy);
-                if (dir.length2 > 0) {
-                  dir.normalize();
-                  game.inputDir = dir;
-                }
-              },
-              onPanEnd: (_) => game.inputDir = Vector2.zero(),
-              child: KeyboardListener(
-                focusNode: FocusNode(),
-                autofocus: true,
-                onKeyEvent: (KeyEvent event) {
-                  // Gunakan API keyboard baru (HardwareKeyboard) sesuai deprecation Flutter 3.18+
-                  final pressed = HardwareKeyboard.instance.logicalKeysPressed;
-                  final dir = Vector2.zero();
-                  if (pressed.contains(LogicalKeyboardKey.keyA) ||
-                      pressed.contains(LogicalKeyboardKey.arrowLeft)) {
-                    dir.x -= 1;
-                  }
-                  if (pressed.contains(LogicalKeyboardKey.keyD) ||
-                      pressed.contains(LogicalKeyboardKey.arrowRight)) {
-                    dir.x += 1;
-                  }
-                  if (pressed.contains(LogicalKeyboardKey.keyW) ||
-                      pressed.contains(LogicalKeyboardKey.arrowUp)) {
-                    dir.y -= 1;
-                  }
-                  if (pressed.contains(LogicalKeyboardKey.keyS) ||
-                      pressed.contains(LogicalKeyboardKey.arrowDown)) {
-                    dir.y += 1;
-                  }
-                  game.inputDir = dir;
-                },
-                child: GameWidget(
-                  game: game,
-                  overlayBuilderMap: {
-                    MyGame.overlayMainMenu:
-                        (context, g) => MainMenuOverlay(game: g as MyGame),
-                    MyGame.overlayHud:
-                        (context, g) => HudOverlay(game: g as MyGame),
-                    MyGame.overlayPause:
-                        (context, g) => PauseOverlay(game: g as MyGame),
-                    MyGame.overlayGameOver:
-                        (context, g) => GameOverOverlay(game: g as MyGame),
-                    MyGame.overlayRewardConfirm:
-                        (context, g) => RewardConfirmOverlay(game: g as MyGame),
+        child: BlocBuilder<AppSettingsCubit, AppSettingsState>(
+          builder: (context, app) {
+            return MaterialApp(
+              locale: Locale(app.languageCode),
+              onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [Locale('en'), Locale('id')],
+              theme: ThemeData.dark(),
+              debugShowCheckedModeBanner: false,
+              home: Scaffold(
+                body: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onPanUpdate: (details) {
+                    final delta = details.delta;
+                    final dir = Vector2(delta.dx, delta.dy);
+                    if (dir.length2 > 0) {
+                      dir.normalize();
+                      widget.game.inputDir = dir;
+                    }
                   },
-                  initialActiveOverlays:
-                      showMainMenuOnBoot
-                          ? const [MyGame.overlayMainMenu]
-                          : const [],
+                  onPanEnd: (_) => widget.game.inputDir = Vector2.zero(),
+                  child: KeyboardListener(
+                    focusNode: FocusNode(),
+                    autofocus: true,
+                    onKeyEvent: (KeyEvent event) {
+                      // Gunakan API keyboard baru (HardwareKeyboard) sesuai deprecation Flutter 3.18+
+                      final pressed = HardwareKeyboard.instance.logicalKeysPressed;
+                      final dir = Vector2.zero();
+                      if (pressed.contains(LogicalKeyboardKey.keyA) ||
+                          pressed.contains(LogicalKeyboardKey.arrowLeft)) {
+                        dir.x -= 1;
+                      }
+                      if (pressed.contains(LogicalKeyboardKey.keyD) ||
+                          pressed.contains(LogicalKeyboardKey.arrowRight)) {
+                        dir.x += 1;
+                      }
+                      if (pressed.contains(LogicalKeyboardKey.keyW) ||
+                          pressed.contains(LogicalKeyboardKey.arrowUp)) {
+                        dir.y -= 1;
+                      }
+                      if (pressed.contains(LogicalKeyboardKey.keyS) ||
+                          pressed.contains(LogicalKeyboardKey.arrowDown)) {
+                        dir.y += 1;
+                      }
+                      widget.game.inputDir = dir;
+                    },
+                    child: _gameWidget,
+                  ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );

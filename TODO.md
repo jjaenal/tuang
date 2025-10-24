@@ -135,6 +135,11 @@
 - [x] **Code quality**: flutter analyze bersih, fix deprecation warnings withOpacity->withValues
 - [x] **Git workflow**: Commit ke dev, push ke origin, siap untuk task berikutnya
 
+## ✅ Recent Updates (2025-01-18)
+
+- [x] **Fix tombol restart**: Perbaikan error Provider<LeaderboardService> dengan try-catch dan Provider.of
+- [x] **Fix tombol pause**: Perbaikan bug yang menampilkan Main Menu saat pause dengan stabilisasi GameWidget
+
 ## 📝 Backlog
 
 - [ ] **Multi-language support**: id/en (Current language in whole app inconsistent)
