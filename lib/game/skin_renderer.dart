@@ -2,7 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flame/components.dart';
 import '../models/skin_type.dart';
 
-/// Base class untuk skin renderer
+/// [SkinRenderer] adalah abstraksi untuk menggambar tampilan (skin) karakter.
+///
+/// Setiap renderer bertanggung jawab menggambar bentuk, warna, dan efek visual
+/// pada `Canvas` berdasarkan ukuran komponen dan status boost. Kelas ini juga
+/// menyediakan `factory` untuk memilih renderer yang sesuai dari [SkinType].
+///
+/// Penggunaan umum:
+/// ```dart
+/// final renderer = SkinRenderer.create(SkinType.basic, Colors.red);
+/// renderer.render(canvas, size, isBoost: true);
+/// ```
 abstract class SkinRenderer {
   /// Warna utama skin
   final Color color;
@@ -10,10 +20,13 @@ abstract class SkinRenderer {
   /// Konstruktor
   SkinRenderer(this.color);
 
-  /// Method untuk render skin pada canvas
+  /// Menggambar skin ke `canvas` dengan ukuran komponen [size].
+  ///
+  /// Jika [isBoost] bernilai true, renderer dapat menampilkan efek visual
+  /// tambahan (mis. glow atau opacity berbeda) untuk menandai status boost.
   void render(Canvas canvas, Vector2 size, {bool isBoost = false});
 
-  /// Factory untuk membuat renderer berdasarkan tipe skin
+  /// Factory untuk membuat renderer berdasarkan [SkinType].
   static SkinRenderer create(SkinType type, Color color) {
     switch (type) {
       case SkinType.basic:
@@ -28,7 +41,10 @@ abstract class SkinRenderer {
   }
 }
 
-/// Renderer untuk skin dasar (basic)
+/// [BasicSkinRenderer] menggambar bentuk dasar dengan detail minimal.
+///
+/// Fokus pada bentuk tubuh sederhana, mata, dan paruh dengan sedikit gradient.
+/// Cocok untuk performa tinggi dan tampilan yang bersih.
 class BasicSkinRenderer extends SkinRenderer {
   BasicSkinRenderer(super.color);
 
@@ -92,7 +108,10 @@ class BasicSkinRenderer extends SkinRenderer {
   }
 }
 
-/// Renderer untuk skin menengah (advanced)
+/// [AdvancedSkinRenderer] menambahkan detail lebih kaya seperti sayap dan pola.
+///
+/// Menggunakan gradient yang lebih kompleks dan dekorasi tambahan untuk
+/// memberikan tampilan lebih premium dibanding basic.
 class AdvancedSkinRenderer extends SkinRenderer {
   AdvancedSkinRenderer(super.color);
 
@@ -221,6 +240,10 @@ class AdvancedSkinRenderer extends SkinRenderer {
 }
 
 /// Renderer untuk skin premium
+/// [PremiumSkinRenderer] menghadirkan efek glow halus dan komposisi sayap kompleks.
+///
+/// Memberikan rasa mewah melalui penggunaan gradient multi-stop dan dekorasi
+/// pola yang lebih hidup.
 class PremiumSkinRenderer extends SkinRenderer {
   PremiumSkinRenderer(super.color);
 
@@ -377,6 +400,11 @@ class PremiumSkinRenderer extends SkinRenderer {
 }
 
 /// Renderer untuk skin legendaris
+/// [LegendarySkinRenderer] adalah tingkat tertinggi dengan efek glow kuat,
+/// mahkota, dan sayap berlapis.
+///
+/// Menonjolkan karakter dengan visual paling kaya dan dramatis di antara semua
+/// skin renderer.
 class LegendarySkinRenderer extends SkinRenderer {
   LegendarySkinRenderer(super.color);
 
