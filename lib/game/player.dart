@@ -4,20 +4,45 @@ import '../models/character_skin.dart';
 import 'my_game.dart';
 import 'skin_renderer.dart';
 
-/// Player: controllable sprite that moves with input direction,
-/// clamps within game bounds, and changes appearance based on selected skin.
+/// [Player] adalah karakter utama yang dapat dikontrol dalam game.
+///
+/// Komponen ini menangani pergerakan player berdasarkan input, membatasi posisi
+/// dalam batas game, dan mengubah tampilan berdasarkan skin yang dipilih.
+/// Player memiliki sistem boost visual dan dapat berubah skin secara dinamis.
+///
+/// Features:
+/// - Pergerakan responsif berdasarkan input direction
+/// - Sistem skin yang dapat diganti secara real-time
+/// - Visual boost indicator saat speed multiplier aktif
+/// - Boundary clamping untuk mencegah keluar dari area game
+/// - Integrasi dengan SkinRenderer untuk rendering custom
+///
+/// Dependencies:
+/// - Membutuhkan [CharacterSkin] untuk menentukan tampilan
+/// - Menggunakan [SkinRenderer] untuk rendering visual
+/// - Terintegrasi dengan [MyGame] untuk input dan game state
+///
+/// Example:
+/// ```dart
+/// final player = Player(skin: CharacterSkin.defaultSkin);
+/// game.add(player);
+/// ```
 class Player extends PositionComponent with HasGameReference<MyGame> {
+  /// Kecepatan dasar player dalam pixels per second
   final double speed = 200;
 
-  // Skin yang digunakan player
+  /// Skin yang digunakan player untuk menentukan tampilan visual
   final CharacterSkin skin;
 
-  // Renderer untuk menggambar skin
+  /// Renderer untuk menggambar skin dengan berbagai efek visual
   late SkinRenderer _renderer;
 
-  // Status boost
+  /// Status boost yang menentukan apakah player sedang dalam mode boost
   bool _isBoost = false;
 
+  /// Membuat instance Player baru dengan skin yang ditentukan.
+  ///
+  /// [skin] menentukan tampilan visual player yang akan dirender.
   Player({required this.skin}) : super(size: Vector2(24, 24));
 
   @override
@@ -29,7 +54,12 @@ class Player extends PositionComponent with HasGameReference<MyGame> {
     _renderer = SkinRenderer.create(skin.skinType, skin.color);
   }
 
-  // Update skin renderer saat pemain memulai game atau mengganti skin aktif
+  /// Mengubah skin player secara dinamis saat game berjalan.
+  ///
+  /// Method ini memperbarui renderer untuk menggunakan skin baru tanpa
+  /// memerlukan restart game atau recreate player component.
+  ///
+  /// [next] adalah skin baru yang akan digunakan player.
   void setSkin(CharacterSkin next) {
     _renderer = SkinRenderer.create(next.skinType, next.color);
   }

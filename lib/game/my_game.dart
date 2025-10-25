@@ -21,31 +21,70 @@ import '../state/pref_keys.dart';
 import '../services/logging_service.dart';
 import '../services/audio_service.dart';
 
-/// [MyGame] is the main FlameGame driving the arcade session.
-///
-/// Manages overlays (MainMenu, Hud, GameOver), spawns entities, and
-/// updates game mechanics like magnet pull, combo, timers, and collisions.
-/// Input is fed via drag/keyboard from `main.dart`. This class exposes
-/// ValueNotifiers for HUD and coordinates achievements via `AchievementService`.
-enum GameOverCause { timeout, collision }
+/// Enum yang menentukan penyebab game over untuk tracking dan analytics.
+enum GameOverCause { 
+  /// Game berakhir karena waktu habis
+  timeout, 
+  /// Game berakhir karena collision dengan obstacle
+  collision 
+}
 
+/// [MyGame] adalah engine utama FlameGame yang menjalankan sesi arcade.
+///
+/// Kelas ini mengelola semua aspek gameplay termasuk overlay management
+/// (MainMenu, HUD, GameOver), spawning entities (coin, obstacle, power-ups),
+/// dan update mekanik game seperti magnet pull, combo system, timer, dan
+/// collision detection. Input diterima melalui drag/keyboard dari main.dart.
+///
+/// Features:
+/// - Overlay management untuk berbagai state UI
+/// - Entity spawning dan lifecycle management
+/// - Power-up system (magnet, speed boost, shield)
+/// - Combo system dan scoring
+/// - Achievement integration
+/// - Difficulty scaling
+/// - Audio dan visual effects
+/// - Save/load game state
+/// - Revive dan double coins functionality
+///
+/// Dependencies:
+/// - Menggunakan [AchievementService] untuk tracking pencapaian
+/// - Terintegrasi dengan [AudioService] untuk sound effects
+/// - Menggunakan [LoggingService] untuk analytics
+/// - Menyimpan state ke SharedPreferences
+/// - Berinteraksi dengan berbagai overlay components
+///
+/// Example:
+/// ```dart
+/// final game = MyGame();
+/// runApp(GameWidget(game: game));
+/// ```
 class MyGame extends FlameGame with HasCollisionDetection {
-  // Overlay keys
+  /// Key untuk overlay main menu
   static const String overlayMainMenu = 'MainMenu';
+  /// Key untuk overlay HUD saat bermain
   static const String overlayHud = 'Hud';
+  /// Key untuk overlay game over
   static const String overlayGameOver = 'GameOver';
+  /// Key untuk overlay pause
   static const String overlayPause = 'Pause';
+  /// Key untuk overlay konfirmasi reward
   static const String overlayRewardConfirm = 'RewardConfirm';
 
-  // UI state
+  /// ValueNotifier untuk skor yang dapat diobservasi oleh UI
   final ValueNotifier<int> scoreVN = ValueNotifier<int>(0);
+  /// ValueNotifier untuk waktu tersisa yang dapat diobservasi oleh UI
   final ValueNotifier<int> timeVN = ValueNotifier<int>(0);
+  /// ValueNotifier untuk status magnet (0.0-1.0) yang dapat diobservasi oleh UI
   final ValueNotifier<double> magnetVN = ValueNotifier<double>(0.0);
+  /// ValueNotifier untuk combo multiplier yang dapat diobservasi oleh UI
   final ValueNotifier<int> comboVN = ValueNotifier<int>(1);
 
-  // Input
+  /// Arah input dari user (normalized vector)
   Vector2 inputDir = Vector2.zero();
+  /// Multiplier kecepatan player (1.0 = normal, >1.0 = boost)
   double playerSpeedMultiplier = 1.0;
+  /// Komponen joystick untuk kontrol touch (opsional)
   JoystickComponent? joystick;
 
   // Game state flags
