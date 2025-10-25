@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tuang/services/ad_service.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 void main() {
   group('AdService cooldownAllows', () {
@@ -40,11 +39,14 @@ void main() {
       expect(result, isFalse);
     });
 
-    test('showRewardedDailyReward returns false when not initialized', () async {
-      final ad = AdService.I;
-      final result = await ad.showRewardedDailyReward();
-      expect(result, isFalse);
-    });
+    test(
+      'showRewardedDailyReward returns false when not initialized',
+      () async {
+        final ad = AdService.I;
+        final result = await ad.showRewardedDailyReward();
+        expect(result, isFalse);
+      },
+    );
 
     test('setNonPersonalizedAds does not throw before init', () {
       final ad = AdService.I;

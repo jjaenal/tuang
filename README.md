@@ -5,6 +5,7 @@ Game mobile sederhana dengan **Flutter + Flame** yang dirancang untuk sesi singk
 ---
 
 ## 🧱 Tech Stack
+
 - **Flutter** (UI & logic)
 - **Flame Engine** (game loop, komponen, collision)
 - **Shared Preferences** (simpan skor & settings)
@@ -16,6 +17,7 @@ Game mobile sederhana dengan **Flutter + Flame** yang dirancang untuk sesi singk
 ---
 
 ## 🕹️ Konsep Game
+
 - **Genre**: Endless Dodge & Collect (satu jari)
 - **Kontrol**: drag/hold untuk menggerakkan karakter menghindari rintangan dan mengumpulkan koin
 - **Loop**: Menu → Main → Game Over → (revive opsional) → Menu
@@ -25,6 +27,7 @@ Game mobile sederhana dengan **Flutter + Flame** yang dirancang untuk sesi singk
 ---
 
 ## 💰 Monetisasi (AdMob)
+
 - **Banner (Adaptive)**: tampil di Main Menu, tidak mengganggu gameplay
 - **Interstitial**: tampil setelah Game Over atau transisi level
   - Frekuensi: max 1 interstitial per ±120 detik, hanya saat layar transisi
@@ -40,6 +43,7 @@ Game mobile sederhana dengan **Flutter + Flame** yang dirancang untuk sesi singk
 ---
 
 ## ⚙️ Instalasi & Menjalankan
+
 1. Pastikan Flutter telah terpasang (disarankan Flutter 3.24+).
 2. Masuk ke folder proyek:
    ```bash
@@ -61,6 +65,7 @@ Game mobile sederhana dengan **Flutter + Flame** yang dirancang untuk sesi singk
 ---
 
 ## 📂 Struktur Proyek
+
 ```
 lib/
 ├── game/          → Flame game logic (komponen, collision, spawner)
@@ -73,13 +78,16 @@ lib/
 ---
 
 ## 🔧 Konfigurasi AdMob
+
 - Buat App & Unit IDs di AdMob Console (Android/iOS)
 - Ganti test IDs di `services/ad_service.dart` dengan milik Anda saat produksi
 - Terapkan **consent** (GDPR/CCPA) bila diperlukan; gunakan dialog consent sebelum load iklan
 - Preload `InterstitialAd` dan `RewardedAd` saat gameplay; tampilkan hanya pada transisi
 
 ### Test Ad Unit IDs
+
 Gunakan ID test dari dokumentasi AdMob untuk pengembangan:
+
 ```dart
 final bannerAdUnitId       = 'ca-app-pub-3940256099942544/6300978111';
 final interstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712';
@@ -91,6 +99,7 @@ final rewardedAdUnitId     = 'ca-app-pub-3940256099942544/5224354917';
 ## 🚀 Uji Iklan di Mode Rilis (Android/iOS)
 
 ### Manajemen Secret (tanpa commit)
+
 - **Android App ID**: set di `android/gradle.properties` (atau `~/.gradle/gradle.properties`)
   ```properties
   ADMOB_APP_ID_ANDROID=ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy
@@ -108,6 +117,7 @@ final rewardedAdUnitId     = 'ca-app-pub-3940256099942544/5224354917';
 - **Android Permissions**: `INTERNET` dan `ACCESS_NETWORK_STATE` diperlukan; sudah ditambahkan di manifest rilis (`android/app/src/main/AndroidManifest.xml`).
 
 ### Build Rilis
+
 - **Android APK**
   ```bash
   flutter build apk --release \
@@ -133,12 +143,14 @@ final rewardedAdUnitId     = 'ca-app-pub-3940256099942544/5224354917';
   ```
 
 ### Verifikasi Fungsional
+
 - **Banner** tampil di Main Menu.
 - **Interstitial** muncul setelah Game Over jika preload sukses dan tidak melanggar cooldown.
 - **Rewarded** untuk Revive dan Daily Reward; pastikan callback reward dieksekusi.
 - **Non-Personalized Ads**: toggle tersedia di Main Menu.
 
 ### Catatan Build Android (NDK)
+
 - Jika muncul peringatan versi NDK tidak cocok, set:
   ```kotlin
   // android/app/build.gradle.kts
@@ -148,6 +160,7 @@ final rewardedAdUnitId     = 'ca-app-pub-3940256099942544/5224354917';
   ```
 
 ### Produksi
+
 - Ganti App ID iOS di `Info.plist` dan set App ID Android via `gradle.properties` (bukan commit).
 - Unit ID jangan dikomit; selalu pasang via `--dart-define`.
 - Pastikan consent + privacy policy sesuai kebijakan Google Play.
@@ -155,6 +168,7 @@ final rewardedAdUnitId     = 'ca-app-pub-3940256099942544/5224354917';
 ---
 
 ## 🧠 Pengaturan & Data
+
 - Simpan `high_score`, `is_muted`, `coins`, `last_daily_reward`, dan `pending_magnet_buff` dengan `SharedPreferences`
 - Toggle mute/unmute dari HUD
 - Toggle Non-Personalized Ads dari Main Menu
@@ -165,6 +179,7 @@ final rewardedAdUnitId     = 'ca-app-pub-3940256099942544/5224354917';
 ---
 
 ## 🎯 Target Performa & UX
+
 - **Orientasi**: Portrait
 - **FPS**: Stabil 60
 - **Durasi**: Sesi 30–60 detik
@@ -173,6 +188,7 @@ final rewardedAdUnitId     = 'ca-app-pub-3940256099942544/5224354917';
 ---
 
 ## 🧪 Roadmap
+
 - [x] Setup Flame + loop permainan dasar
 - [x] Implement menu & game over (overlays)
 - [x] Player movement & coin collect
@@ -189,6 +205,7 @@ final rewardedAdUnitId     = 'ca-app-pub-3940256099942544/5224354917';
 ---
 
 ## 🔐 Privacy & Compliance
+
 - Sediakan **Privacy Policy URL** di store listing
 - Tampilkan **consent dialog** (GDPR/CCPA) bila pengguna berasal dari wilayah terkait
 - Toggle **Non-Personalized Ads** tersedia di Main Menu
@@ -197,6 +214,7 @@ final rewardedAdUnitId     = 'ca-app-pub-3940256099942544/5224354917';
 ---
 
 ## 📜 Lisensi
+
 MIT © 2025 YourName
 
 ---
@@ -204,10 +222,11 @@ MIT © 2025 YourName
 ## ✏️ Perubahan Terbaru
 
 ### 2025-01-17 - UI/UX Revamp: Fix Tombol Game Over
+
 - **Developer**: Assistant AI
 - **Branch**: `feature/uiux-revamp` → `dev`
 - **Files Modified**: `lib/ui/game_over.dart`
-- **Changes**: 
+- **Changes**:
   - Perbaikan logika tombol **Revive**: selalu clickable saat game over karena obstacle, menampilkan pesan informatif jika revive/ads tidak tersedia
   - Perbaikan logika tombol **Double Rewards**: selalu tampil dan clickable, konsisten UX pattern
   - Tambah UI components: `BokehBackground`, `NeumorphicButton`, `AppTheme`
@@ -215,7 +234,8 @@ MIT © 2025 YourName
 - **Testing**: ✅ `flutter analyze` bersih, ✅ 29/29 tests passed, ✅ Manual testing via web preview
 
 ### Sebelumnya
-- **Developer**: YourName  
+
+- **Developer**: YourName
 - **Files Modified**: `lib/services/logging_service.dart`, `lib/services/ad_service.dart`
 - **Changes**: Dokumentasi internal ditingkatkan sesuai project rules (komentar class/fungsi/blok)
 - **Impact**: Tidak mengubah perilaku aplikasi, hanya meningkatkan maintainability

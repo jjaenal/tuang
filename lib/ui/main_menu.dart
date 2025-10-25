@@ -362,7 +362,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: badgeColor,
+        color: badgeColor.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(4),
         boxShadow: [
           BoxShadow(

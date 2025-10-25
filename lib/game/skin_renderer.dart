@@ -52,7 +52,7 @@ class BasicSkinRenderer extends SkinRenderer {
   void render(Canvas canvas, Vector2 size, {bool isBoost = false}) {
     canvas.save();
     canvas.translate(size.x / 2, size.y / 2);
-    final bodyColor = isBoost ? color.withOpacity(0.8) : color;
+    final bodyColor = isBoost ? color.withValues(alpha: 0.8) : color;
 
     // Gambar bentuk dasar (persegi panjang dengan sudut membulat)
     final bodyRect = Rect.fromCenter(
@@ -69,7 +69,7 @@ class BasicSkinRenderer extends SkinRenderer {
     final bodyPaint =
         Paint()
           ..shader = LinearGradient(
-            colors: [bodyColor, bodyColor.withOpacity(0.7)],
+            colors: [bodyColor, bodyColor.withValues(alpha: 0.7)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ).createShader(bodyRect);
@@ -119,7 +119,7 @@ class AdvancedSkinRenderer extends SkinRenderer {
   void render(Canvas canvas, Vector2 size, {bool isBoost = false}) {
     canvas.save();
     canvas.translate(size.x / 2, size.y / 2);
-    final bodyColor = isBoost ? color.withOpacity(0.8) : color;
+    final bodyColor = isBoost ? color.withValues(alpha: 0.8) : color;
 
     // Gambar bentuk dasar (persegi panjang dengan sudut membulat)
     final bodyRect = Rect.fromCenter(
@@ -136,7 +136,7 @@ class AdvancedSkinRenderer extends SkinRenderer {
     final bodyPaint =
         Paint()
           ..shader = LinearGradient(
-            colors: [bodyColor.withOpacity(1.0), bodyColor.withOpacity(0.7)],
+            colors: [bodyColor.withValues(alpha: 1.0), bodyColor.withValues(alpha: 0.7)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ).createShader(bodyRect);
@@ -146,7 +146,7 @@ class AdvancedSkinRenderer extends SkinRenderer {
     final wingPaint =
         Paint()
           ..shader = LinearGradient(
-            colors: [bodyColor.withOpacity(0.8), bodyColor.withOpacity(0.4)],
+            colors: [bodyColor.withValues(alpha: 0.8), bodyColor.withValues(alpha: 0.4)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ).createShader(
@@ -223,7 +223,7 @@ class AdvancedSkinRenderer extends SkinRenderer {
     // Pola dekoratif pada badan
     final patternPaint =
         Paint()
-          ..color = bodyColor.withOpacity(0.3)
+          ..color = bodyColor.withValues(alpha: 0.3)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.5;
 
@@ -251,12 +251,12 @@ class PremiumSkinRenderer extends SkinRenderer {
   void render(Canvas canvas, Vector2 size, {bool isBoost = false}) {
     canvas.save();
     canvas.translate(size.x / 2, size.y / 2);
-    final bodyColor = isBoost ? color.withOpacity(0.8) : color;
+    final bodyColor = isBoost ? color.withValues(alpha: 0.8) : color;
 
     // Efek glow di belakang (lebih halus dari legendary)
     final glowPaint =
         Paint()
-          ..color = bodyColor.withOpacity(0.2)
+          ..color = bodyColor.withValues(alpha: 0.2)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
     canvas.drawCircle(Offset.zero, size.x * 0.6, glowPaint);
 
@@ -276,9 +276,9 @@ class PremiumSkinRenderer extends SkinRenderer {
         Paint()
           ..shader = LinearGradient(
             colors: [
-              bodyColor.withOpacity(1.0),
-              bodyColor.withOpacity(0.7),
-              bodyColor.withOpacity(0.9),
+              bodyColor.withValues(alpha: 1.0),
+              bodyColor.withValues(alpha: 0.7),
+              bodyColor.withValues(alpha: 0.9),
             ],
             stops: const [0.0, 0.5, 1.0],
             begin: Alignment.topLeft,
@@ -291,7 +291,7 @@ class PremiumSkinRenderer extends SkinRenderer {
     final wingPaint =
         Paint()
           ..shader = LinearGradient(
-            colors: [bodyColor.withOpacity(0.9), bodyColor.withOpacity(0.5)],
+            colors: [bodyColor.withValues(alpha: 0.9), bodyColor.withValues(alpha: 0.5)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ).createShader(
@@ -378,7 +378,7 @@ class PremiumSkinRenderer extends SkinRenderer {
     // Pola dekoratif pada badan
     final patternPaint =
         Paint()
-          ..color = Colors.white.withOpacity(0.3)
+          ..color = Colors.white.withValues(alpha: 0.3)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.5;
 
@@ -412,12 +412,12 @@ class LegendarySkinRenderer extends SkinRenderer {
   void render(Canvas canvas, Vector2 size, {bool isBoost = false}) {
     canvas.save();
     canvas.translate(size.x / 2, size.y / 2);
-    final bodyColor = isBoost ? color.withOpacity(0.8) : color;
+    final bodyColor = isBoost ? color.withValues(alpha: 0.8) : color;
 
     // Efek glow di belakang
     final glowPaint =
         Paint()
-          ..color = bodyColor.withOpacity(0.3)
+          ..color = bodyColor.withValues(alpha: 0.3)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
     canvas.drawCircle(Offset.zero, size.x * 0.7, glowPaint);
 
@@ -437,9 +437,9 @@ class LegendarySkinRenderer extends SkinRenderer {
         Paint()
           ..shader = RadialGradient(
             colors: [
-              bodyColor.withOpacity(1.0),
-              bodyColor.withOpacity(0.7),
-              bodyColor.withOpacity(0.9),
+              bodyColor.withValues(alpha: 1.0),
+              bodyColor.withValues(alpha: 0.7),
+              bodyColor.withValues(alpha: 0.9),
             ],
             stops: const [0.0, 0.5, 1.0],
             center: Alignment.center,
@@ -451,7 +451,7 @@ class LegendarySkinRenderer extends SkinRenderer {
     // Sayap (wing) - bentuk lebih kompleks
     final wingPaint =
         Paint()
-          ..color = bodyColor.withOpacity(0.6)
+          ..color = bodyColor.withValues(alpha: 0.6)
           ..style = PaintingStyle.fill;
 
     // Sayap atas
@@ -511,7 +511,7 @@ class LegendarySkinRenderer extends SkinRenderer {
     // Mata - dengan efek glow
     final eyeGlowPaint =
         Paint()
-          ..color = Colors.white.withOpacity(0.5)
+          ..color = Colors.white.withValues(alpha: 0.5)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
     final eyeCenter = Offset(size.x * 0.2, -size.y * 0.15);
     canvas.drawCircle(eyeCenter, size.x * 0.1, eyeGlowPaint);
