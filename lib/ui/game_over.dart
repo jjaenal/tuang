@@ -255,6 +255,7 @@ class GameOverOverlay extends StatelessWidget {
                       primary: false,
                       onPressed: () async {
                         final messenger = ScaffoldMessenger.of(context);
+                        final l10n = AppLocalizations.of(context);
                         LoggingService.log(
                           'revive_requested',
                           fields: {'ads_allowed': adsAllowed},
@@ -265,7 +266,7 @@ class GameOverOverlay extends StatelessWidget {
                           messenger.showSnackBar(
                             SnackBar(
                               content: Text(
-                                AppLocalizations.of(context).reviveUnavailable,
+                                l10n.reviveUnavailable,
                               ),
                             ),
                           );
@@ -277,9 +278,7 @@ class GameOverOverlay extends StatelessWidget {
                           messenger.showSnackBar(
                             SnackBar(
                               content: Text(
-                                AppLocalizations.of(
-                                  context,
-                                ).reviveAdsUnavailable,
+                                l10n.reviveAdsUnavailable,
                               ),
                             ),
                           );
@@ -287,22 +286,19 @@ class GameOverOverlay extends StatelessWidget {
                         }
                         // Jalankan alur iklan
                         final ok = await AdService.I.showRewardedRevive();
+                        if (!context.mounted) return;
                         if (ok) {
                           LoggingService.log('revive_via_ad_ok');
                           game.revive();
                         } else {
                           LoggingService.log('revive_via_ad_fail');
-                          if (context.mounted) {
-                            messenger.showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  ).reviveAdsUnavailable,
-                                ),
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                l10n.reviveAdsUnavailable,
                               ),
-                            );
-                          }
+                            ),
+                          );
                         }
                       },
                     );
