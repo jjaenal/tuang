@@ -366,7 +366,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
         borderRadius: BorderRadius.circular(4),
         boxShadow: [
           BoxShadow(
-            color: badgeColor.withOpacity(0.5),
+            color: badgeColor.withValues(alpha: 0.5),
             blurRadius: 4,
             spreadRadius: 0,
           ),
@@ -796,8 +796,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                             s.skinType == SkinType.legendary
                                                 ? [
                                                   BoxShadow(
-                                                    color: Colors.orange
-                                                        .withOpacity(0.6),
+                                                    color: Colors.orange.withValues(alpha: 0.6),
                                                     blurRadius: 8,
                                                     spreadRadius: 2,
                                                   ),
