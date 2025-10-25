@@ -22,6 +22,8 @@ class AppSettingsState extends Equatable {
   final String playerName;
   final String activeSkinId;
   final List<String> unlockedSkinIds;
+  final String activeThemeId;
+  final List<String> unlockedThemeIds;
   final Difficulty difficulty;
   final String languageCode;
 
@@ -39,6 +41,8 @@ class AppSettingsState extends Equatable {
     this.playerName = 'Player',
     this.activeSkinId = 'default',
     this.unlockedSkinIds = const ['default'],
+    this.activeThemeId = 'geometric',
+    this.unlockedThemeIds = const ['geometric'],
     this.difficulty = Difficulty.normal,
     this.languageCode = 'id',
   });
@@ -57,6 +61,8 @@ class AppSettingsState extends Equatable {
     String? playerName,
     String? activeSkinId,
     List<String>? unlockedSkinIds,
+    String? activeThemeId,
+    List<String>? unlockedThemeIds,
     Difficulty? difficulty,
     String? languageCode,
   }) {
@@ -77,6 +83,8 @@ class AppSettingsState extends Equatable {
       playerName: playerName ?? this.playerName,
       activeSkinId: activeSkinId ?? this.activeSkinId,
       unlockedSkinIds: unlockedSkinIds ?? this.unlockedSkinIds,
+      activeThemeId: activeThemeId ?? this.activeThemeId,
+      unlockedThemeIds: unlockedThemeIds ?? this.unlockedThemeIds,
       difficulty: difficulty ?? this.difficulty,
       languageCode: languageCode ?? this.languageCode,
     );
@@ -97,6 +105,8 @@ class AppSettingsState extends Equatable {
     playerName,
     activeSkinId,
     unlockedSkinIds,
+    activeThemeId,
+    unlockedThemeIds,
     difficulty,
     languageCode,
   ];
@@ -163,6 +173,10 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
         prefs.getString(PrefKeys.activeSkinId) ?? state.activeSkinId;
     final unlockedSkinIds =
         prefs.getStringList(PrefKeys.unlockedSkinIds) ?? state.unlockedSkinIds;
+    final activeThemeId =
+        prefs.getString(PrefKeys.activeThemeId) ?? state.activeThemeId;
+    final unlockedThemeIds =
+        prefs.getStringList(PrefKeys.unlockedThemeIds) ?? state.unlockedThemeIds;
     final difficultyKey = prefs.getString(PrefKeys.difficulty);
     final languageCode =
         prefs.getString(PrefKeys.languageCode) ?? state.languageCode;
@@ -183,6 +197,8 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
         playerName: playerName,
         activeSkinId: activeSkinId,
         unlockedSkinIds: unlockedSkinIds,
+        activeThemeId: activeThemeId,
+        unlockedThemeIds: unlockedThemeIds,
         difficulty: DifficultyX.fromKey(difficultyKey),
         languageCode: languageCode,
       ),
@@ -209,6 +225,8 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     await prefs.setString(PrefKeys.playerName, state.playerName);
     await prefs.setString(PrefKeys.activeSkinId, state.activeSkinId);
     await prefs.setStringList(PrefKeys.unlockedSkinIds, state.unlockedSkinIds);
+    await prefs.setString(PrefKeys.activeThemeId, state.activeThemeId);
+    await prefs.setStringList(PrefKeys.unlockedThemeIds, state.unlockedThemeIds);
     await prefs.setString(PrefKeys.difficulty, state.difficulty.key);
     await prefs.setString(PrefKeys.languageCode, state.languageCode);
 
@@ -360,6 +378,25 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     // Only allow selecting unlocked skins
     if (!isSkinUnlocked(id)) return;
     emit(state.copyWith(activeSkinId: id));
+    _savePrefs();
+  }
+
+  // === Themes API ===
+  bool isThemeUnlocked(String id) {
+    return state.unlockedThemeIds.contains(id);
+  }
+
+  void unlockTheme(String id) {
+    if (isThemeUnlocked(id)) return;
+    final next = List<String>.from(state.unlockedThemeIds)..add(id);
+    emit(state.copyWith(unlockedThemeIds: next));
+    _savePrefs();
+  }
+
+  void setActiveTheme(String id) {
+    // Only allow selecting unlocked themes
+    if (!isThemeUnlocked(id)) return;
+    emit(state.copyWith(activeThemeId: id));
     _savePrefs();
   }
 }

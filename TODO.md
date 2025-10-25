@@ -152,4 +152,4 @@
 - [x] **Improve UI for user mobile experience**
   - [x] Improve Option panel, remove controll that are not user used (e.g. Debug Logging)
   - [x] **Optimize layout for mobile**: Reduce padding, use compact controls, and improve responsiveness
-  - [x] **Joystick controls**: Show controls on touch screen, add support for touch-based controls
+  - [ ] **Joystick controls**: Show controls on touch screen dynamically (e.g. when player taps on screen)

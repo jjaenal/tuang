@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:tuang/models/game_theme.dart';
+import 'package:tuang/models/theme_type.dart';
+import 'package:tuang/ui/theme/custom_paint_themes.dart';
 import '../game/my_game.dart';
 import '../state/app_settings_cubit.dart';
 import '../services/ad_service.dart';
@@ -35,7 +38,7 @@ class SkinPreviewPainter extends CustomPainter {
     required this.color,
     this.isBoost = false,
   }) {
-    _renderer = SkinRenderer.create(type, color);
+    _renderer = SkinRenderer.create(type, color, useCustomPaint: true);
   }
 
   @override
@@ -694,6 +697,20 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                     );
                                   },
                                 ),
+                                IconButton(
+                                  icon: CircleAvatar(
+                                    backgroundColor: Colors.grey.withValues(
+                                      alpha: .4,
+                                    ),
+                                    child: Icon(
+                                      Icons.palette_outlined,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    _showThemeSelectionDialog(context);
+                                  },
+                                ),
                               ],
                             ),
                           ],
@@ -788,32 +805,68 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                 Stack(
                                   children: [
                                     Container(
-                                      width: 48,
-                                      height: 48,
+                                      width: 64,
+                                      height: 64,
                                       decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(6),
+                                        borderRadius: BorderRadius.circular(8),
                                         boxShadow:
                                             s.skinType == SkinType.legendary
                                                 ? [
                                                   BoxShadow(
-                                                    color: Colors.orange.withValues(alpha: 0.6),
-                                                    blurRadius: 8,
-                                                    spreadRadius: 2,
+                                                    color: Colors.orange
+                                                        .withValues(alpha: 0.6),
+                                                    blurRadius: 10,
+                                                    spreadRadius: 3,
                                                   ),
                                                 ]
                                                 : null,
                                       ),
                                       child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(6),
+                                        borderRadius: BorderRadius.circular(8),
                                         child: SizedBox(
-                                          width: 48,
-                                          height: 48,
+                                          width: 64,
+                                          height: 64,
                                           child: CustomPaint(
                                             painter: SkinPreviewPainter(
                                               type: s.skinType,
                                               color: s.color,
                                             ),
                                           ),
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      left: 0,
+                                      top: 0,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black54,
+                                          borderRadius: const BorderRadius.only(
+                                            topLeft: Radius.circular(8),
+                                            bottomRight: Radius.circular(8),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: const [
+                                            Icon(
+                                              Icons.brush,
+                                              color: Colors.white70,
+                                              size: 12,
+                                            ),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              'CustomPaint',
+                                              style: TextStyle(
+                                                color: Colors.white70,
+                                                fontSize: 10,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
@@ -940,6 +993,267 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
           },
         );
       },
+    );
+  }
+
+  Future<void> _showThemeSelectionDialog(BuildContext context) async {
+    final cubit = context.read<AppSettingsCubit>();
+    await showDialog<void>(
+      context: context,
+      barrierColor: AppTheme.barrierColorDark,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setSt) {
+            final l10n = AppLocalizations.of(ctx);
+            final themes = GameTheme.defaultThemes;
+            final activeId = cubit.state.activeThemeId;
+            final unlockedIds = cubit.state.unlockedThemeIds;
+            return AlertDialog(
+              title: Text('Pilih Tema UI'),
+              content: SizedBox(
+                width: 360,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children:
+                        themes.map((theme) {
+                          final isUnlocked = unlockedIds.contains(theme.id);
+                          final isActive = theme.id == activeId;
+                          final status =
+                              isUnlocked
+                                  ? (isActive ? 'Aktif' : 'Terbuka')
+                                  : 'Terkunci';
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0x22000000),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.white24),
+                            ),
+                            child: Row(
+                              children: [
+                                Stack(
+                                  children: [
+                                    Container(
+                                      width: 64,
+                                      height: 64,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        boxShadow:
+                                            theme.themeType ==
+                                                    ThemeType.legendary
+                                                ? [
+                                                  BoxShadow(
+                                                    color: Colors.amber
+                                                        .withValues(alpha: 0.6),
+                                                    blurRadius: 10,
+                                                    spreadRadius: 3,
+                                                  ),
+                                                ]
+                                                : null,
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: SizedBox(
+                                          width: 64,
+                                          height: 64,
+                                          child: ThemedCustomPaint(
+                                            theme: theme.paintTheme,
+                                            size: const Size(64, 64),
+                                            child: const SizedBox.shrink(),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      left: 0,
+                                      top: 0,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black54,
+                                          borderRadius: const BorderRadius.only(
+                                            topLeft: Radius.circular(8),
+                                            bottomRight: Radius.circular(8),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: const [
+                                            Icon(
+                                              Icons.palette,
+                                              color: Colors.white70,
+                                              size: 12,
+                                            ),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              'Theme',
+                                              style: TextStyle(
+                                                color: Colors.white70,
+                                                fontSize: 10,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    if (theme.themeType == ThemeType.premium ||
+                                        theme.themeType == ThemeType.legendary)
+                                      Positioned(
+                                        right: 0,
+                                        bottom: 0,
+                                        child: Icon(
+                                          Icons.star,
+                                          color:
+                                              theme.themeType ==
+                                                      ThemeType.legendary
+                                                  ? Colors.amber
+                                                  : Colors.white70,
+                                          size: 16,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        theme.name,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      _buildThemeTypeBadge(theme.themeType),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        isUnlocked
+                                            ? status
+                                            : '${theme.price} Koin',
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                if (!isUnlocked)
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      final ok = _purchaseTheme(
+                                        cubit,
+                                        theme.id,
+                                      );
+                                      if (ok) {
+                                        setSt(() {});
+                                        AudioService.I.playCoin();
+                                      } else {
+                                        AudioService.I.playHit();
+                                        ScaffoldMessenger.of(ctx).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Koin tidak cukup!'),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    child: const Text('Beli'),
+                                  )
+                                else if (!isActive)
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      cubit.setActiveTheme(theme.id);
+                                      setSt(() {});
+                                      AudioService.I.playCoin();
+                                    },
+                                    child: const Text('Pilih'),
+                                  )
+                                else
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                    ),
+                                    child: Icon(
+                                      Icons.check_circle,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(l10n.closeButton),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  bool _purchaseTheme(AppSettingsCubit cubit, String themeId) {
+    final theme = GameTheme.defaultThemes.firstWhere((t) => t.id == themeId);
+    if (cubit.state.coins >= theme.price) {
+      cubit.spendCoins(theme.price);
+      cubit.unlockTheme(themeId);
+      return true;
+    }
+    return false;
+  }
+
+  Widget _buildThemeTypeBadge(ThemeType type) {
+    Color color;
+    String label;
+
+    switch (type) {
+      case ThemeType.basic:
+        color = Colors.grey;
+        label = 'Basic';
+        break;
+      case ThemeType.advanced:
+        color = Colors.blue;
+        label = 'Advanced';
+        break;
+      case ThemeType.premium:
+        color = Colors.purple;
+        label = 'Premium';
+        break;
+      case ThemeType.legendary:
+        color = Colors.amber;
+        label = 'Legendary';
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.2),
+        border: Border.all(color: color.withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 }
