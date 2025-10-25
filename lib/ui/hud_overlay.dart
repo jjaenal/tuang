@@ -6,17 +6,37 @@ import '../services/achievement_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../game/my_game.dart';
 
-/// HudOverlay: overlay HUD in-game.
-/// Menampilkan skor, timer dinamis, status magnet buff, dan
-/// mendengarkan notifikasi pencapaian untuk memunculkan UI toast.
+/// [HudOverlay] adalah overlay HUD yang ditampilkan selama gameplay berlangsung.
+///
+/// Overlay ini menampilkan informasi real-time seperti skor, timer countdown,
+/// status magnet buff, dan menangani notifikasi achievement yang muncul saat
+/// pemain mencapai milestone tertentu.
+///
+/// Features:
+/// - Skor real-time dengan efek glow
+/// - Timer dinamis dengan perubahan warna (hijau -> kuning -> merah)
+/// - Indikator magnet buff dengan progress bar
+/// - Achievement notifications dengan toast UI
+/// - Tombol pause untuk menghentikan sementara permainan
+///
+/// Dependencies:
+/// - Menggunakan AchievementService untuk notifikasi pencapaian
+/// - Terintegrasi dengan MyGame untuk data real-time
+/// - Menggunakan AppSettingsCubit untuk pengaturan
 class HudOverlay extends StatefulWidget {
+  /// Instance game yang sedang berjalan
   final dynamic game;
+  
   const HudOverlay({super.key, required this.game});
 
   @override
   State<HudOverlay> createState() => _HudOverlayState();
 }
 
+/// State untuk [HudOverlay] yang mengelola achievement notifications dan UI updates.
+///
+/// Mendengarkan perubahan dari AchievementService dan menampilkan toast
+/// notification ketika achievement baru di-unlock.
 class _HudOverlayState extends State<HudOverlay> {
   late final AchievementService _achievementService;
 

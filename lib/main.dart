@@ -15,6 +15,10 @@ import 'ui/reward_confirm_overlay.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+/// Entry point aplikasi Flutter game arcade.
+/// 
+/// Menginisialisasi orientasi portrait, audio service, dan menjalankan
+/// aplikasi dengan game instance yang telah dikonfigurasi.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -23,15 +27,35 @@ void main() async {
   runApp(MyApp(game: game));
 }
 
+/// [MyApp] adalah root widget aplikasi yang menyediakan konfigurasi MaterialApp
+/// dan setup untuk Flame game dengan overlay system.
+///
+/// Widget ini mengintegrasikan Bloc untuk state management, localization support,
+/// dan menyediakan overlay builders untuk berbagai screen game (MainMenu, HUD, 
+/// GameOver, Pause, RewardConfirm).
+///
+/// Example:
+/// ```dart
+/// final game = MyGame();
+/// runApp(MyApp(game: game));
+/// ```
 class MyApp extends StatefulWidget {
+  /// Instance game yang akan dijalankan
   final MyGame game;
+  
+  /// Apakah menampilkan main menu saat boot (default: true)
   final bool showMainMenuOnBoot;
+  
   const MyApp({super.key, required this.game, this.showMainMenuOnBoot = true});
 
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
+/// State untuk [MyApp] yang mengelola GameWidget dan overlay configuration.
+///
+/// Menyediakan overlay builders untuk semua screen game dan mengintegrasikan
+/// dengan Bloc providers untuk state management serta localization.
 class _MyAppState extends State<MyApp> {
   late final GameWidget _gameWidget;
 

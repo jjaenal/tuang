@@ -14,14 +14,36 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../game/game_config.dart';
 import 'package:provider/provider.dart';
 
-/// GameOverOverlay: layar overlay ketika permainan berakhir.
-/// Menampilkan skor akhir, opsi revive via rewarded ad, dan tombol restart/menu.
+/// [GameOverOverlay] adalah layar overlay yang ditampilkan ketika permainan berakhir.
+///
+/// Overlay ini menampilkan skor akhir pemain, opsi untuk revive menggunakan rewarded ads,
+/// tombol untuk double coins reward, serta aksi untuk restart game atau kembali ke menu utama.
+/// Juga terintegrasi dengan leaderboard untuk submit skor dan menampilkan ranking.
+///
+/// Features:
+/// - Menampilkan skor akhir dengan styling yang menonjol
+/// - Tombol Revive (jika masih tersedia dan ads enabled)
+/// - Tombol Double Coins untuk menggandakan reward
+/// - Submit skor ke leaderboard otomatis
+/// - Navigasi ke restart atau main menu
+///
+/// Dependencies:
+/// - Menggunakan AdService untuk rewarded ads
+/// - Terintegrasi dengan AppSettingsCubit untuk pengaturan
+/// - Menggunakan LeaderboardService untuk submit skor
 class GameOverOverlay extends StatelessWidget {
+  /// Instance game yang sedang berjalan
   final MyGame game;
+  
   const GameOverOverlay({super.key, required this.game});
 
-  /// Membangun UI layar Game Over.
-  /// Berisi skor akhir, tombol revive (jika tersedia), dan aksi lanjut.
+  /// Membangun UI layar Game Over dengan skor, tombol aksi, dan background.
+  ///
+  /// UI terdiri dari:
+  /// - Background bokeh dengan barrier gelap untuk kontras
+  /// - Panel utama dengan skor yang menonjol
+  /// - Tombol-tombol aksi (Revive, Double Coins, Restart, Menu)
+  /// - Integrasi dengan leaderboard untuk submit skor
   @override
   Widget build(BuildContext context) {
     return Stack(

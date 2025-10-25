@@ -109,6 +109,25 @@ class AppSettingsState extends Equatable {
   }
 }
 
+/// [AppSettingsCubit] mengelola state aplikasi dan pengaturan pengguna.
+///
+/// Cubit ini bertanggung jawab untuk menyimpan dan memuat pengaturan seperti
+/// audio, haptics, consent GDPR, ads, coins, skins, difficulty, bahasa, dan
+/// daily rewards. Semua pengaturan disimpan secara persisten menggunakan
+/// SharedPreferences.
+///
+/// Features:
+/// - Audio dan haptics toggle
+/// - GDPR consent management
+/// - Ads dan NPA (Non-Personalized Ads) settings
+/// - Coin management dan daily magnet buff
+/// - Character skins dan unlock system
+/// - Difficulty levels dan language selection
+/// - Player name customization
+///
+/// Dependencies:
+/// - Menggunakan SharedPreferences untuk persistent storage
+/// - Terintegrasi dengan GameConfig untuk default values
 class AppSettingsCubit extends Cubit<AppSettingsState> {
   AppSettingsCubit() : super(const AppSettingsState());
 
@@ -117,6 +136,11 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
       GameConfig.defaultDailyMagnetBuffSec;
   static const int maxDailyMagnetBuffSec = GameConfig.maxDailyMagnetBuffSec;
 
+  /// Memuat semua pengaturan dari SharedPreferences dan emit state baru.
+  ///
+  /// Method ini akan membaca semua preference keys dan mengembalikan nilai
+  /// default jika key tidak ditemukan. Setelah semua data dimuat, akan
+  /// emit state baru dengan nilai yang telah dimuat.
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
     final audioOn = prefs.getBool(PrefKeys.audioOn) ?? state.audioOn;

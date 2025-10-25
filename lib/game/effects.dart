@@ -2,7 +2,16 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'player.dart';
 
-/// FlashOverlay: full-screen flash effect for collisions
+/// [FlashOverlay] adalah efek visual full-screen flash untuk collision feedback.
+///
+/// Komponen ini menampilkan overlay berwarna semi-transparan di seluruh layar
+/// untuk memberikan feedback visual ketika terjadi collision atau event penting.
+/// Overlay akan otomatis menghilang setelah durasi yang ditentukan.
+///
+/// Parameters:
+/// - [size]: Ukuran overlay (biasanya ukuran layar)
+/// - [color]: Warna overlay dengan alpha untuk transparansi
+/// - [durationMs]: Durasi tampil dalam milliseconds
 class FlashOverlay extends RectangleComponent {
   FlashOverlay({
     required Vector2 size,
@@ -15,8 +24,16 @@ class FlashOverlay extends RectangleComponent {
   }
 }
 
-/// MagnetGlow: visual effect that follows player when magnet is active
+/// [MagnetGlow] adalah efek visual yang mengikuti player ketika magnet buff aktif.
+///
+/// Menampilkan lingkaran glow berwarna hijau di sekitar player untuk memberikan
+/// indikasi visual bahwa magnet power-up sedang aktif. Posisi glow akan selalu
+/// mengikuti posisi player secara real-time.
+///
+/// Dependencies:
+/// - Membutuhkan referensi ke [Player] target untuk tracking posisi
 class MagnetGlow extends CircleComponent {
+  /// Player target yang akan diikuti oleh glow effect
   final Player target;
 
   MagnetGlow({required this.target})
@@ -30,6 +47,7 @@ class MagnetGlow extends CircleComponent {
         anchor: Anchor.center,
       );
 
+  /// Update posisi glow agar selalu mengikuti posisi player target.
   @override
   void update(double dt) {
     super.update(dt);
@@ -37,8 +55,16 @@ class MagnetGlow extends CircleComponent {
   }
 }
 
-/// SpeedBoostGlow: visual effect that follows player when speed boost is active
+/// [SpeedBoostGlow] adalah efek visual yang mengikuti player ketika speed boost aktif.
+///
+/// Menampilkan lingkaran glow berwarna merah di sekitar player untuk memberikan
+/// indikasi visual bahwa speed boost power-up sedang aktif. Ukuran lebih kecil
+/// dari MagnetGlow untuk membedakan jenis buff yang aktif.
+///
+/// Dependencies:
+/// - Membutuhkan referensi ke [Player] target untuk tracking posisi
 class SpeedBoostGlow extends CircleComponent {
+  /// Player target yang akan diikuti oleh glow effect
   final Player target;
 
   SpeedBoostGlow({required this.target})
