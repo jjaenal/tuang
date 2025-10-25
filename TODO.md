@@ -38,6 +38,7 @@
 - [x] Add magnet power-up visual feedback (flash overlay)
 - [x] Optional: vibration (haptics)
 - [x] Add Game Settings panel (debug, show GameConfig values)
+- [x] Add comprehensive Dartdoc to all UI components (overlays, screens, components)
 
 ---
 
