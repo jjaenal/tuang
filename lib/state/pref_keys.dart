@@ -1,30 +1,21 @@
 /// Centralized SharedPreferences keys to avoid string duplication across modules.
 class PrefKeys {
-  static const String audioOn = 'pref_audioOn';
-  static const String hapticsOn = 'pref_hapticsOn';
-  static const String consentGiven = 'pref_consentGiven';
-  static const String adsEnabled = 'pref_adsEnabled';
-  static const String paused = 'pref_paused';
-
-  static const String lastDailyRewardDate = 'pref_lastDailyRewardDate';
-  static const String coins = 'pref_coins';
-  static const String npaEnabled = 'pref_npaEnabled';
-
-  // Magnet-related keys
-  static const String pendingMagnetBuffSec = 'pref_pendingMagnetBuffSec';
-  static const String dailyMagnetBuffSec = 'pref_dailyMagnetBuffSec';
-
-  // Leaderboard-related keys
-  static const String playerName = 'pref_playerName';
-  static const String leaderboard = 'pref_leaderboard_entries';
-
-  // Character skin-related keys
-  static const String activeSkinId = 'pref_activeSkinId';
-  static const String unlockedSkinIds = 'pref_unlockedSkinIds';
-
-  // Difficulty-related key
-  static const String difficulty = 'pref_difficulty';
-
-  // Language-related key
-  static const String languageCode = 'pref_languageCode';
+  static const String audioOn = 'audioOn';
+  static const String hapticsOn = 'hapticsOn';
+  static const String consentGiven = 'consentGiven';
+  static const String adsEnabled = 'adsEnabled';
+  static const String paused = 'paused';
+  static const String coins = 'coins';
+  static const String npaEnabled = 'npaEnabled';
+  static const String dailyMagnetBuffSec = 'dailyMagnetBuffSec';
+  static const String pendingMagnetBuffSec = 'pendingMagnetBuffSec';
+  static const String lastDailyRewardDate = 'lastDailyRewardDate';
+  static const String playerName = 'playerName';
+  static const String leaderboard = 'leaderboard_entries';
+  static const String activeSkinId = 'activeSkinId';
+  static const String unlockedSkinIds = 'unlockedSkinIds';
+  static const String activeThemeId = 'activeThemeId';
+  static const String unlockedThemeIds = 'unlockedThemeIds';
+  static const String difficulty = 'difficulty';
+  static const String languageCode = 'languageCode';
 }

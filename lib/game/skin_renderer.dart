@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flame/components.dart';
 import '../models/skin_type.dart';
+import 'custom_paint_skins.dart';
 
 /// [SkinRenderer] adalah abstraksi untuk menggambar tampilan (skin) karakter.
 ///
@@ -27,7 +28,23 @@ abstract class SkinRenderer {
   void render(Canvas canvas, Vector2 size, {bool isBoost = false});
 
   /// Factory untuk membuat renderer berdasarkan [SkinType].
-  static SkinRenderer create(SkinType type, Color color) {
+  /// 
+  /// Jika [useCustomPaint] true, akan menggunakan CustomPaint skins yang lebih advanced.
+  static SkinRenderer create(SkinType type, Color color, {bool useCustomPaint = false}) {
+    if (useCustomPaint) {
+      switch (type) {
+        case SkinType.basic:
+          return GeometricSkinRenderer(color);
+        case SkinType.advanced:
+          return CrystalSkinRenderer(color);
+        case SkinType.premium:
+          return NeonSkinRenderer(color);
+        case SkinType.legendary:
+          return CosmicSkinRenderer(color);
+      }
+    }
+    
+    // Default classic renderers
     switch (type) {
       case SkinType.basic:
         return BasicSkinRenderer(color);

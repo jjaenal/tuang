@@ -50,8 +50,8 @@ class Player extends PositionComponent with HasGameReference<MyGame> {
     anchor = Anchor.center;
     position = game.size / 2;
 
-    // Inisialisasi renderer berdasarkan tipe skin
-    _renderer = SkinRenderer.create(skin.skinType, skin.color);
+    // Inisialisasi renderer berdasarkan tipe skin dengan CustomPaint support
+    _renderer = SkinRenderer.create(skin.skinType, skin.color, useCustomPaint: true);
   }
 
   /// Mengubah skin player secara dinamis saat game berjalan.
@@ -61,7 +61,7 @@ class Player extends PositionComponent with HasGameReference<MyGame> {
   ///
   /// [next] adalah skin baru yang akan digunakan player.
   void setSkin(CharacterSkin next) {
-    _renderer = SkinRenderer.create(next.skinType, next.color);
+    _renderer = SkinRenderer.create(next.skinType, next.color, useCustomPaint: true);
   }
 
   @override

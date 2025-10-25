@@ -145,9 +145,9 @@
 
 - [x] **Multi-language support**: id/en (Core screens integrated; audit remaining strings)
 - [ ] **Add documentation to main class and methods in all files following #project_rules.md**
-- [ ] **Skins & themes improvement**
-  - [ ] **Draw skins from scratch using CustomPaint**
-  - [ ] **Draw themes from scratch using CustomPaint**
+- [x] **Skins & themes improvement**
+  - [x] **Draw skins from scratch using CustomPaint**
+  - [x] **Draw themes from scratch using CustomPaint**
 - [x] **Test ads rewards**: Unit tests added for cooldown/NPA; logic-only revive/daily return values verified. Manual device testing still pending.
 - [x] **Improve UI for user mobile experience**
   - [x] Improve Option panel, remove controll that are not user used (e.g. Debug Logging)
