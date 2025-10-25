@@ -19,9 +19,12 @@ class MenuPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final maxWidth = screenWidth > 400 ? 360.0 : screenWidth * 0.9;
+
     return Container(
-      padding: const EdgeInsets.all(12),
-      constraints: const BoxConstraints(maxWidth: 360),
+      padding: EdgeInsets.all(screenWidth > 400 ? 12 : 8),
+      constraints: BoxConstraints(maxWidth: maxWidth),
       decoration: BoxDecoration(
         color: dark ? AppTheme.darkBase : AppTheme.lightBase,
         gradient: dark ? AppTheme.darkGradient : AppTheme.lightGradient,
@@ -33,7 +36,10 @@ class MenuPanel extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: EdgeInsets.symmetric(
+              horizontal: screenWidth > 400 ? 12 : 8,
+              vertical: screenWidth > 400 ? 8 : 6,
+            ),
             decoration: BoxDecoration(
               color: dark ? AppTheme.darkHeader : AppTheme.lightHeader,
               borderRadius: BorderRadius.circular(8),
@@ -41,11 +47,15 @@ class MenuPanel extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: dark ? Colors.white : Colors.black,
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      color: dark ? Colors.white : Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: screenWidth > 400 ? 16 : 14,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (onClose != null)
@@ -59,19 +69,9 @@ class MenuPanel extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: screenWidth > 400 ? 12 : 8),
           ...children,
-          const SizedBox(height: 8),
-          // if (onClose != null)
-          //   SizedBox(
-          //     width: 220,
-          //     child: NeumorphicButton(
-          //       label: 'Close',
-          //       icon: Icons.close,
-          //       onPressed: onClose,
-          //       primary: false,
-          //     ),
-          //   ),
+          SizedBox(height: screenWidth > 400 ? 8 : 4),
         ],
       ),
     );
@@ -113,21 +113,39 @@ class OptionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isCompact = screenWidth <= 400;
+    
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: EdgeInsets.symmetric(vertical: isCompact ? 4 : 6),
       child: Row(
         mainAxisSize: MainAxisSize.max,
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: Colors.white70, size: 18),
-              const SizedBox(width: 8),
-              Text(label, style: const TextStyle(color: Colors.white70)),
-            ],
+          Flexible(
+            flex: isCompact ? 2 : 3,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: Colors.white70, size: isCompact ? 16 : 18),
+                SizedBox(width: isCompact ? 6 : 8),
+                Flexible(
+                  child: Text(
+                    label, 
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: isCompact ? 13 : 14,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const Spacer(),
-          trailing,
+          const SizedBox(width: 8),
+          Flexible(
+            flex: isCompact ? 3 : 2,
+            child: trailing,
+          ),
         ],
       ),
     );

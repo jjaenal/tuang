@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../services/ad_service.dart';
-import '../services/logging_service.dart';
 import '../state/app_settings_cubit.dart';
 import '../game/game_config.dart';
 import 'components/menu_components.dart';
@@ -101,7 +100,7 @@ class _OptionsPanelState extends State<OptionsPanel> {
                       (_) => context.read<AppSettingsCubit>().toggleAudio(),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               OptionRow(
                 icon: Icons.vibration,
                 label: l10n.hapticsLabel,
@@ -111,7 +110,7 @@ class _OptionsPanelState extends State<OptionsPanel> {
                       (_) => context.read<AppSettingsCubit>().toggleHaptics(),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               OptionRow(
                 icon: Icons.ad_units,
                 label: l10n.adsLabel,
@@ -120,7 +119,7 @@ class _OptionsPanelState extends State<OptionsPanel> {
                   onChanged: (_) => _ensureConsentThenEnableAds(context),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               OptionRow(
                 icon: Icons.privacy_tip,
                 label: l10n.npaLabel,
@@ -137,24 +136,25 @@ class _OptionsPanelState extends State<OptionsPanel> {
                   },
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               // Language selector
               OptionRow(
                 icon: Icons.language,
                 label: l10n.languageLabel,
                 trailing: SizedBox(
-                  width: 180,
+                  width: 140,
                   child: DropdownButton<String>(
                     value: app.languageCode,
                     isExpanded: true,
+                    isDense: true,
                     items: [
                       DropdownMenuItem(
                         value: 'id',
-                        child: Text(l10n.languageIndonesian),
+                        child: Text(l10n.languageIndonesian, style: const TextStyle(fontSize: 14)),
                       ),
                       DropdownMenuItem(
                         value: 'en',
-                        child: Text(l10n.languageEnglish),
+                        child: Text(l10n.languageEnglish, style: const TextStyle(fontSize: 14)),
                       ),
                     ],
                     onChanged: (code) {
@@ -165,13 +165,13 @@ class _OptionsPanelState extends State<OptionsPanel> {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               // Difficulty selector
               OptionRow(
                 icon: Icons.speed,
                 label: l10n.difficultyLabel,
                 trailing: SizedBox(
-                  width: 180,
+                  width: 140,
                   child: Slider(
                     value: app.difficulty.index.toDouble(),
                     min: 0,
@@ -187,13 +187,13 @@ class _OptionsPanelState extends State<OptionsPanel> {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               // Daily Magnet slider pakai OptionRow dengan spacer
               OptionRow(
                 icon: Icons.bolt,
                 label: l10n.dailyMagnetLabel,
                 trailing: SizedBox(
-                  width: 180,
+                  width: 140,
                   child: Slider(
                     value: app.dailyMagnetBuffSeconds.toDouble(),
                     min: 0,
@@ -208,20 +208,21 @@ class _OptionsPanelState extends State<OptionsPanel> {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               // Player Name input
               OptionRow(
                 icon: Icons.person,
                 label: l10n.playerNameLabel,
                 trailing: SizedBox(
-                  width: 180,
+                  width: 140,
                   child: TextField(
                     controller: TextEditingController(text: app.playerName),
+                    style: const TextStyle(fontSize: 14),
                     decoration: const InputDecoration(
                       isDense: true,
                       contentPadding: EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 8,
+                        horizontal: 6,
+                        vertical: 6,
                       ),
                       border: OutlineInputBorder(),
                     ),
@@ -236,25 +237,7 @@ class _OptionsPanelState extends State<OptionsPanel> {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-              // Debug logging toggle
-              OptionRow(
-                icon: Icons.bug_report,
-                label: l10n.debugLoggingLabel,
-                trailing: Switch(
-                  value: LoggingService.enabled,
-                  onChanged: (val) {
-                    LoggingService.enabled = val;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          val ? l10n.debugLoggingOn : l10n.debugLoggingOff,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
+
             ],
           ),
         );
