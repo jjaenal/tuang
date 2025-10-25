@@ -317,6 +317,7 @@ class GameOverOverlay extends StatelessWidget {
                       onPressed: () async {
                         final messenger = ScaffoldMessenger.of(context);
                         final cubit = context.read<AppSettingsCubit>();
+                        final l10n = AppLocalizations.of(context);
                         LoggingService.log(
                           'double_requested',
                           fields: {'ads_allowed': adsAllowed},
@@ -329,7 +330,7 @@ class GameOverOverlay extends StatelessWidget {
                             messenger.showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  AppLocalizations.of(context).notEnoughCoins,
+                                  l10n.notEnoughCoins,
                                 ),
                               ),
                             );
@@ -344,6 +345,7 @@ class GameOverOverlay extends StatelessWidget {
                         }
                         // Jalankan alur iklan (reuse rewarded revive slot untuk double)
                         final ok = await AdService.I.showRewardedRevive();
+                        if (!context.mounted) return;
                         if (ok) {
                           LoggingService.log('double_via_ad_ok');
                           game.applyDoubleCoinsReward();
@@ -358,7 +360,7 @@ class GameOverOverlay extends StatelessWidget {
                             messenger.showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  AppLocalizations.of(context).doubleCoinsAdsUnavailable,
+                                  l10n.doubleCoinsAdsUnavailable,
                                 ),
                               ),
                             );
