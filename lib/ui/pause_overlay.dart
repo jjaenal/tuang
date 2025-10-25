@@ -7,10 +7,12 @@ import 'options_panel.dart';
 import 'theme/app_theme.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+/// Overlay pause yang menampilkan kontrol audio/haptics dan opsi.
 class PauseOverlay extends StatelessWidget {
   final MyGame game;
   const PauseOverlay({super.key, required this.game});
 
+  /// Membangun panel menu pause dengan pengaturan dan akses OptionsPanel.
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);

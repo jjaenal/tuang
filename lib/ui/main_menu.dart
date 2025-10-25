@@ -55,6 +55,7 @@ class SkinPreviewPainter extends CustomPainter {
   }
 }
 
+/// Tombol besar bergaya neumorfik untuk aksi utama di menu.
 class _HeroButton extends StatefulWidget {
   final IconData icon;
   final String label;
@@ -138,6 +139,7 @@ class _HeroButtonState extends State<_HeroButton> {
   }
 }
 
+/// Overlay menu utama berisi play, daily reward, skin, achievements, leaderboard, dan banner ads.
 class MainMenuOverlay extends StatefulWidget {
   final MyGame game;
   const MainMenuOverlay({super.key, required this.game});
@@ -158,6 +160,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
 
   bool _consentPrompted = false;
 
+  /// Menampilkan dialog consent privasi dan mengembalikan pilihan pengguna.
   Future<bool> _showConsentDialog(BuildContext context) async {
     final accepted = await showDialog<bool>(
       context: context,
@@ -204,12 +207,13 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
     return accepted == true;
   }
 
-  // Hook region gating: nanti bisa diganti dengan deteksi wilayah (EEA/UK/California)
+  /// Menentukan apakah wilayah user memerlukan consent berdasarkan konfigurasi.
   bool _regionRequiresConsent() {
     // Gunakan konfigurasi dari GameConfig untuk menentukan kebutuhan consent.
     return GameConfig.alwaysRequireConsent;
   }
 
+  /// Memulai ticker waktu dan memicu prompt consent setelah frame pertama.
   @override
   void initState() {
     super.initState();
@@ -236,6 +240,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
     });
   }
 
+  /// Membersihkan banner ad dan timer ketika overlay ditutup.
   @override
   void dispose() {
     _bannerAd?.dispose();
@@ -379,6 +384,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
     );
   }
 
+  /// Membangun UI menu utama termasuk tombol aksi dan banner iklan.
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -740,6 +746,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
     );
   }
 
+  /// Dialog pemilihan/pembelian skin dengan preview, status, dan aksi.
   Future<void> _showSkinSelectionDialog(BuildContext context) async {
     final cubit = context.read<AppSettingsCubit>();
     await showDialog<void>(

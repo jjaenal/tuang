@@ -18,11 +18,13 @@ class AchievementNotification extends StatefulWidget {
       _AchievementNotificationState();
 }
 
+/// State untuk mengelola animasi muncul/hilang dan auto-dismiss.
 class _AchievementNotificationState extends State<AchievementNotification>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 
+  /// Inisialisasi animasi scale dan jadwal auto-dismiss 3 detik.
   @override
   void initState() {
     super.initState();
@@ -44,6 +46,7 @@ class _AchievementNotificationState extends State<AchievementNotification>
     });
   }
 
+  /// Menutup notifikasi dengan animasi reverse lalu memanggil onDismiss.
   void _dismiss() {
     _controller.reverse().then((_) {
       if (widget.onDismiss != null) {
@@ -58,6 +61,7 @@ class _AchievementNotificationState extends State<AchievementNotification>
     super.dispose();
   }
 
+  /// Membangun banner notifikasi achievement dengan animasi ScaleTransition.
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);

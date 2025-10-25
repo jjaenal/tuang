@@ -13,6 +13,7 @@ import 'theme/app_theme.dart';
 import 'dart:math';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+/// Overlay konfirmasi reward (double coins) pasca game over.
 class RewardConfirmOverlay extends StatefulWidget {
   final MyGame game;
   const RewardConfirmOverlay({super.key, required this.game});
@@ -21,6 +22,7 @@ class RewardConfirmOverlay extends StatefulWidget {
   State<RewardConfirmOverlay> createState() => _RewardConfirmOverlayState();
 }
 
+/// State mengelola animasi panel dan efek konfeti.
 class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
     with TickerProviderStateMixin {
   late final AnimationController _controller;
@@ -33,6 +35,7 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
 
   MyGame get game => widget.game;
 
+  /// Menyiapkan animasi panel dan controller konfeti.
   @override
   void initState() {
     super.initState();
@@ -55,6 +58,7 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
     );
   }
 
+  /// Membersihkan controller animasi.
   @override
   void dispose() {
     _controller.dispose();
@@ -62,12 +66,14 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
     super.dispose();
   }
 
+  /// Menjalankan animasi keluar sebelum menutup overlay.
   Future<void> _animateExit() async {
     try {
       await _controller.reverse();
     } catch (_) {}
   }
 
+  /// Menghasilkan partikel konfeti acak.
   void _regenParticles([int count = 28]) {
     _particles = List.generate(count, (_) {
       // Start near top-center area
@@ -92,6 +98,7 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
     });
   }
 
+  /// Memicu animasi konfeti singkat.
   Future<void> _playConfetti() async {
     _regenParticles();
     _confettiController.reset();
@@ -100,6 +107,7 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
     await Future.delayed(const Duration(milliseconds: 700));
   }
 
+  /// Membangun UI konfirmasi dengan breakdown reward dan pilihan lanjut/menu.
   @override
   Widget build(BuildContext context) {
     final base = game.baseScoreAtGameOver;
@@ -313,6 +321,7 @@ class _RewardConfirmOverlayState extends State<RewardConfirmOverlay>
   }
 }
 
+/// Data partikel untuk efek konfeti.
 class _Particle {
   final double x0;
   final double y0;
@@ -332,6 +341,7 @@ class _Particle {
   );
 }
 
+/// Pelukis kustom untuk konfeti berbasis partikel.
 class _ConfettiPainter extends CustomPainter {
   final List<_Particle> particles;
   final double t; // 0..1 progress

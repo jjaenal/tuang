@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 // Tambah enum untuk varian ukuran
+/// Varian ukuran tombol untuk standar atau kompak.
 enum ButtonSize { standard, compact }
 
 /// Reusable dark-neumorphic button with animated pressed state.
@@ -8,10 +9,16 @@ class NeumorphicButton extends StatefulWidget {
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
+
+  /// Jika true, gunakan aksen gradien teal untuk menonjolkan aksi utama.
   final bool primary; // if true, use teal accent gradient
+  /// Lebar tombol saat `size` adalah `ButtonSize.standard`.
   final double width;
+
+  /// Tinggi tombol saat `size` adalah `ButtonSize.standard`.
   final double height;
   // Tambah parameter size
+  /// Varian ukuran tombol: standar atau kompak.
   final ButtonSize size;
 
   const NeumorphicButton({
@@ -34,6 +41,7 @@ class _NeumorphicButtonState extends State<NeumorphicButton> {
   bool _hovered = false;
   bool _focused = false;
 
+/// Merender tombol dengan animasi pressed, dukungan hover/focus, dan semantics.
   @override
   Widget build(BuildContext context) {
     const baseSurface = Color(0xFF1A1F24);

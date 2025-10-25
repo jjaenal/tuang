@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'neumorphic_button.dart';
 
+/// Panel konten untuk dialog/overlay dengan tema terang/gelap.
 class MenuPanel extends StatelessWidget {
   final String title;
   final List<Widget> children;
@@ -77,6 +78,7 @@ class MenuPanel extends StatelessWidget {
   }
 }
 
+/// Tombol menu berlebar tetap yang membungkus `NeumorphicButton`.
 class MenuButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -97,6 +99,7 @@ class MenuButton extends StatelessWidget {
   }
 }
 
+/// Baris opsi dengan ikon, label, dan kontrol trailing.
 class OptionRow extends StatelessWidget {
   final IconData icon;
   final String label;

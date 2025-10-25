@@ -15,6 +15,7 @@ class AchievementsScreen extends StatefulWidget {
 class _AchievementsScreenState extends State<AchievementsScreen> {
   final AchievementService _achievementService = AchievementService();
 
+  /// Membangun scaffold dengan header progress dan daftar achievements.
   @override
   Widget build(BuildContext context) {
     final allAchievements = _achievementService.getAllAchievements();
