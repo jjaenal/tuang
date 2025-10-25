@@ -148,3 +148,6 @@
   - [ ] **Draw skins from scratch using CustomPaint**
   - [ ] **Draw themes from scratch using CustomPaint**
 - [x] **Test ads rewards**: Unit tests added for cooldown/NPA; logic-only revive/daily return values verified. Manual device testing still pending.
+- [ ] **Improve UI for user mobile experience**
+  - [ ] Improve Option panel, remove controll that are not user used (e.g. Debug Logging)
+  - [ ] **Optimize layout for mobile**: Reduce padding, use compact controls, and improve responsiveness
