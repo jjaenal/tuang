@@ -151,5 +151,7 @@
 - [x] **Test ads rewards**: Unit tests added for cooldown/NPA; logic-only revive/daily return values verified. Manual device testing still pending.
 - [x] **Improve UI for user mobile experience**
   - [x] Improve Option panel, remove controll that are not user used (e.g. Debug Logging)
+  - [ ] improve option panel more eye-catching
   - [x] **Optimize layout for mobile**: Reduce padding, use compact controls, and improve responsiveness
-  - [ ] **Joystick controls**: Show controls on touch screen dynamically (e.g. when player taps on screen)
+  - [x] **Joystick controls**: Show controls on touch screen dynamically (e.g. when player taps on screen every where)
+  - [x] Change selection skin/theme dialog to use bottom sheet

@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
+import 'theme/custom_paint_themes.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:tuang/models/game_theme.dart';
 import 'package:tuang/models/theme_type.dart';
-import 'package:tuang/ui/theme/custom_paint_themes.dart';
 import '../game/my_game.dart';
 import '../state/app_settings_cubit.dart';
 import '../services/ad_service.dart';
-import '../services/audio_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async' as dart_async;
 import '../services/logging_service.dart';
@@ -22,6 +21,7 @@ import 'options_panel.dart';
 import 'achievements_screen.dart';
 import 'components/bokeh_background.dart';
 import 'components/neumorphic_button.dart';
+import 'components/menu_components.dart';
 import 'theme/app_theme.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -55,6 +55,26 @@ class SkinPreviewPainter extends CustomPainter {
     return oldDelegate.type != type ||
         oldDelegate.color != color ||
         oldDelegate.isBoost != isBoost;
+  }
+}
+
+class ThemePreviewPainter extends CustomPainter {
+  final CustomPaintTheme theme;
+  ThemePreviewPainter(this.theme);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    theme.renderer.renderPanel(
+      canvas,
+      size,
+      backgroundColor: Colors.grey[800]!,
+      elevated: true,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant ThemePreviewPainter oldDelegate) {
+    return oldDelegate.theme != theme;
   }
 }
 
@@ -162,6 +182,8 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
   DateTime _now = DateTime.now();
 
   bool _consentPrompted = false;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _isBottomSheetOpen = false;
 
   /// Menampilkan dialog consent privasi dan mengembalikan pilihan pengguna.
   Future<bool> _showConsentDialog(BuildContext context) async {
@@ -391,546 +413,556 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Stack(
-      children: [
-        const BokehBackground(
-          backgroundColor: Colors.black,
-          bokehCount: 12,
-          intensity: 0.6,
-        ),
-        Positioned.fill(child: Container(color: AppTheme.barrierColorDark)),
-        Center(
-          child: BlocBuilder<AppSettingsCubit, AppSettingsState>(
-            builder: (context, app) {
-              _loadBannerIfNeeded(
-                context,
-                app,
-              ); // siapkan banner adaptive ketika syarat terpenuhi
-              return SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Game Title dengan shadow effect
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'ENDLESS DODGE & COLLECT',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.2,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withValues(alpha: 0.8),
-                              blurRadius: 4,
-                              offset: const Offset(2, 2),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Stats row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            'Best: ${widget.game.bestScore}',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.circle,
-                                color: Colors.amber,
-                                size: 14,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${app.coins}',
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 14,
-                                ),
+    final isMobilePlatform =
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
+    return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          const BokehBackground(
+            backgroundColor: Colors.black,
+            bokehCount: 12,
+            intensity: 0.6,
+          ),
+          if (!(isMobilePlatform && _isBottomSheetOpen))
+            Positioned.fill(child: Container(color: AppTheme.barrierColorDark)),
+          Center(
+            child: BlocBuilder<AppSettingsCubit, AppSettingsState>(
+              builder: (context, app) {
+                _loadBannerIfNeeded(
+                  context,
+                  app,
+                ); // siapkan banner adaptive ketika syarat terpenuhi
+                return SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Game Title dengan shadow effect
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'ENDLESS DODGE & COLLECT',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.2,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withValues(alpha: 0.8),
+                                blurRadius: 4,
+                                offset: const Offset(2, 2),
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    // Hero Play Button (neumorphic, konsisten dengan gaya baru)
-                    NeumorphicButton(
-                      label: l10n.playButton,
-                      icon: Icons.play_arrow,
-                      primary: true,
-                      onPressed: () => widget.game.startGame(),
-                    ),
-
-                    const SizedBox.shrink(),
-
-                    // Info untuk Settings
-                    Offstage(
-                      offstage: true,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        child: Column(
-                          children: [
-                            const Icon(
-                              Icons.info_outline,
-                              color: Colors.white60,
-                              size: 20,
+                      ),
+                      const SizedBox(height: 8),
+                      // Stats row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 4,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              l10n.settingsHint,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              'Best: ${widget.game.bestScore}',
                               style: const TextStyle(
-                                color: Colors.white60,
-                                fontSize: 12,
-                                fontStyle: FontStyle.italic,
+                                color: Colors.white70,
+                                fontSize: 14,
                               ),
-                              textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: 12),
-                            // Quick Skin Preview (tetap ada karena berguna)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 const Icon(
-                                  Icons.person,
-                                  color: Colors.white70,
-                                  size: 18,
+                                  Icons.circle,
+                                  color: Colors.amber,
+                                  size: 14,
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 4),
                                 Text(
-                                  l10n.activeSkin,
+                                  '${app.coins}',
                                   style: const TextStyle(
                                     color: Colors.white70,
                                     fontSize: 14,
-                                    fontWeight: FontWeight.w600,
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                _buildActiveSkinPreview(
-                                  context,
-                                  app.activeSkinId,
                                 ),
                               ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    /// Tombol Daily Reward
-                    Builder(
-                      builder: (ctx) {
-                        final cubit = ctx.read<AppSettingsCubit>();
-                        final canClaim = cubit.canClaimDailyReward;
-                        final countdown = _nextClaimCountdown(cubit);
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            NeumorphicButton(
-                              label: 'Daily Reward',
-                              icon: Icons.card_giftcard,
-                              primary: true,
-                              onPressed:
-                                  canClaim
-                                      ? () async {
-                                        const rewardCoins =
-                                            GameConfig.dailyRewardCoins;
-                                        LoggingService.log(
-                                          'daily_reward_requested',
-                                          fields: {
-                                            'ads_enabled': app.adsEnabled,
-                                            'consent': app.consentGiven,
-                                          },
-                                        );
-                                        // Grant reward instantly without ad
-                                        cubit.markDailyRewardClaimedNow();
-                                        cubit.addCoins(rewardCoins);
-                                        cubit.grantMagnetBuff(
-                                          app.dailyMagnetBuffSeconds,
-                                        );
-                                        LoggingService.log(
-                                          'daily_reward_claimed',
-                                          fields: {
-                                            'coins': rewardCoins,
-                                            'magnet_sec':
-                                                app.dailyMagnetBuffSeconds,
-                                            'via': 'no_ad',
-                                          },
-                                        );
-                                        if (ctx.mounted) {
-                                          ScaffoldMessenger.of(
-                                            ctx,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                l10n.dailyRewardSnack(
-                                                  GameConfig.dailyRewardCoins,
-                                                  app.dailyMagnetBuffSeconds,
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      }
-                                      : null,
-                            ),
-                            const SizedBox(height: 6),
-                            if (!canClaim && countdown != null) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                l10n.nextClaim(countdown),
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                IconButton(
-                                  icon: CircleAvatar(
-                                    backgroundColor: Colors.grey.withValues(
-                                      alpha: .4,
-                                    ),
-                                    child: Icon(
-                                      Icons.brush,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  onPressed:
-                                      () => _showSkinSelectionDialog(context),
-                                ),
-                                IconButton(
-                                  icon: CircleAvatar(
-                                    backgroundColor: Colors.grey.withValues(
-                                      alpha: .4,
-                                    ),
-                                    child: Icon(
-                                      Icons.emoji_events,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  onPressed:
-                                      () => Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder:
-                                              (context) =>
-                                                  const AchievementsScreen(),
-                                        ),
-                                      ),
-                                ),
-                                IconButton(
-                                  icon: CircleAvatar(
-                                    backgroundColor: Colors.grey.withValues(
-                                      alpha: .4,
-                                    ),
-                                    child: Icon(
-                                      Icons.leaderboard_outlined,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  onPressed:
-                                      () => Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder:
-                                              (context) =>
-                                                  const LeaderboardScreen(),
-                                        ),
-                                      ),
-                                ),
-                                IconButton(
-                                  icon: CircleAvatar(
-                                    backgroundColor: Colors.grey.withValues(
-                                      alpha: .4,
-                                    ),
-                                    child: Icon(
-                                      Icons.tune,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      barrierDismissible: true,
-                                      barrierColor: AppTheme.barrierColorDark,
-                                      builder:
-                                          (ctx) => const Dialog(
-                                            backgroundColor: Colors.transparent,
-                                            child: OptionsPanel(),
-                                          ),
-                                    );
-                                  },
-                                ),
-                                IconButton(
-                                  icon: CircleAvatar(
-                                    backgroundColor: Colors.grey.withValues(
-                                      alpha: .4,
-                                    ),
-                                    child: Icon(
-                                      Icons.palette_outlined,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    _showThemeSelectionDialog(context);
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-
-                    if (app.adsEnabled && app.consentGiven)
-                      kIsWeb
-                          ? Container(
-                            height: 50,
-                            width: 320,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: const Color(0x22FFFFFF),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              l10n.loadingAds,
-                              style: const TextStyle(color: Colors.white70),
-                            ),
-                          )
-                          : (_bannerAd != null && _bannerReady)
-                          ? SizedBox(
-                            height: _bannerAd!.size.height.toDouble(),
-                            width: _bannerAd!.size.width.toDouble(),
-                            child: AdWidget(ad: _bannerAd!),
-                          )
-                          : Container(
-                            height: 50,
-                            width: 320,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: const Color(0x22FFFFFF),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Text(
-                              'Memuat iklan...',
-                              style: TextStyle(color: Colors.white70),
                             ),
                           ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // Hero Play Button (neumorphic, konsisten dengan gaya baru)
+                      NeumorphicButton(
+                        label: l10n.playButton,
+                        icon: Icons.play_arrow,
+                        primary: true,
+                        onPressed: () => widget.game.startGame(),
+                      ),
 
-  /// Dialog pemilihan/pembelian skin dengan preview, status, dan aksi.
-  Future<void> _showSkinSelectionDialog(BuildContext context) async {
-    final cubit = context.read<AppSettingsCubit>();
-    await showDialog<void>(
-      context: context,
-      barrierColor: AppTheme.barrierColorDark,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setSt) {
-            final l10n = AppLocalizations.of(ctx);
-            final skins = cubit.getAllSkins();
-            final activeId = cubit.state.activeSkinId;
-            return AlertDialog(
-              title: Text(l10n.skinSelectTitle),
-              content: SizedBox(
-                width: 360,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children:
-                        skins.map((s) {
-                          final isActive = s.id == activeId;
-                          final displayName = l10n.skinName(s.id);
-                          final status =
-                              s.isUnlocked
-                                  ? (isActive
-                                      ? l10n.selectedStatus
-                                      : l10n.unlockedStatus)
-                                  : l10n.lockedStatus;
-                          return Container(
-                            margin: const EdgeInsets.symmetric(vertical: 6),
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0x22000000),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.white24),
-                            ),
-                            child: Row(
-                              children: [
-                                Stack(
-                                  children: [
-                                    Container(
-                                      width: 64,
-                                      height: 64,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(8),
-                                        boxShadow:
-                                            s.skinType == SkinType.legendary
-                                                ? [
-                                                  BoxShadow(
-                                                    color: Colors.orange
-                                                        .withValues(alpha: 0.6),
-                                                    blurRadius: 10,
-                                                    spreadRadius: 3,
-                                                  ),
-                                                ]
-                                                : null,
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: SizedBox(
-                                          width: 64,
-                                          height: 64,
-                                          child: CustomPaint(
-                                            painter: SkinPreviewPainter(
-                                              type: s.skinType,
-                                              color: s.color,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      left: 0,
-                                      top: 0,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.black54,
-                                          borderRadius: const BorderRadius.only(
-                                            topLeft: Radius.circular(8),
-                                            bottomRight: Radius.circular(8),
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: const [
-                                            Icon(
-                                              Icons.brush,
-                                              color: Colors.white70,
-                                              size: 12,
-                                            ),
-                                            SizedBox(width: 4),
-                                            Text(
-                                              'CustomPaint',
-                                              style: TextStyle(
-                                                color: Colors.white70,
-                                                fontSize: 10,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    if (s.skinType == SkinType.premium ||
-                                        s.skinType == SkinType.legendary)
-                                      Positioned(
-                                        right: 0,
-                                        bottom: 0,
-                                        child: Icon(
-                                          Icons.star,
-                                          color:
-                                              s.skinType == SkinType.legendary
-                                                  ? Colors.amber
-                                                  : Colors.white70,
-                                          size: 16,
-                                        ),
-                                      ),
-                                  ],
+                      const SizedBox.shrink(),
+
+                      // Info untuk Settings
+                      Offstage(
+                        offstage: true,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          child: Column(
+                            children: [
+                              const Icon(
+                                Icons.info_outline,
+                                color: Colors.white60,
+                                size: 20,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                l10n.settingsHint,
+                                style: const TextStyle(
+                                  color: Colors.white60,
+                                  fontSize: 12,
+                                  fontStyle: FontStyle.italic,
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      _buildSkinTypeBadge(s.skinType),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        s.isUnlocked
-                                            ? status
-                                            : l10n.priceCoins(s.price),
-                                        style: const TextStyle(
-                                          color: Colors.white70,
-                                        ),
-                                      ),
-                                    ],
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 12),
+                              // Quick Skin Preview (tetap ada karena berguna)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.person,
+                                    color: Colors.white70,
+                                    size: 18,
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                if (!s.isUnlocked)
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      final ok = cubit.purchaseSkin(s.id);
-                                      if (ok) {
-                                        setSt(() {});
-                                        if (cubit.state.audioOn) {
-                                          try {
-                                            final audioService =
-                                                context.read<AudioService>();
-                                            audioService.playCoin();
-                                          } catch (e) {
-                                            LoggingService.log(
-                                              'Audio error: $e',
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    l10n.activeSkin,
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _buildActiveSkinPreview(
+                                    context,
+                                    app.activeSkinId,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      /// Tombol Daily Reward
+                      Builder(
+                        builder: (ctx) {
+                          final cubit = ctx.read<AppSettingsCubit>();
+                          final canClaim = cubit.canClaimDailyReward;
+                          final countdown = _nextClaimCountdown(cubit);
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              NeumorphicButton(
+                                label: 'Daily Reward',
+                                icon: Icons.card_giftcard,
+                                primary: true,
+                                onPressed:
+                                    canClaim
+                                        ? () async {
+                                          const rewardCoins =
+                                              GameConfig.dailyRewardCoins;
+                                          LoggingService.log(
+                                            'daily_reward_requested',
+                                            fields: {
+                                              'ads_enabled': app.adsEnabled,
+                                              'consent': app.consentGiven,
+                                            },
+                                          );
+                                          // Grant reward instantly without ad
+                                          cubit.markDailyRewardClaimedNow();
+                                          cubit.addCoins(rewardCoins);
+                                          cubit.grantMagnetBuff(
+                                            app.dailyMagnetBuffSeconds,
+                                          );
+                                          LoggingService.log(
+                                            'daily_reward_claimed',
+                                            fields: {
+                                              'coins': rewardCoins,
+                                              'magnet_sec':
+                                                  app.dailyMagnetBuffSeconds,
+                                              'via': 'no_ad',
+                                            },
+                                          );
+                                          if (ctx.mounted) {
+                                            ScaffoldMessenger.of(
+                                              ctx,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  l10n.dailyRewardSnack(
+                                                    GameConfig.dailyRewardCoins,
+                                                    app.dailyMagnetBuffSeconds,
+                                                  ),
+                                                ),
+                                              ),
                                             );
                                           }
                                         }
-                                        ScaffoldMessenger.of(ctx).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              l10n.unlockedSnack(displayName),
+                                        : null,
+                              ),
+                              const SizedBox(height: 6),
+                              if (!canClaim && countdown != null) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  l10n.nextClaim(countdown),
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton(
+                                    icon: CircleAvatar(
+                                      backgroundColor: Colors.grey.withValues(
+                                        alpha: .4,
+                                      ),
+                                      child: Icon(
+                                        Icons.brush,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    onPressed:
+                                        () => _showSkinSelectionBottomSheet(
+                                          context,
+                                        ),
+                                  ),
+                                  IconButton(
+                                    icon: CircleAvatar(
+                                      backgroundColor: Colors.grey.withValues(
+                                        alpha: .4,
+                                      ),
+                                      child: Icon(
+                                        Icons.emoji_events,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    onPressed:
+                                        () => Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) =>
+                                                    const AchievementsScreen(),
+                                          ),
+                                        ),
+                                  ),
+                                  IconButton(
+                                    icon: CircleAvatar(
+                                      backgroundColor: Colors.grey.withValues(
+                                        alpha: .4,
+                                      ),
+                                      child: Icon(
+                                        Icons.leaderboard_outlined,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    onPressed:
+                                        () => Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) =>
+                                                    const LeaderboardScreen(),
+                                          ),
+                                        ),
+                                  ),
+                                  IconButton(
+                                    icon: CircleAvatar(
+                                      backgroundColor: Colors.grey.withValues(
+                                        alpha: .4,
+                                      ),
+                                      child: Icon(
+                                        Icons.tune,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        barrierDismissible: true,
+                                        barrierColor: AppTheme.barrierColorDark,
+                                        builder:
+                                            (ctx) => const Dialog(
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              child: OptionsPanel(),
+                                            ),
+                                      );
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: CircleAvatar(
+                                      backgroundColor: Colors.grey.withValues(
+                                        alpha: .4,
+                                      ),
+                                      child: Icon(
+                                        Icons.palette_outlined,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      _showThemeSelectionBottomSheet(context);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
+
+                      if (app.adsEnabled && app.consentGiven)
+                        kIsWeb
+                            ? Container(
+                              height: 50,
+                              width: 320,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: const Color(0x22FFFFFF),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                l10n.loadingAds,
+                                style: const TextStyle(color: Colors.white70),
+                              ),
+                            )
+                            : (_bannerAd != null && _bannerReady)
+                            ? SizedBox(
+                              height: _bannerAd!.size.height.toDouble(),
+                              width: _bannerAd!.size.width.toDouble(),
+                              child: AdWidget(ad: _bannerAd!),
+                            )
+                            : Container(
+                              height: 50,
+                              width: 320,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: const Color(0x22FFFFFF),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                'Memuat iklan...',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Bottom sheet pemilihan/pembelian skin dengan preview, status, dan aksi.
+  Future<void> _showSkinSelectionBottomSheet(BuildContext context) async {
+    final cubit = context.read<AppSettingsCubit>();
+    final isMobile =
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
+
+    Widget buildContent(
+      BuildContext ctx,
+      StateSetter setSt, {
+      VoidCallback? onPersistentClose,
+    }) {
+      final l10n = AppLocalizations.of(ctx);
+      final skins = cubit.getAllSkins();
+      final activeId = cubit.state.activeSkinId;
+      final horizontalPadding = isMobile ? 8.0 : 16.0;
+      final bottomPadding = isMobile ? 8.0 : 24.0;
+      return SafeArea(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            0,
+            horizontalPadding,
+            bottomPadding,
+          ),
+          child: MenuPanel(
+            title: l10n.skinSelectTitle,
+            dark: true,
+            asSheet: isMobile,
+            onClose: () {
+              if (isMobile && onPersistentClose != null) {
+                onPersistentClose();
+              } else {
+                Navigator.of(ctx).pop();
+              }
+            },
+            headerTrailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.monetization_on,
+                  color: Colors.amber,
+                  size: 18,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${cubit.state.coins}',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+            children: [
+              // removed coin summary row; now shown in header
+              SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children:
+                      skins.map((s) {
+                        final isActive = s.id == activeId;
+                        final displayName = l10n.skinName(s.id);
+                        final status =
+                            s.isUnlocked
+                                ? (isActive
+                                    ? l10n.selectedStatus
+                                    : l10n.unlockedStatus)
+                                : '${s.price} koin';
+                        return Container(
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            border: Border.all(color: Colors.white10),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: ListTile(
+                            leading: Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: Colors.white24),
+                              ),
+                              child: CustomPaint(
+                                painter: SkinPreviewPainter(
+                                  type: s.skinType,
+                                  color: s.color,
+                                ),
+                              ),
+                            ),
+                            title: Row(
+                              children: [
+                                Text(
+                                  displayName,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                                const SizedBox(width: 8),
+                                _buildSkinTypeBadge(s.skinType),
+                              ],
+                            ),
+                            subtitle: Text(
+                              status,
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                            trailing:
+                                isActive
+                                    ? const Icon(
+                                      Icons.check_circle,
+                                      color: Colors.green,
+                                    )
+                                    : (!s.isUnlocked
+                                        ? TextButton(
+                                          onPressed: () {
+                                            if (_purchaseSkin(cubit, s.id)) {
+                                              cubit.setActiveSkin(s.id);
+                                              if (isMobile &&
+                                                  onPersistentClose != null) {
+                                                onPersistentClose();
+                                              } else {
+                                                Navigator.of(ctx).pop();
+                                              }
+                                            } else {
+                                              final l10n =
+                                                  AppLocalizations.of(ctx)!;
+                                              ScaffoldMessenger.of(
+                                                ctx,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    l10n.notEnoughCoins,
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          child: Text(
+                                            'Beli',
+                                            style: const TextStyle(
+                                              color: Colors.yellow,
                                             ),
                                           ),
-                                        );
+                                        )
+                                        : null),
+                            onTap:
+                                s.isUnlocked
+                                    ? () {
+                                      cubit.setActiveSkin(s.id);
+                                      if (isMobile &&
+                                          onPersistentClose != null) {
+                                        onPersistentClose();
                                       } else {
+                                        Navigator.of(ctx).pop();
+                                      }
+                                    }
+                                    : () {
+                                      // Handle purchase logic via tile tap
+                                      if (_purchaseSkin(cubit, s.id)) {
+                                        cubit.setActiveSkin(s.id);
+                                        if (isMobile &&
+                                            onPersistentClose != null) {
+                                          onPersistentClose();
+                                        } else {
+                                          Navigator.of(ctx).pop();
+                                        }
+                                      } else {
+                                        final l10n = AppLocalizations.of(ctx)!;
                                         ScaffoldMessenger.of(ctx).showSnackBar(
                                           SnackBar(
                                             content: Text(l10n.notEnoughCoins),
@@ -938,272 +970,312 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                         );
                                       }
                                     },
-                                    // child: Text(l10n.buyButton(s.price)),
-                                    child: Text(l10n.buyButton(s.price)),
-                                  )
-                                else
-                                  ElevatedButton(
-                                    onPressed:
-                                        isActive
-                                            ? null
-                                            : () {
-                                              cubit.setActiveSkin(s.id);
-                                              setSt(() {});
-                                              if (cubit.state.audioOn) {
-                                                try {
-                                                  final audioService =
-                                                      context
-                                                          .read<AudioService>();
-                                                  audioService.playCoin();
-                                                } catch (e) {
-                                                  LoggingService.log(
-                                                    'Audio error: $e',
-                                                  );
-                                                }
+                          ),
+                        );
+                      }).toList(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (isMobile) {
+      // Logging to confirm branch selection
+      LoggingService.log(
+        'skin_sheet_open',
+        fields: {
+          'platform': defaultTargetPlatform.name,
+          'kIsWeb': kIsWeb,
+          'type': 'persistent',
+        },
+      );
+      setState(() {
+        _isBottomSheetOpen = true;
+      });
+      await Future<void>.delayed(Duration.zero); // ensure build context updated
+      // Show persistent bottom sheet via Scaffold
+      PersistentBottomSheetController? controller;
+      controller = _scaffoldKey.currentState!.showBottomSheet(
+        (ctx) => StatefulBuilder(
+          builder: (ctx, setSt) {
+            return buildContent(
+              ctx,
+              setSt,
+              onPersistentClose: () {
+                controller?.close();
+                if (mounted) {
+                  setState(() {
+                    _isBottomSheetOpen = false;
+                  });
+                }
+              },
+            );
+          },
+        ),
+        backgroundColor: Colors.transparent,
+      );
+      await controller.closed;
+      if (mounted) {
+        setState(() {
+          _isBottomSheetOpen = false;
+        });
+      }
+    } else {
+      LoggingService.log(
+        'skin_sheet_open',
+        fields: {
+          'platform': defaultTargetPlatform.name,
+          'kIsWeb': kIsWeb,
+          'type': 'modal',
+        },
+      );
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder:
+            (ctx) => StatefulBuilder(
+              builder: (ctx, setSt) => buildContent(ctx, setSt),
+            ),
+      );
+    }
+  }
+
+  Future<void> _showThemeSelectionBottomSheet(BuildContext context) async {
+    final cubit = context.read<AppSettingsCubit>();
+    final isMobile =
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
+
+    Widget buildContent(
+      BuildContext ctx,
+      StateSetter setSt, {
+      VoidCallback? onPersistentClose,
+    }) {
+      final themes = GameTheme.defaultThemes;
+      final activeId = cubit.state.activeThemeId;
+      final unlockedIds = cubit.state.unlockedThemeIds;
+      final horizontalPadding = isMobile ? 8.0 : 16.0;
+      final bottomPadding = isMobile ? 8.0 : 24.0;
+      return SafeArea(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            0,
+            horizontalPadding,
+            bottomPadding,
+          ),
+          child: MenuPanel(
+            title: 'Pilih Tema UI',
+            dark: true,
+            asSheet: isMobile,
+            onClose: () {
+              if (isMobile && onPersistentClose != null) {
+                onPersistentClose();
+              } else {
+                Navigator.of(ctx).pop();
+              }
+            },
+            headerTrailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.monetization_on,
+                  color: Colors.amber,
+                  size: 18,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${cubit.state.coins}',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+            children: [
+              // removed coin summary row; now shown in header
+              SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children:
+                      themes.map((theme) {
+                        final isUnlocked = unlockedIds.contains(theme.id);
+                        final isActive = theme.id == activeId;
+                        return Container(
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            border: Border.all(color: Colors.white10),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: ListTile(
+                            leading: Container(
+                              width: 48,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: Colors.white24),
+                              ),
+                              child: CustomPaint(
+                                painter: ThemePreviewPainter(theme.paintTheme),
+                              ),
+                            ),
+                            title: Row(
+                              spacing: 8,
+                              children: [
+                                Text(
+                                  theme.name,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                                _buildThemeTypeBadge(theme.themeType),
+                              ],
+                            ),
+                            subtitle: Text(
+                              isUnlocked
+                                  ? (isActive ? 'Aktif' : 'Terbuka')
+                                  : '${theme.price} koin',
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                            trailing:
+                                isActive
+                                    ? const Icon(
+                                      Icons.check_circle,
+                                      color: Colors.green,
+                                    )
+                                    : (!isUnlocked
+                                        ? TextButton(
+                                          onPressed: () {
+                                            if (_purchaseTheme(
+                                              cubit,
+                                              theme.id,
+                                            )) {
+                                              cubit.setActiveTheme(theme.id);
+                                              if (isMobile &&
+                                                  onPersistentClose != null) {
+                                                onPersistentClose();
+                                              } else {
+                                                Navigator.of(ctx).pop();
                                               }
+                                            } else {
+                                              final l10n = AppLocalizations.of(
+                                                ctx,
+                                              );
                                               ScaffoldMessenger.of(
                                                 ctx,
                                               ).showSnackBar(
                                                 SnackBar(
                                                   content: Text(
-                                                    l10n.selectedSnack(
-                                                      displayName,
-                                                    ),
+                                                    l10n.notEnoughCoins,
                                                   ),
-                                                  backgroundColor: Colors.green,
                                                 ),
                                               );
-                                            },
-                                    child: Text(l10n.selectButton),
-                                  ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(l10n.closeButton),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Future<void> _showThemeSelectionDialog(BuildContext context) async {
-    final cubit = context.read<AppSettingsCubit>();
-    await showDialog<void>(
-      context: context,
-      barrierColor: AppTheme.barrierColorDark,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setSt) {
-            final l10n = AppLocalizations.of(ctx);
-            final themes = GameTheme.defaultThemes;
-            final activeId = cubit.state.activeThemeId;
-            final unlockedIds = cubit.state.unlockedThemeIds;
-            return AlertDialog(
-              title: Text('Pilih Tema UI'),
-              content: SizedBox(
-                width: 360,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children:
-                        themes.map((theme) {
-                          final isUnlocked = unlockedIds.contains(theme.id);
-                          final isActive = theme.id == activeId;
-                          final status =
-                              isUnlocked
-                                  ? (isActive ? 'Aktif' : 'Terbuka')
-                                  : 'Terkunci';
-                          return Container(
-                            margin: const EdgeInsets.symmetric(vertical: 6),
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0x22000000),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.white24),
-                            ),
-                            child: Row(
-                              children: [
-                                Stack(
-                                  children: [
-                                    Container(
-                                      width: 64,
-                                      height: 64,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(8),
-                                        boxShadow:
-                                            theme.themeType ==
-                                                    ThemeType.legendary
-                                                ? [
-                                                  BoxShadow(
-                                                    color: Colors.amber
-                                                        .withValues(alpha: 0.6),
-                                                    blurRadius: 10,
-                                                    spreadRadius: 3,
-                                                  ),
-                                                ]
-                                                : null,
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: SizedBox(
-                                          width: 64,
-                                          height: 64,
-                                          child: ThemedCustomPaint(
-                                            theme: theme.paintTheme,
-                                            size: const Size(64, 64),
-                                            child: const SizedBox.shrink(),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      left: 0,
-                                      top: 0,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.black54,
-                                          borderRadius: const BorderRadius.only(
-                                            topLeft: Radius.circular(8),
-                                            bottomRight: Radius.circular(8),
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: const [
-                                            Icon(
-                                              Icons.palette,
-                                              color: Colors.white70,
-                                              size: 12,
+                                            }
+                                          },
+                                          child: Text(
+                                            'Beli',
+                                            style: const TextStyle(
+                                              color: Colors.yellow,
                                             ),
-                                            SizedBox(width: 4),
-                                            Text(
-                                              'Theme',
-                                              style: TextStyle(
-                                                color: Colors.white70,
-                                                fontSize: 10,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    if (theme.themeType == ThemeType.premium ||
-                                        theme.themeType == ThemeType.legendary)
-                                      Positioned(
-                                        right: 0,
-                                        bottom: 0,
-                                        child: Icon(
-                                          Icons.star,
-                                          color:
-                                              theme.themeType ==
-                                                      ThemeType.legendary
-                                                  ? Colors.amber
-                                                  : Colors.white70,
-                                          size: 16,
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        theme.name,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      _buildThemeTypeBadge(theme.themeType),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        isUnlocked
-                                            ? status
-                                            : '${theme.price} Koin',
-                                        style: const TextStyle(
-                                          color: Colors.white70,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                if (!isUnlocked)
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      final ok = _purchaseTheme(
-                                        cubit,
-                                        theme.id,
-                                      );
-                                      if (ok) {
-                                        setSt(() {});
-                                        AudioService.I.playCoin();
+                                          ),
+                                        )
+                                        : null),
+                            onTap:
+                                isUnlocked
+                                    ? () {
+                                      cubit.setActiveTheme(theme.id);
+                                      if (isMobile &&
+                                          onPersistentClose != null) {
+                                        onPersistentClose();
                                       } else {
-                                        AudioService.I.playHit();
+                                        Navigator.of(ctx).pop();
+                                      }
+                                    }
+                                    : () {
+                                      // Handle purchase logic via tile tap
+                                      if (_purchaseTheme(cubit, theme.id)) {
+                                        cubit.setActiveTheme(theme.id);
+                                        if (isMobile &&
+                                            onPersistentClose != null) {
+                                          onPersistentClose();
+                                        } else {
+                                          Navigator.of(ctx).pop();
+                                        }
+                                      } else {
+                                        final l10n = AppLocalizations.of(ctx)!;
                                         ScaffoldMessenger.of(ctx).showSnackBar(
                                           SnackBar(
-                                            content: Text('Koin tidak cukup!'),
+                                            content: Text(l10n.notEnoughCoins),
                                           ),
                                         );
                                       }
                                     },
-                                    child: const Text('Beli'),
-                                  )
-                                else if (!isActive)
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      cubit.setActiveTheme(theme.id);
-                                      setSt(() {});
-                                      AudioService.I.playCoin();
-                                    },
-                                    child: const Text('Pilih'),
-                                  )
-                                else
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                    ),
-                                    child: Icon(
-                                      Icons.check_circle,
-                                      color: Colors.green,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                  ),
+                          ),
+                        );
+                      }).toList(),
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(l10n.closeButton),
-                ),
-              ],
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (isMobile) {
+      LoggingService.log(
+        'theme_sheet_open',
+        fields: {
+          'platform': defaultTargetPlatform.name,
+          'kIsWeb': kIsWeb,
+          'type': 'persistent',
+        },
+      );
+      await Future<void>.delayed(Duration.zero);
+      PersistentBottomSheetController? controller;
+      controller = _scaffoldKey.currentState!.showBottomSheet(
+        (ctx) => StatefulBuilder(
+          builder: (ctx, setSt) {
+            return buildContent(
+              ctx,
+              setSt,
+              onPersistentClose: () => controller?.close(),
             );
           },
-        );
-      },
-    );
+        ),
+        backgroundColor: Colors.transparent,
+      );
+      await controller.closed;
+    } else {
+      LoggingService.log(
+        'theme_sheet_open',
+        fields: {
+          'platform': defaultTargetPlatform.name,
+          'kIsWeb': kIsWeb,
+          'type': 'modal',
+        },
+      );
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder:
+            (ctx) => StatefulBuilder(
+              builder: (ctx, setSt) => buildContent(ctx, setSt),
+            ),
+      );
+    }
+  }
+
+  bool _purchaseSkin(AppSettingsCubit cubit, String skinId) {
+    final skin = CharacterSkin.defaultSkins.firstWhere((s) => s.id == skinId);
+    if (cubit.state.coins >= skin.price) {
+      cubit.spendCoins(skin.price);
+      cubit.unlockSkin(skinId);
+      return true;
+    }
+    return false;
   }
 
   bool _purchaseTheme(AppSettingsCubit cubit, String themeId) {
@@ -1242,8 +1314,8 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
-        border: Border.all(color: color.withOpacity(0.5)),
+        color: color.withValues(alpha: 0.2),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(

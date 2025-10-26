@@ -9,12 +9,18 @@ class MenuPanel extends StatelessWidget {
   final VoidCallback? onClose;
   // Tambah opsi tampilan gelap sesuai warna dasar
   final bool dark;
+  // Mode khusus untuk bottom sheet agar tidak terlihat seperti dialog modal
+  final bool asSheet;
+  // Konten tambahan di header panel (mis. jumlah koin)
+  final Widget? headerTrailing;
   const MenuPanel({
     super.key,
     required this.title,
     required this.children,
     this.onClose,
     this.dark = false,
+    this.asSheet = false,
+    this.headerTrailing,
   });
 
   @override
@@ -22,15 +28,33 @@ class MenuPanel extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final maxWidth = screenWidth > 400 ? 360.0 : screenWidth * 0.9;
 
+    // Penyesuaian gaya ketika ditampilkan sebagai bottom sheet di mobile
+    final BorderRadius panelRadius = asSheet
+        ? const BorderRadius.only(
+            topLeft: Radius.circular(12),
+            topRight: Radius.circular(12),
+          )
+        : BorderRadius.circular(12);
+
     return Container(
       padding: EdgeInsets.all(screenWidth > 400 ? 12 : 8),
-      constraints: BoxConstraints(maxWidth: maxWidth),
+      // Untuk sheet, paksa lebar penuh agar menempel di sisi bawah
+      width: asSheet ? double.infinity : null,
+      constraints: BoxConstraints(
+        maxWidth: asSheet ? double.infinity : maxWidth,
+      ),
       decoration: BoxDecoration(
         color: dark ? AppTheme.darkBase : AppTheme.lightBase,
-        gradient: dark ? AppTheme.darkGradient : AppTheme.lightGradient,
-        borderRadius: BorderRadius.circular(12),
+        // Hindari gradient yang kuat saat sebagai sheet agar tidak seperti dialog mengambang
+        gradient: asSheet
+            ? null
+            : (dark ? AppTheme.darkGradient : AppTheme.lightGradient),
+        borderRadius: panelRadius,
         border: dark ? AppTheme.darkBorder : AppTheme.lightBorder,
-        boxShadow: dark ? AppTheme.darkShadow : AppTheme.lightShadow,
+        // Hilangkan shadow di mode sheet agar tidak tampak seperti modal overlay
+        boxShadow: asSheet
+            ? const []
+            : (dark ? AppTheme.darkShadow : AppTheme.lightShadow),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -42,7 +66,12 @@ class MenuPanel extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color: dark ? AppTheme.darkHeader : AppTheme.lightHeader,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: asSheet
+                  ? const BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      topRight: Radius.circular(8),
+                    )
+                  : BorderRadius.circular(8),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -58,14 +87,24 @@ class MenuPanel extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (onClose != null)
-                  InkWell(
-                    onTap: onClose,
-                    child: Icon(
-                      Icons.close,
-                      color: dark ? Colors.white70 : Colors.black87,
-                    ),
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (headerTrailing != null)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: headerTrailing!,
+                      ),
+                    if (onClose != null)
+                      InkWell(
+                        onTap: onClose,
+                        child: Icon(
+                          Icons.close,
+                          color: dark ? Colors.white70 : Colors.black87,
+                        ),
+                      ),
+                  ],
+                ),
               ],
             ),
           ),
