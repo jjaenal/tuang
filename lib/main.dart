@@ -6,6 +6,7 @@ import 'ui/main_menu.dart';
 import 'ui/game_over.dart';
 import 'ui/hud_overlay.dart';
 import 'ui/pause_overlay.dart';
+import 'ui/joystick_overlay.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'state/app_settings_cubit.dart';
 import 'services/ad_service.dart';
@@ -75,6 +76,8 @@ class _MyAppState extends State<MyApp> {
             (context, g) => GameOverOverlay(game: g as MyGame),
         MyGame.overlayRewardConfirm:
             (context, g) => RewardConfirmOverlay(game: g as MyGame),
+        MyGame.overlayJoystick:
+            (context, g) => JoystickOverlay(game: g as MyGame),
       },
       initialActiveOverlays: widget.showMainMenuOnBoot
           ? const [MyGame.overlayMainMenu]
@@ -123,7 +126,7 @@ class _MyAppState extends State<MyApp> {
         child: BlocBuilder<AppSettingsCubit, AppSettingsState>(
           builder: (context, app) {
             return MaterialApp(
-              locale: null,
+              locale: Locale(app.languageCode),
               onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
               localizationsDelegates: const [
                 AppLocalizations.delegate,
@@ -141,11 +144,11 @@ class _MyAppState extends State<MyApp> {
                     final delta = details.delta;
                     final dir = Vector2(delta.dx, delta.dy);
                     if (dir.length2 > 0) {
-                      dir.normalize();
-                      widget.game.inputDir = dir;
+                      // gunakan magnitude drag sebagai analog kecepatan
+                      widget.game.inputDirTarget = dir.normalized();
                     }
                   },
-                  onPanEnd: (_) => widget.game.inputDir = Vector2.zero(),
+                  onPanEnd: (_) => widget.game.inputDirTarget = Vector2.zero(),
                   child: KeyboardListener(
                     focusNode: FocusNode(),
                     autofocus: true,
@@ -169,7 +172,12 @@ class _MyAppState extends State<MyApp> {
                           pressed.contains(LogicalKeyboardKey.arrowDown)) {
                         dir.y += 1;
                       }
-                      widget.game.inputDir = dir;
+                      if (dir.length2 > 0) {
+                        dir.normalize();
+                        widget.game.inputDirTarget = dir;
+                      } else {
+                        widget.game.inputDirTarget = Vector2.zero();
+                      }
                     },
                     child: _gameWidget,
                   ),

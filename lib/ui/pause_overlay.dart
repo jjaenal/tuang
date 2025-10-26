@@ -55,15 +55,22 @@ class PauseOverlay extends StatelessWidget {
                     label: l10n.optionsButton,
                     icon: Icons.settings,
                     onPressed: () {
-                      showDialog(
+                      showModalBottomSheet(
                         context: context,
+                        isScrollControlled: true,
+                        useSafeArea: true,
+                        backgroundColor: Colors.transparent,
                         barrierColor: AppTheme.barrierColorDark,
-                        builder:
-                            (ctx) => Dialog(
-                              backgroundColor: Colors.transparent,
-                              insetPadding: const EdgeInsets.all(16),
-                              child: const OptionsPanel(),
+                        builder: (ctx) {
+                          return SafeArea(
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                bottom: MediaQuery.of(ctx).viewInsets.bottom,
+                              ),
+                              child: const OptionsPanel(asSheet: true),
                             ),
+                          );
+                        },
                       );
                     },
                   ),

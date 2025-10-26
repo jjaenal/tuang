@@ -233,5 +233,12 @@
         "type": "int"
       }
     }
-  }
+  },
+  "buyAction": "Buy",
+  "activeStatus": "Active",
+  "playerSectionTitle": "Player",
+  "themeTypeBasic": "Basic",
+  "themeTypeAdvanced": "Advanced",
+  "themeTypePremium": "Premium",
+  "themeTypeLegendary": "Legendary"
 }

@@ -126,5 +126,12 @@
   "@sessionDurationSeconds": {"placeholders": {"seconds": {"type": "String"}}},
   "@magnetsPickedLabel": {"placeholders": {"count": {"type": "int"}}},
   "@coinsPickedLabel": {"placeholders": {"count": {"type": "int"}}},
-  "@rewardSnack": {"placeholders": {"amount": {"type": "int"}}}
+  "@rewardSnack": {"placeholders": {"amount": {"type": "int"}}},
+  "buyAction": "Beli",
+  "activeStatus": "Aktif",
+  "playerSectionTitle": "Pemain",
+  "themeTypeBasic": "Basic",
+  "themeTypeAdvanced": "Lanjutan",
+  "themeTypePremium": "Premium",
+  "themeTypeLegendary": "Legendaris"
 }

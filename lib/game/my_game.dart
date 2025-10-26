@@ -6,6 +6,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tuang/game/theme_background.dart';
 import 'player.dart';
 import 'coin.dart';
 import 'obstacle.dart';
@@ -13,20 +14,23 @@ import 'magnet.dart';
 import 'effects.dart';
 import 'speed_boost.dart';
 import 'shield.dart';
+import 'tail_effect.dart';
 import 'game_config.dart';
 import '../models/achievement.dart';
 import '../models/character_skin.dart';
+import '../models/game_theme.dart';
 import '../services/achievement_service.dart';
 import '../state/pref_keys.dart';
 import '../services/logging_service.dart';
 import '../services/audio_service.dart';
 
 /// Enum yang menentukan penyebab game over untuk tracking dan analytics.
-enum GameOverCause { 
+enum GameOverCause {
   /// Game berakhir karena waktu habis
-  timeout, 
+  timeout,
+
   /// Game berakhir karena collision dengan obstacle
-  collision 
+  collision,
 }
 
 /// [MyGame] adalah engine utama FlameGame yang menjalankan sesi arcade.
@@ -62,30 +66,43 @@ enum GameOverCause {
 class MyGame extends FlameGame with HasCollisionDetection {
   /// Key untuk overlay main menu
   static const String overlayMainMenu = 'MainMenu';
+
   /// Key untuk overlay HUD saat bermain
   static const String overlayHud = 'Hud';
+
   /// Key untuk overlay game over
   static const String overlayGameOver = 'GameOver';
+
   /// Key untuk overlay pause
   static const String overlayPause = 'Pause';
+
   /// Key untuk overlay konfirmasi reward
   static const String overlayRewardConfirm = 'RewardConfirm';
 
+  /// Key untuk overlay joystick dinamis
+  static const String overlayJoystick = 'Joystick';
+
   /// ValueNotifier untuk skor yang dapat diobservasi oleh UI
   final ValueNotifier<int> scoreVN = ValueNotifier<int>(0);
+
   /// ValueNotifier untuk waktu tersisa yang dapat diobservasi oleh UI
   final ValueNotifier<int> timeVN = ValueNotifier<int>(0);
+
   /// ValueNotifier untuk status magnet (0.0-1.0) yang dapat diobservasi oleh UI
   final ValueNotifier<double> magnetVN = ValueNotifier<double>(0.0);
+
   /// ValueNotifier untuk combo multiplier yang dapat diobservasi oleh UI
   final ValueNotifier<int> comboVN = ValueNotifier<int>(1);
 
-  /// Arah input dari user (normalized vector)
+  /// Arah input dari user (vector -1..1 dengan smoothing)
   Vector2 inputDir = Vector2.zero();
+
+  /// Target arah input dari sumber UI (diset oleh overlay/keyboard)
+  Vector2 inputDirTarget = Vector2.zero();
+
   /// Multiplier kecepatan player (1.0 = normal, >1.0 = boost)
   double playerSpeedMultiplier = 1.0;
-  /// Komponen joystick untuk kontrol touch (opsional)
-  JoystickComponent? joystick;
+
 
   // Game state flags
   bool isPlaying = false;
@@ -135,6 +152,12 @@ class MyGame extends FlameGame with HasCollisionDetection {
   SpeedBoostGlow? _speedBoostGlow;
   ShieldGlow? _shieldGlow;
 
+  // Themed background renderer using active CustomPaintTheme
+  late ThemeBackground _themeBg;
+  
+  // Tail effect yang mengikuti player
+  late TailEffect _tail;
+
   // === Difficulty-effective parameters ===
   double _coinIntervalEff = GameConfig.coinSpawnIntervalSec;
   double _obstacleIntervalEff = GameConfig.obstacleSpawnIntervalSec;
@@ -146,14 +169,19 @@ class MyGame extends FlameGame with HasCollisionDetection {
 
   @override
   Future<void> onLoad() async {
-    // Add background color untuk debugging
-    add(
-      RectangleComponent(
-        size: Vector2(2000, 2000), // Large background
-        paint: Paint()..color = const Color(0xFF2E2E2E), // Dark gray
-        position: Vector2.zero(),
-      ),
-    );
+    // Add themed background using active theme
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final themeId = prefs.getString(PrefKeys.activeThemeId);
+      final theme = GameTheme.defaultThemes.firstWhere(
+        (t) => t.id == themeId,
+        orElse: () => GameTheme.defaultThemes.first,
+      );
+      _themeBg = ThemeBackground(theme: theme);
+    } catch (_) {
+      _themeBg = ThemeBackground(theme: GameTheme.defaultThemes.first);
+    }
+    add(_themeBg);
 
     timeVN.value = sessionLength;
 
@@ -162,27 +190,10 @@ class MyGame extends FlameGame with HasCollisionDetection {
     player = Player(skin: activeSkin);
     await add(player);
 
-    // Tambahkan UI joystick untuk mobile (iOS/Android) saja
-    final isMobilePlatform =
-        !kIsWeb && (Platform.isIOS || Platform.isAndroid);
-    if (isMobilePlatform && joystick == null) {
-      final knob = CircleComponent(
-        radius: 24,
-        paint: Paint()..color = Colors.white.withValues(alpha: 0.85),
-        anchor: Anchor.topLeft,
-      );
-      final bg = CircleComponent(
-        radius: 44,
-        paint: Paint()..color = Colors.black.withValues(alpha: 0.30),
-        anchor: Anchor.topLeft,
-      );
-      final js = JoystickComponent(knob: knob, background: bg);
-      js.anchor = Anchor.bottomCenter;
-      js.position = Vector2(size.x / 2, size.y - 64);
-      js.priority = 1000; // tampil di atas entity game
-      joystick = js;
-      await add(js);
-    }
+    // Tambah efek tail di belakang player
+    _tail = TailEffect(target: player, color: activeSkin.color);
+    await add(_tail);
+
   }
 
   // Mendapatkan skin aktif dari AppSettingsCubit
@@ -226,12 +237,22 @@ class MyGame extends FlameGame with HasCollisionDetection {
     _magnetSecAccumulator = 0.0;
     _magnetGlow = null;
 
-    // Refresh player skin from preferences before starting
+    // Refresh player skin and theme from preferences before starting
     Future(() async {
       try {
         final activeSkin = await _getActiveSkin();
         player.setSkin(activeSkin);
+        _tail.setColor(activeSkin.color);
         player.position = size / 2; // center at start
+
+        // Refresh background theme based on active theme
+        final prefs = await SharedPreferences.getInstance();
+        final themeId = prefs.getString(PrefKeys.activeThemeId);
+        final theme = GameTheme.defaultThemes.firstWhere(
+          (t) => t.id == themeId,
+          orElse: () => GameTheme.defaultThemes.first,
+        );
+        _themeBg.setTheme(theme);
       } catch (_) {
         // In tests, startGame may be called before onLoad initializes `player`.
         // Swallow late-initialization here to keep startGame idempotent.
@@ -260,6 +281,11 @@ class MyGame extends FlameGame with HasCollisionDetection {
 
     overlays.remove(overlayMainMenu);
     _safeAddOverlay(overlayHud);
+    
+    // Tampilkan joystick overlay untuk kontrol touch pada mobile
+    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+      _safeAddOverlay(overlayJoystick);
+    }
 
     // Setup difficulty-effective params from preferences
     Future(() async {
@@ -324,15 +350,14 @@ class MyGame extends FlameGame with HasCollisionDetection {
     super.update(dt);
     if (!isPlaying) return;
 
-    // Update input direction from joystick on mobile platforms
-    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid) && joystick != null) {
-      final d = joystick!.delta;
-      // Apply small deadzone to avoid jitter and accidental release
-      const double deadzone = 0.12; // ~12% tilt threshold
-      if (d.length >= deadzone) {
-        inputDir = d.normalized();
-      } else {
-        inputDir = Vector2.zero();
+    // Smoothly approach target input direction for slick movement
+    {
+      const double smoothing = 12.0; // higher = snappier, lower = smoother
+      final delta = inputDirTarget - inputDir;
+      inputDir += delta * (smoothing * dt);
+      // small threshold to zero-out jitter
+      if (inputDir.length2 < 1e-4 && inputDirTarget.length2 == 0) {
+        inputDir.setValues(0, 0);
       }
     }
 
@@ -564,6 +589,7 @@ class MyGame extends FlameGame with HasCollisionDetection {
         baseScoreAtGameOver > bestScore ? baseScoreAtGameOver : bestScore;
 
     _safeRemoveOverlay(overlayHud);
+    _safeRemoveOverlay(overlayJoystick);
     _safeAddOverlay(overlayGameOver);
 
     // Score-based achievements

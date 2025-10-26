@@ -15,7 +15,9 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 /// Widget ini menggunakan Bloc untuk membaca dan mengubah `AppSettingsCubit`,
 /// serta memanfaatkan l10n (`AppLocalizations`) untuk semua label dan teks.
 class OptionsPanel extends StatefulWidget {
-  const OptionsPanel({super.key});
+  const OptionsPanel({super.key, this.asSheet = false, this.onClose});
+  final bool asSheet;
+  final VoidCallback? onClose;
 
   @override
   State<OptionsPanel> createState() => _OptionsPanelState();
@@ -80,6 +82,47 @@ class _OptionsPanelState extends State<OptionsPanel> {
     }
   }
 
+  Widget _buildSection({
+    required IconData icon,
+    required String title,
+    required List<Widget> children,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.25),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 12,
+                backgroundColor: Colors.white.withValues(alpha: 0.1),
+                child: Icon(icon, size: 16, color: Colors.white),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ...children,
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AppSettingsCubit, AppSettingsState>(
@@ -88,156 +131,169 @@ class _OptionsPanelState extends State<OptionsPanel> {
         return Center(
           child: MenuPanel(
             title: l10n.optionsTitle,
-            onClose: () => Navigator.of(context).pop(),
+            onClose: widget.onClose ?? () => Navigator.of(context).pop(),
             dark: true,
+            asSheet: widget.asSheet,
             children: [
-              OptionRow(
-                icon: Icons.volume_up,
-                label: l10n.audioLabel,
-                trailing: Switch(
-                  value: app.audioOn,
-                  onChanged:
-                      (_) => context.read<AppSettingsCubit>().toggleAudio(),
-                ),
-              ),
-              const SizedBox(height: 4),
-              OptionRow(
-                icon: Icons.vibration,
-                label: l10n.hapticsLabel,
-                trailing: Switch(
-                  value: app.hapticsOn,
-                  onChanged:
-                      (_) => context.read<AppSettingsCubit>().toggleHaptics(),
-                ),
-              ),
-              const SizedBox(height: 4),
-              OptionRow(
-                icon: Icons.ad_units,
-                label: l10n.adsLabel,
-                trailing: Switch(
-                  value: app.adsEnabled && app.consentGiven,
-                  onChanged: (_) => _ensureConsentThenEnableAds(context),
-                ),
-              ),
-              const SizedBox(height: 4),
-              OptionRow(
-                icon: Icons.privacy_tip,
-                label: l10n.npaLabel,
-                trailing: Switch(
-                  value: app.npaEnabled,
-                  onChanged: (val) {
-                    final cubit = context.read<AppSettingsCubit>();
-                    cubit.toggleNpa();
-                    AdService.I.setNonPersonalizedAds(val);
-                    final messenger = ScaffoldMessenger.of(context);
-                    messenger.showSnackBar(
-                      SnackBar(content: Text(val ? l10n.npaOn : l10n.npaOff)),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 4),
-              // Language selector
-              OptionRow(
-                icon: Icons.language,
-                label: l10n.languageLabel,
-                trailing: SizedBox(
-                  width: 140,
-                  child: DropdownButton<String>(
-                    value: app.languageCode,
-                    isExpanded: true,
-                    isDense: true,
-                    items: [
-                      DropdownMenuItem(
-                        value: 'id',
-                        child: Text(l10n.languageIndonesian, style: const TextStyle(fontSize: 14)),
-                      ),
-                      DropdownMenuItem(
-                        value: 'en',
-                        child: Text(l10n.languageEnglish, style: const TextStyle(fontSize: 14)),
-                      ),
-                    ],
-                    onChanged: (code) {
-                      if (code != null) {
-                        context.read<AppSettingsCubit>().setLanguageCode(code);
-                      }
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 4),
-              // Difficulty selector
-              OptionRow(
-                icon: Icons.speed,
-                label: l10n.difficultyLabel,
-                trailing: SizedBox(
-                  width: 140,
-                  child: Slider(
-                    value: app.difficulty.index.toDouble(),
-                    min: 0,
-                    max: 2,
-                    divisions: 2,
-                    label: app.difficulty.key.toUpperCase(),
-                    onChanged: (val) {
-                      final difficulty = Difficulty.values[val.round()];
-                      context.read<AppSettingsCubit>().setDifficulty(
-                        difficulty,
-                      );
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 4),
-              // Daily Magnet slider pakai OptionRow dengan spacer
-              OptionRow(
-                icon: Icons.bolt,
-                label: l10n.dailyMagnetLabel,
-                trailing: SizedBox(
-                  width: 140,
-                  child: Slider(
-                    value: app.dailyMagnetBuffSeconds.toDouble(),
-                    min: 0,
-                    max: GameConfig.maxDailyMagnetBuffSec.toDouble(),
-                    divisions: GameConfig.maxDailyMagnetBuffSec,
-                    label: '${app.dailyMagnetBuffSeconds}${l10n.secondsShort}',
-                    onChanged: (val) {
-                      context
-                          .read<AppSettingsCubit>()
-                          .setDailyMagnetBuffSeconds(val.round());
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 4),
-              // Player Name input
-              OptionRow(
-                icon: Icons.person,
-                label: l10n.playerNameLabel,
-                trailing: SizedBox(
-                  width: 140,
-                  child: TextField(
-                    controller: TextEditingController(text: app.playerName),
-                    style: const TextStyle(fontSize: 14),
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 6,
-                      ),
-                      border: OutlineInputBorder(),
+              _buildSection(
+                icon: Icons.tune,
+                title: '${l10n.audioLabel} & ${l10n.hapticsLabel}',
+                children: [
+                  OptionRow(
+                    icon: Icons.volume_up,
+                    label: l10n.audioLabel,
+                    trailing: Switch(
+                      value: app.audioOn,
+                      onChanged:
+                          (_) => context.read<AppSettingsCubit>().toggleAudio(),
                     ),
-                    onSubmitted: (value) {
-                      if (value.isNotEmpty) {
-                        context.read<AppSettingsCubit>().setPlayerName(value);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(l10n.playerNameUpdated)),
-                        );
-                      }
-                    },
                   ),
-                ),
+                  const SizedBox(height: 6),
+                  OptionRow(
+                    icon: Icons.vibration,
+                    label: l10n.hapticsLabel,
+                    trailing: Switch(
+                      value: app.hapticsOn,
+                      onChanged:
+                          (_) =>
+                              context.read<AppSettingsCubit>().toggleHaptics(),
+                    ),
+                  ),
+                ],
               ),
 
+              _buildSection(
+                icon: Icons.ad_units,
+                title: l10n.adsLabel,
+                children: [
+                  OptionRow(
+                    icon: Icons.ad_units,
+                    label: l10n.adsLabel,
+                    trailing: Switch(
+                      value: app.adsEnabled && app.consentGiven,
+                      onChanged: (_) => _ensureConsentThenEnableAds(context),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  OptionRow(
+                    icon: Icons.privacy_tip,
+                    label: l10n.npaLabel,
+                    trailing: Switch(
+                      value: app.npaEnabled,
+                      onChanged: (val) {
+                        final cubit = context.read<AppSettingsCubit>();
+                        cubit.toggleNpa();
+                        AdService.I.setNonPersonalizedAds(val);
+                        final messenger = ScaffoldMessenger.of(context);
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text(val ? l10n.npaOn : l10n.npaOff),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+
+              _buildSection(
+                icon: Icons.speed,
+                title: l10n.difficultyLabel,
+                children: [
+                  OptionRow(
+                    icon: Icons.speed,
+                    label: l10n.difficultyLabel,
+                    trailing: SizedBox(
+                      width: 140,
+                      child: Slider(
+                        value: app.difficulty.index.toDouble(),
+                        min: 0,
+                        max: 2,
+                        divisions: 2,
+                        label: app.difficulty.key.toUpperCase(),
+                        onChanged: (val) {
+                          final difficulty = Difficulty.values[val.round()];
+                          context.read<AppSettingsCubit>().setDifficulty(
+                            difficulty,
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              _buildSection(
+                icon: Icons.person,
+                title: l10n.playerSectionTitle,
+                children: [
+                  OptionRow(
+                    icon: Icons.person,
+                    label: l10n.playerNameLabel,
+                    trailing: SizedBox(
+                      width: 140,
+                      child: TextField(
+                        controller: TextEditingController(text: app.playerName),
+                        style: const TextStyle(fontSize: 14),
+                        decoration: const InputDecoration(
+                          isDense: true,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 6,
+                          ),
+                          border: OutlineInputBorder(),
+                        ),
+                        onSubmitted: (value) {
+                          if (value.isNotEmpty) {
+                            context.read<AppSettingsCubit>().setPlayerName(
+                              value,
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(l10n.playerNameUpdated)),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  OptionRow(
+                    icon: Icons.language,
+                    label: l10n.languageLabel,
+                    trailing: SizedBox(
+                      width: 140,
+                      child: DropdownButton<String>(
+                        value: app.languageCode,
+                        isExpanded: true,
+                        isDense: true,
+                        items: [
+                          DropdownMenuItem(
+                            value: 'id',
+                            child: Text(
+                              l10n.languageIndonesian,
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 'en',
+                            child: Text(
+                              l10n.languageEnglish,
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ),
+                        ],
+                        onChanged: (code) {
+                          if (code != null) {
+                            context.read<AppSettingsCubit>().setLanguageCode(
+                              code,
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         );

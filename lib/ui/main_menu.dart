@@ -717,17 +717,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                       ),
                                     ),
                                     onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        barrierDismissible: true,
-                                        barrierColor: AppTheme.barrierColorDark,
-                                        builder:
-                                            (ctx) => const Dialog(
-                                              backgroundColor:
-                                                  Colors.transparent,
-                                              child: OptionsPanel(),
-                                            ),
-                                      );
+                                      _showOptionsBottomSheet(context);
                                     },
                                   ),
                                   IconButton(
@@ -919,8 +909,9 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                                 Navigator.of(ctx).pop();
                                               }
                                             } else {
-                                              final l10n =
-                                                  AppLocalizations.of(ctx)!;
+                                              final l10n = AppLocalizations.of(
+                                                ctx,
+                                              );
                                               ScaffoldMessenger.of(
                                                 ctx,
                                               ).showSnackBar(
@@ -933,7 +924,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                             }
                                           },
                                           child: Text(
-                                            'Beli',
+                                            AppLocalizations.of(ctx).buyAction,
                                             style: const TextStyle(
                                               color: Colors.yellow,
                                             ),
@@ -962,7 +953,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                           Navigator.of(ctx).pop();
                                         }
                                       } else {
-                                        final l10n = AppLocalizations.of(ctx)!;
+                                        final l10n = AppLocalizations.of(ctx);
                                         ScaffoldMessenger.of(ctx).showSnackBar(
                                           SnackBar(
                                             content: Text(l10n.notEnoughCoins),
@@ -1135,8 +1126,10 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                             ),
                             subtitle: Text(
                               isUnlocked
-                                  ? (isActive ? 'Aktif' : 'Terbuka')
-                                  : '${theme.price} koin',
+                                  ? (isActive
+                                      ? AppLocalizations.of(ctx).activeStatus
+                                      : AppLocalizations.of(ctx).unlockedStatus)
+                                  : AppLocalizations.of(ctx).priceCoins(theme.price),
                               style: const TextStyle(color: Colors.white70),
                             ),
                             trailing:
@@ -1175,7 +1168,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                             }
                                           },
                                           child: Text(
-                                            'Beli',
+                                            AppLocalizations.of(ctx).buyAction,
                                             style: const TextStyle(
                                               color: Colors.yellow,
                                             ),
@@ -1204,7 +1197,7 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
                                           Navigator.of(ctx).pop();
                                         }
                                       } else {
-                                        final l10n = AppLocalizations.of(ctx)!;
+                                        final l10n = AppLocalizations.of(ctx);
                                         ScaffoldMessenger.of(ctx).showSnackBar(
                                           SnackBar(
                                             content: Text(l10n.notEnoughCoins),
@@ -1291,23 +1284,24 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
   Widget _buildThemeTypeBadge(ThemeType type) {
     Color color;
     String label;
+    final l10n = AppLocalizations.of(context);
 
     switch (type) {
       case ThemeType.basic:
         color = Colors.grey;
-        label = 'Basic';
+        label = l10n.themeTypeBasic;
         break;
       case ThemeType.advanced:
         color = Colors.blue;
-        label = 'Advanced';
+        label = l10n.themeTypeAdvanced;
         break;
       case ThemeType.premium:
         color = Colors.purple;
-        label = 'Premium';
+        label = l10n.themeTypePremium;
         break;
       case ThemeType.legendary:
         color = Colors.amber;
-        label = 'Legendary';
+        label = l10n.themeTypeLegendary;
         break;
     }
 
@@ -1327,5 +1321,79 @@ class _MainMenuOverlayState extends State<MainMenuOverlay> {
         ),
       ),
     );
+  }
+
+  // Bottom sheet Options mengikuti pola Skin/Theme
+  Future<void> _showOptionsBottomSheet(BuildContext context) async {
+    final isMobile =
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
+    if (isMobile) {
+      LoggingService.log(
+        'options_sheet_open',
+        fields: {
+          'platform': defaultTargetPlatform.name,
+          'kIsWeb': kIsWeb,
+          'type': 'persistent',
+        },
+      );
+      setState(() {
+        _isBottomSheetOpen = true;
+      });
+      await Future<void>.delayed(Duration.zero);
+      PersistentBottomSheetController? controller;
+      controller = _scaffoldKey.currentState!.showBottomSheet(
+        (ctx) => SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+            child: OptionsPanel(
+              asSheet: true,
+              onClose: () {
+                controller?.close();
+                if (mounted) {
+                  setState(() {
+                    _isBottomSheetOpen = false;
+                  });
+                }
+              },
+            ),
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+      );
+      await controller.closed;
+      if (mounted) {
+        setState(() {
+          _isBottomSheetOpen = false;
+        });
+      }
+    } else {
+      LoggingService.log(
+        'options_sheet_open',
+        fields: {
+          'platform': defaultTargetPlatform.name,
+          'kIsWeb': kIsWeb,
+          'type': 'modal',
+        },
+      );
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder:
+            (ctx) => SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(ctx).viewInsets.bottom,
+                  left: 16,
+                  right: 16,
+                ),
+                child: const OptionsPanel(asSheet: true),
+              ),
+            ),
+      );
+    }
   }
 }

@@ -24,7 +24,7 @@ class GameTheme {
 
   /// Tipe tema yang menentukan kompleksitas render
   final ThemeType themeType;
-  
+
   /// CustomPaintTheme yang digunakan untuk rendering
   final CustomPaintTheme paintTheme;
 

@@ -29,12 +29,13 @@ class MenuPanel extends StatelessWidget {
     final maxWidth = screenWidth > 400 ? 360.0 : screenWidth * 0.9;
 
     // Penyesuaian gaya ketika ditampilkan sebagai bottom sheet di mobile
-    final BorderRadius panelRadius = asSheet
-        ? const BorderRadius.only(
-            topLeft: Radius.circular(12),
-            topRight: Radius.circular(12),
-          )
-        : BorderRadius.circular(12);
+    final BorderRadius panelRadius =
+        asSheet
+            ? const BorderRadius.only(
+              topLeft: Radius.circular(12),
+              topRight: Radius.circular(12),
+            )
+            : BorderRadius.circular(12);
 
     return Container(
       padding: EdgeInsets.all(screenWidth > 400 ? 12 : 8),
@@ -46,15 +47,17 @@ class MenuPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: dark ? AppTheme.darkBase : AppTheme.lightBase,
         // Hindari gradient yang kuat saat sebagai sheet agar tidak seperti dialog mengambang
-        gradient: asSheet
-            ? null
-            : (dark ? AppTheme.darkGradient : AppTheme.lightGradient),
+        gradient:
+            asSheet
+                ? null
+                : (dark ? AppTheme.darkGradient : AppTheme.lightGradient),
         borderRadius: panelRadius,
         border: dark ? AppTheme.darkBorder : AppTheme.lightBorder,
         // Hilangkan shadow di mode sheet agar tidak tampak seperti modal overlay
-        boxShadow: asSheet
-            ? const []
-            : (dark ? AppTheme.darkShadow : AppTheme.lightShadow),
+        boxShadow:
+            asSheet
+                ? const []
+                : (dark ? AppTheme.darkShadow : AppTheme.lightShadow),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -66,12 +69,13 @@ class MenuPanel extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color: dark ? AppTheme.darkHeader : AppTheme.lightHeader,
-              borderRadius: asSheet
-                  ? const BorderRadius.only(
-                      topLeft: Radius.circular(8),
-                      topRight: Radius.circular(8),
-                    )
-                  : BorderRadius.circular(8),
+              borderRadius:
+                  asSheet
+                      ? const BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                        topRight: Radius.circular(8),
+                      )
+                      : BorderRadius.circular(8),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -109,8 +113,20 @@ class MenuPanel extends StatelessWidget {
             ),
           ),
           SizedBox(height: screenWidth > 400 ? 12 : 8),
-          ...children,
-          SizedBox(height: screenWidth > 400 ? 8 : 4),
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: asSheet ? MediaQuery.of(context).size.height * 0.8 : double.infinity,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ...children,
+                  SizedBox(height: screenWidth > 400 ? 8 : 4),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -154,7 +170,7 @@ class OptionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isCompact = screenWidth <= 400;
-    
+
     return Padding(
       padding: EdgeInsets.symmetric(vertical: isCompact ? 4 : 6),
       child: Row(
@@ -169,7 +185,7 @@ class OptionRow extends StatelessWidget {
                 SizedBox(width: isCompact ? 6 : 8),
                 Flexible(
                   child: Text(
-                    label, 
+                    label,
                     style: TextStyle(
                       color: Colors.white70,
                       fontSize: isCompact ? 13 : 14,
@@ -181,10 +197,7 @@ class OptionRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Flexible(
-            flex: isCompact ? 3 : 2,
-            child: trailing,
-          ),
+          Flexible(flex: isCompact ? 3 : 2, child: trailing),
         ],
       ),
     );
